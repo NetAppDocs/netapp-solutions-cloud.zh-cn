@@ -1,0 +1,157 @@
+---
+sidebar: sidebar 
+permalink: vmware/vmw-aws-vmc-setup.html 
+keywords: NetApp Solutions, amazon, aws, vmc, vmware managed cloud, enterprise, hybrid, cloud, config, configuration, 
+summary:  
+---
+= 在 AWS 上部署和配置虚拟化环境
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+与本地部署一样，规划 AWS 上的 VMware Cloud 对于成功创建虚拟机和迁移的生产就绪环境至关重要。
+
+本节介绍如何设置和管理 VMware Cloud on AWS SDDC，并将其与可用于连接NetApp存储的选项结合使用。
+
+
+NOTE: 目前，客户机内存储是将Cloud Volumes ONTAP (CVO) 连接到 AWS VMC 的唯一支持方法。
+
+设置过程可分为以下步骤：
+
+.部署和配置 VMware Cloud for AWS
+[%collapsible%open]
+====
+link:https://www.vmware.com/products/vmc-on-aws.html["AWS 上的 VMware Cloud"]为 AWS 生态系统中基于 VMware 的工作负载提供云原生体验。每个 VMware 软件定义数据中心 (SDDC) 都在 Amazon 虚拟私有云 (VPC) 中运行，并提供完整的 VMware 堆栈（包括 vCenter Server）、NSX-T 软件定义网络、vSAN 软件定义存储以及一个或多个为您的工作负载提供计算和存储资源的 ESXi 主机。
+
+本节介绍如何设置和管理 VMware Cloud on AWS，以及如何将其与具有客户机内存储的 AWS 上的Amazon FSx ONTAP和/或Cloud Volumes ONTAP结合使用。
+
+
+NOTE: 目前，客户机内存储是将Cloud Volumes ONTAP (CVO) 连接到 AWS VMC 的唯一支持方法。
+
+设置过程可分为三个部分：
+
+.注册 AWS 账户
+[%collapsible%open]
+=====
+注册link:https://aws.amazon.com/["亚马逊网络服务账户"]。
+
+您需要一个 AWS 账户才能开始使用（假设尚未创建）。无论是新的还是现有的，您都需要帐户的管理权限才能执行此过程中的许多步骤。看看这个link:https://docs.aws.amazon.com/general/latest/gr/aws-security-credentials.html["链接"]有关 AWS 凭证的更多信息。
+
+=====
+.注册 My VMware 帐户
+[%collapsible%open]
+=====
+注册link:https://customerconnect.vmware.com/home["我的 VMware"]帐户。
+
+要访问 VMware 的云产品组合（包括 AWS 上的 VMware Cloud），您需要一个 VMware 客户帐户或 My VMware 帐户。如果您尚未创建 VMware 帐户，请创建一个link:https://customerconnect.vmware.com/account-registration["此处"]。
+
+=====
+.在 VMware Cloud 中调配 SDDC
+[%collapsible%open]
+=====
+配置 VMware 帐户并执行适当的大小调整后，部署软件定义数据中心是使用 VMware Cloud on AWS 服务的下一步。要创建 SDDC，请选择一个 AWS 区域来托管它，为 SDDC 命名，并指定您希望 SDDC 包含多少个 ESXi 主机。如果您还没有 AWS 帐户，您仍然可以创建包含单个 ESXi 主机的入门配置 SDDC。
+
+. 使用现有或新创建的 VMware 凭据登录 VMware Cloud Console。
++
+image:aws-config-001.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 配置 AWS 区域、部署、主机类型以及 SDDC 名称：
++
+image:aws-config-002.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 连接到所需的 AWS 账户并执行 AWS Cloud Formation 堆栈。
++
+image:aws-config-003.png["该图显示输入/输出对话框或表示书面内容"] image:aws-config-004.png["该图显示输入/输出对话框或表示书面内容"] image:aws-config-005.png["该图显示输入/输出对话框或表示书面内容"] image:aws-config-006.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+
+NOTE: 本次验证采用单主机配置。
+
+. 选择所需的 AWS VPC 来连接 VMC 环境。
++
+image:aws-config-007.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 配置 VMC 管理子网；此子网包含 VMC 管理的服务，如 vCenter、NSX 等。不要选择与任何其他需要连接到 SDDC 环境的网络重叠的地址空间。最后，请遵循下面注明的 CIDR 大小的建议。
++
+image:aws-config-008.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 查看并确认 SDDC 配置，然后单击部署 SDDC。
++
+image:aws-config-009.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+部署过程通常需要大约两个小时才能完成。
+
++
+image:aws-config-010.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 完成后，SDDC 即可使用。
++
+image:aws-config-011.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+有关 SDDC 部署的分步指南，请参阅link:https://docs.vmware.com/en/VMware-Cloud-on-AWS/services/com.vmware.vmc-aws-operations/GUID-EF198D55-03E3-44D1-AC48-6E2ABA31FF02.html["从 VMC 控制台部署 SDDC"]。
+
+=====
+====
+.将 VMware Cloud 连接到 FSx ONTAP
+[%collapsible%open]
+====
+要将 VMware Cloud 连接到 FSx ONTAP，请完成以下步骤：
+
+. VMware Cloud 部署完成并连接到 AWS VPC 后，您必须将Amazon FSx ONTAP部署到新的 VPC 中，而不是原始连接的 VPC（参见下面的屏幕截图）。如果 FSx（NFS 和 SMB 浮动 IP）部署在连接的 VPC 中，则无法访问。请记住，像Cloud Volumes ONTAP这样的 ISCSI 端点在连接的 VPC 中可以正常工作。
++
+image:aws-connect-fsx-001.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在同一区域部署额外的 VPC，然后将Amazon FSx ONTAP部署到新的 VPC 中。
++
+VMware Cloud 控制台中的 SDDC 组配置启用了连接到部署 FSx 的新 VPC 所需的网络配置选项。在步骤 3 中，验证是否选中“为您的组配置 VMware Transit Connect 将产生每个附件和数据传输的费用”，然后选择“创建组”。该过程可能需要几分钟才能完成。
+
++
+image:aws-connect-fsx-002.png["该图显示输入/输出对话框或表示书面内容"] image:aws-connect-fsx-003.png["该图显示输入/输出对话框或表示书面内容"] image:aws-connect-fsx-004.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 将新创建的 VPC 附加到刚创建的 SDDC 组。选择外部 VPC 选项卡并按照link:https://docs.vmware.com/en/VMware-Cloud-on-AWS/services/com.vmware.vmc-aws-networking-security/GUID-A3D03968-350E-4A34-A53E-C0097F5F26A9.html["连接外部 VPC 的说明"]到群里。此过程可能需要 10 到 15 分钟才能完成。
++
+image:aws-connect-fsx-005.png["该图显示输入/输出对话框或表示书面内容"] image:aws-connect-fsx-006.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 作为外部 VPC 流程的一部分，您将通过 AWS 控制台通过资源访问管理器提示新的共享资源。共享资源是link:https://aws.amazon.com/transit-gateway["AWS Transit Gateway"]由 VMware Transit Connect 管理。
++
+image:aws-connect-fsx-007.png["该图显示输入/输出对话框或表示书面内容"] image:aws-connect-fsx-008.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 创建传输网关附件。
++
+image:aws-connect-fsx-009.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 返回 VMC 控制台，接受 VPC 附件。此过程大约需要 10 分钟才能完成。
++
+image:aws-connect-fsx-010.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在“外部 VPC”选项卡中，单击“路由”列中的编辑图标，并添加以下所需路由：
++
+** Amazon FSx ONTAP浮动 IP 范围的路由link:https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/supported-fsx-clients.html["浮动IP"]。
+** Cloud Volumes ONTAP的浮动 IP 范围的路由（如果适用）。
+** 新创建的外部 VPC 地址空间的路由。
++
+image:aws-connect-fsx-011.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+. 最后，允许双向流量link:https://docs.vmware.com/en/VMware-Cloud-on-AWS/services/com.vmware.vmc-aws-networking-security/GUID-A5114A98-C885-4244-809B-151068D6A7D7.html["防火墙规则"]用于访问 FSx/CVO。遵循这些link:https://docs.vmware.com/en/VMware-Cloud-on-AWS/services/com.vmware.vmc-aws-networking-security/GUID-DE330202-D63D-408A-AECF-7CDC6ADF7EAC.html["详细步骤"]用于 SDDC 工作负载连接的计算网关防火墙规则。
++
+image:aws-connect-fsx-012.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 为管理和计算网关配置防火墙组后，可以按如下方式访问 vCenter：
++
+image:aws-connect-fsx-013.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+下一步是验证是否根据您的要求配置了Amazon FSx ONTAP或Cloud Volumes ONTAP ，以及是否配置了卷以从 vSAN 卸载存储组件以优化部署。
+
+====

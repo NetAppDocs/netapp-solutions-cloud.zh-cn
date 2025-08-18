@@ -1,0 +1,42 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-op-data-migration.html 
+keywords: NetApp Solutions, redhat OpenShift, red hat OpenShift, redhat openshift container platform, ocp, openshift container platform, Advanced Cluster Management, ACM, Hub Cluster, containers, container workloads, VMware, customer managed storage, ONTAP 
+summary:  
+---
+= 使用Trident Protect 进行数据迁移
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+此页面显示了带有Trident Protect 的 Red Hat OpenShift 集群上的容器工作负载的数据迁移选项。
+
+Kubernetes 应用程序经常需要从一个环境移动到另一个环境。要迁移应用程序及其持久数据，可以使用NetApp Trident Protect。
+
+
+
+== 不同 Kubernetes 环境之间的数据迁移
+
+ACC 支持各种 Kubernetes 版本，包括 Google Anthos、Red Hat OpenShift、Tanzu Kubernetes Grid、Rancher Kubernetes Engine、Upstream Kubernetes 等。有关更多详细信息，请参阅link:https://docs.netapp.com/us-en/astra-control-center/get-started/requirements.html#supported-host-cluster-kubernetes-environments["此处"]。
+
+要将应用程序从一个群集迁移到另一个群集，可以使用 ACC 的以下功能之一：
+
+* **复制**
+* ** 备份和恢复 **
+* ** 克隆 **
+
+
+请参阅link:os-op-data-protection.html["数据保护部分"]用于**复制和备份和恢复**选项。
+
+参考link:https://docs.netapp.com/us-en/astra-control-center/use/clone-apps.html["此处"]有关**克隆**的更多详细信息。
+
+
+
+=== 使用 ACC 执行数据复制
+
+image:rhhc-onprem-dp-rep.png["Trident Protect 复制"]

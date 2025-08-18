@@ -1,0 +1,25 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-nas-basics.html 
+keywords: nas, basics, gcp, nfs, smb 
+summary: NAS 协议是网络上的多个客户端访问存储系统上的相同数据的方式，例如 GCP 上的Google Cloud NetApp Volumes 。  NFS 和 SMB 是定义的 NAS 协议，在客户端/服务器基础上运行，其中Google Cloud NetApp Volumes充当服务器。 
+---
+= NAS 协议基础知识
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+NAS 协议是网络上的多个客户端访问存储系统上的相同数据的方式，例如 GCP 上的Google Cloud NetApp Volumes 。 NFS 和 SMB 是定义的 NAS 协议，在客户端/服务器基础上运行，其中Google Cloud NetApp Volumes充当服务器。客户端向服务器发送访问、读取和写入请求，服务器负责协调文件的锁定机制、存储权限以及处理身份和身份验证请求。
+
+例如，如果 NAS 客户端想要在文件夹中创建新文件，则遵循以下一般流程。
+
+. 客户端向服务器询问有关目录的信息（权限、所有者、组、文件 ID、可用空间等）；如果请求的客户端和用户对父文件夹具有必要的权限，则服务器会响应该信息。
+. 如果目录的权限允许访问，客户端就会询问服务器正在创建的文件名是否已经存在于文件系统中。如果文件名已被使用，则创建失败。如果文件名不存在，服务器会让客户端知道可以继续。
+. 客户端向服务器发出调用，使用目录句柄和文件名创建文件，并设置访问和修改时间。服务器为文件发出唯一的文件 ID，以确保没有其他文件使用相同的文件 ID 创建。
+. 客户端在 WRITE 操作之前发送调用来检查文件属性。如果权限允许，客户端就会写入新文件。如果协议/应用程序使用了锁定，客户端会向服务器请求锁定，以防止其他客户端在锁定时访问文件，从而防止数据损坏。
+

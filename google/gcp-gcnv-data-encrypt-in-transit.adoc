@@ -1,0 +1,128 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-data-encrypt-in-transit.html 
+keywords: google cloud network, nas protocols, smb encryption, NFSv4.1 Kerberos 
+summary: 传输中的数据可以在 NAS 协议层加密，并且 Google Cloud 网络本身也经过加密，如以下部分所述。 
+---
+= 传输中的数据加密
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+传输中的数据可以在 NAS 协议层加密，并且 Google Cloud 网络本身也经过加密，如以下部分所述。
+
+
+
+== Google Cloud 网络
+
+Google Cloud 在网络级别加密流量，具体说明如下 https://cloud.google.com/security/encryption-in-transit["传输中加密"^]在 Google 文档中。正如“Google Cloud NetApp Volumes架构”部分所述， Google Cloud NetApp Volumes是由NetApp控制的 PSA 生产商项目提供的。
+
+对于NetApp Volumes-SW，生产者租户运行 Google VM 来提供服务。用户虚拟机和Google Cloud NetApp Volumes虚拟机之间的流量由 Google 自动加密。
+
+尽管NetApp Volumes-Performance 的数据路径在网络层上并未完全加密，但NetApp和 Google 结合使用 https://1.ieee802.org/security/802-1ae/["IEEE 802.1AE 加密 (MACSec)"^]， https://datatracker.ietf.org/doc/html/rfc2003["封装"^] （数据加密）和物理受限的网络来保护Google Cloud NetApp Volumes NetApp Volumes-Performance 服务类型和 Google Cloud 之间传输的数据。
+
+
+
+== NAS 协议
+
+NFS 和 SMB NAS 协议在协议层提供可选的传输加密。
+
+
+
+=== SMB 加密
+
+https://docs.microsoft.com/en-us/windows-server/storage/file-server/smb-security["SMB 加密"^]提供 SMB 数据的端到端加密，并保护数据免受不受信任网络上的窃听。您可以为客户端/服务器数据连接（仅适用于支持 SMB3.x 的客户端）和服务器/域控制器身份验证启用加密。
+
+启用 SMB 加密后，不支持加密的客户端无法访问共享。
+
+Google Cloud NetApp Volumes支持用于 SMB 加密的 RC4-HMAC、AES-128-CTS-HMAC-SHA1 和 AES-256-CTS-HMAC-SHA1 安全密码。  SMB 协商服务器支持的最高加密类型。
+
+
+
+=== NFSv4.1 Kerberos
+
+对于 NFSv4.1， NetApp Volumes-Performance 提供 Kerberos 身份验证，如 https://datatracker.ietf.org/doc/html/rfc7530["RFC7530"^]。您可以按卷启用 Kerberos。
+
+Kerberos 目前最强大的加密类型是 AES-256-CTS-HMAC-SHA1。 Google Cloud NetApp Volumes支持 NFS 的 AES-256-CTS-HMAC-SHA1、AES-128-CTS-HMAC-SHA1、DES3 和 DES。它还支持 CIFS/SMB 流量的 ARCFOUR-HMAC (RC4)，但不支持 NFS。
+
+Kerberos 为 NFS 挂载提供了三种不同的安全级别，可供您选择 Kerberos 安全性的强度。
+
+根据 RedHat 的 https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/storage_administration_guide/s1-nfs-client-config-options["常见安装选项"^]文档：
+
+....
+sec=krb5 uses Kerberos V5 instead of local UNIX UIDs and GIDs to authenticate users.
+sec=krb5i uses Kerberos V5 for user authentication and performs integrity checking of NFS operations using secure checksums to prevent data tampering.
+sec=krb5p uses Kerberos V5 for user authentication, integrity checking, and encrypts NFS traffic to prevent traffic sniffing. This is the most secure setting, but it also involves the most performance overhead.
+....
+一般来说，Kerberos 安全级别要做的工作越多，性能就越差，因为客户端和服务器要花时间对发送的每个数据包进行加密和解密 NFS 操作。许多客户端和 NFS 服务器都支持将 AES-NI 卸载到 CPU 以获得更好的整体体验，但 Kerberos 5p（完全端到端加密）对性能的影响明显大于 Kerberos 5（用户身份验证）的影响。
+
+下表显示了每个级别在安全性和性能方面的差异。
+
+|===
+| 安全级别 | 安全性 | 性能 
+
+
+| NFSv3—系统  a| 
+* 最不安全；带有数字用户 ID/组 ID 的纯文本
+* 能够在数据包捕获中查看UID、GID、客户端IP地址、导出路径、文件名、权限
+
+ a| 
+* 最适合大多数情况
+
+
+
+
+| NFSv4.x—系统  a| 
+* 比 NFSv3 更安全（客户端 ID、名称字符串/域字符串匹配），但仍然是纯文本
+* 能够查看数据包捕获中的 UID、GID、客户端 IP 地址、名称字符串、域 ID、导出路径、文件名、权限
+
+ a| 
+* 适用于顺序工作负载（例如虚拟机、数据库、大文件）
+* 文件数量多/元数据多时效果不佳（差 30-50%）
+
+
+
+
+| NFS—krb5  a| 
+* 对每个 NFS 数据包中的凭证进行 Kerberos 加密 - 在 GSS 包装器中包装 RPC 调用中用户/组的 UID/GID
+* 请求访问挂载的用户需要有效的 Kerberos 票证（通过用户名/密码或手动密钥标签交换）；票证在指定时间段后过期，用户必须重新进行身份验证才能访问
+* NFS 操作或辅助协议（如 mount/portmapper/nlm）没有加密（可以在数据包捕获中查看导出路径、IP 地址、文件句柄、权限、文件名、atime/mtime）
+
+ a| 
+* 在大多数情况下，Kerberos 是最好的；比 AUTH_SYS 差
+
+
+
+
+| NFS—krb5i  a| 
+* 对每个 NFS 数据包中的凭证进行 Kerberos 加密 - 在 GSS 包装器中包装 RPC 调用中用户/组的 UID/GID
+* 请求访问挂载的用户需要有效的 Kerberos 票证（通过用户名/密码或手动密钥标签交换）；票证在指定时间段后过期，用户必须重新进行身份验证才能访问
+* NFS 操作或辅助协议（如 mount/portmapper/nlm）没有加密（可以在数据包捕获中查看导出路径、IP 地址、文件句柄、权限、文件名、atime/mtime）
+* 每个数据包都添加了 Kerberos GSS 校验和，以确保没有任何东西拦截数据包。如果校验和匹配，则允许对话。
+
+ a| 
+* 比 krb5p 更好，因为 NFS 有效负载未加密；与 krb5 相比唯一增加的开销是完整性校验和。  krb5i 的性能不会比 krb5 差太多，但会有一些下降。
+
+
+
+
+| NFS – krb5p  a| 
+* 对每个 NFS 数据包中的凭证进行 Kerberos 加密 - 在 GSS 包装器中包装 RPC 调用中用户/组的 UID/GID
+* 请求访问挂载的用户需要有效的 Kerberos 票证（通过用户名/密码或手动密钥表交换）；票证在指定时间段后过期，用户必须重新进行身份验证才能访问
+* 所有 NFS 数据包有效负载都使用 GSS 包装器加密（在数据包捕获中看不到文件句柄、权限、文件名、atime/mtime）。
+* 包括完整性检查。
+* NFS 操作类型可见（FSINFO、ACCESS、GETATTR 等）。
+* 辅助协议（mount、portmap、nlm 等）未加密 - （可以看到导出路径、IP 地址）
+
+ a| 
+* 安全级别性能最差；krb5p 必须进行更多加密/解密。
+* 对于高文件数工作负载，性能比使用 NFSv4.x 的 krb5p 更好。
+
+
+|===
+在Google Cloud NetApp Volumes中，配置的 Active Directory 服务器用作 Kerberos 服务器和 LDAP 服务器（从 RFC2307 兼容模式中查找用户身份）。不支持其他 Kerberos 或 LDAP 服务器。 NetApp强烈建议您在Google Cloud NetApp Volumes中使用 LDAP 进行身份管理。有关 NFS Kerberos 在数据包捕获中如何显示的信息，请参阅部分 link:gcp-gcnv-arch-detail.html#Packet sniffing/trace considers["Packet sniffing/trace considers."]

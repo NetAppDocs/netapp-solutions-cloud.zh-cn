@@ -1,0 +1,20 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-nas-overview.html 
+keywords: nas, nfs, smb, cifs 
+summary: NAS 协议包括 NFS（v3 和 v4.1）和 SMB/CIFS（2.x 和 3.x）。这些协议是NetApp Volumes 允许跨多个 NAS 客户端共享访问数据的方式。此外， Google Cloud NetApp Volumes可以同时提供对 NFS 和 SMB/CIFS 客户端的访问（双协议），同时遵守 NAS 共享中文件和文件夹的所有身份和权限设置。 
+---
+= NAS 协议概述
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+NAS 协议包括 NFS（v3 和 v4.1）和 SMB/CIFS（2.x 和 3.x）。这些协议是NetApp Volumes 允许跨多个 NAS 客户端共享访问数据的方式。此外， Google Cloud NetApp Volumes可以同时提供对 NFS 和 SMB/CIFS 客户端的访问（双协议），同时遵守 NAS 共享中文件和文件夹的所有身份和权限设置。为了保持最高的数据传输安全性， Google Cloud NetApp Volumes支持使用 SMB 加密和 NFS Kerberos 5p 进行飞行中的协议加密。
+
+
+NOTE: 双协议仅适用于NetApp Volumes-Performance。

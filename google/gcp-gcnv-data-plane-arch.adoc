@@ -1,0 +1,35 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-data-plane-arch.html 
+keywords: cloud volumes service, google cloud, service networking, vpc peering 
+summary: Google Cloud NetApp Volumes for Google Cloud 利用 Google Cloud 私有服务访问框架。在这个框架中，用户可以连接到Google Cloud NetApp Volumes。该框架像其他 Google Cloud 服务一样使用服务网络和 VPC 对等结构，确保租户之间的完全隔离。 
+---
+= 数据平面架构
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Google Cloud NetApp Volumes for Google Cloud 利用 Google Cloud https://cloud.google.com/vpc/docs/configure-private-services-access["私人服务访问"^]框架。在这个框架中，用户可以连接到Google Cloud NetApp Volumes。该框架像其他 Google Cloud 服务一样使用服务网络和 VPC 对等结构，确保租户之间的完全隔离。
+
+有关Google Cloud NetApp Volumes for Google Cloud 的架构概述，请参阅 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/architecture["Google Cloud NetApp Volumes的架构"^]。
+
+用户 VPC（独立或共享）与托管卷的Google Cloud NetApp Volumes管理租户项目内的 VPC 对等。
+
+image:ncvs-gc-005.png["该图显示输入/输出对话框或表示书面内容"]
+
+上图展示了一个项目（中间的NetApp Volumes 消费者项目），其中有三个 VPC 网络连接到Google Cloud NetApp Volumes ，并且多个 Compute Engine VM（GCE1-7）共享卷：
+
+* VPC1 允许 GCE1 访问卷 A 和 B。
+* VPC2 允许 GCE2 和 GCE4 访问卷 C。
+* 第三个VPC网络是共享VPC，由两个服务项目共享。它允许 GCE3、GCE4、GCE5 和 GCE6 访问卷 D 和 E。共享 VPC 网络仅支持NetApp Volumes-Performance 服务类型的卷。
+
+
+
+NOTE: GCE7 无法访问任何卷。
+
+数据可以在Google Cloud NetApp Volumes中传输（使用 Kerberos 和/或 SMB 加密）和静止时进行加密。

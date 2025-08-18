@@ -1,0 +1,76 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-dp-velero-backup.html 
+keywords: OpenShift, OCP, Trident, NetApp ONTAP, Red Hat OpenShift, OADP operator, Openshift Data Protection Application operator, Velero 
+summary: Red Hat OpenShift 容器应用程序数据保护与NetApp ONTAP 
+---
+= 在 OpenShift Container Platform 中为应用程序创建按需备份
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+本节概述如何在 OpenShift Virtualization 中为虚拟机创建按需备份。
+
+
+
+== 创建应用程序备份的步骤
+
+要创建应用程序的按需备份（应用程序元数据和应用程序的持久卷），请单击**备份**选项卡以创建备份自定义资源（CR）。提供了一个示例 yaml 来创建备份 CR。使用此 yaml，将备份指定命名空间中的应用程序及其持久存储。可以设置其他参数，如下所示link:https://docs.openshift.com/container-platform/4.14/backup_and_restore/application_backup_and_restore/backing_up_and_restoring/oadp-creating-backup-cr.html["文档"]。
+
+CSI 将创建指定命名空间中的持久卷和应用程序资源的快照。此快照将存储在 yaml 中指定的备份位置。备份将按照 ttl 的规定在系统中保留 30 天。
+
+....
+spec:
+  csiSnapshotTimeout: 10m0s
+  defaultVolumesToFsBackup: false
+  includedNamespaces:
+    - postgresql ->namespace of the app
+  itemOperationTimeout: 4h0m0s
+  snapshotMoveData: false
+  storageLocation: velero-container-backup-ontap-1 -->this is the backupStorageLocation previously created when Velero is configured.
+  ttl: 720h0m0s
+....
+备份完成后，其阶段将显示为已完成。
+
+image:redhat-openshift-oadp-backup-001.png["备份完成"]
+
+您可以借助 S3 浏览器应用程序检查对象存储中的备份。备份路径显示在配置的存储桶中，前缀名称为（velero/container-demo-backup）。您可以看到备份的内容包括卷快照、日志和应用程序的其他元数据。
+
+
+NOTE: 在 StorageGrid 中，您还可以使用租户管理器提供的 S3 控制台来查看备份对象。
+
+image:redhat-openshift-oadp-backup-002.png["S3 中的备份对象"]
+
+
+
+== 为应用程序创建计划备份
+
+要按计划创建备份，您需要创建计划 CR。该计划只是一个 Cron 表达式，允许您指定要创建备份的时间。下面显示了创建 Schedule CR 的示例 yaml。
+
+....
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: schedule1
+  namespace: openshift-adp
+spec:
+  schedule: 0 7 * * *
+  template:
+    includedNamespaces:
+      - postgresql
+    storageLocation: velero-container-backup-ontap-1
+....
+Cron表达式 0 7 * * * 表示每天7:00创建备份。还指定了要包含在备份中的命名空间和备份的存储位置。因此，不是使用备份 CR，而是使用计划 CR 在指定的时间和频率创建备份。
+
+一旦创建了计划，它将被启用。
+
+image:redhat-openshift-oadp-backup-003.png["已创建计划"]
+
+备份将根据此计划创建，并可从“备份”选项卡中查看。
+
+image:redhat-openshift-oadp-backup-004.png["计划备份已完成"]

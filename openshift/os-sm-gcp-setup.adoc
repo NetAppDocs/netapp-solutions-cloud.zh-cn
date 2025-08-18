@@ -1,0 +1,77 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-sm-gcp-setup.html 
+keywords: NetApp Solutions, redhat OpenShift, red hat OpenShift, redhat openshift container platform, ocp, openshift container platform, Advanced Cluster Management, ACM, Hub Cluster, containers, container workloads, VMware, customer managed storage, ONTAP, Google Cloud Platform, Google Cloud, GCP 
+summary:  
+---
+= 在 Google Cloud 上部署和配置 Red Hat OpenShift 容器平台
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+本节介绍了如何在 GCP 中设置和管理 OpenShift 集群以及在其上部署有状态应用程序的高级工作流程。它展示了如何使用Google Cloud NetApp Volumes和NetApp Cloud Volumes ONTAP存储在Trident的帮助下提供持久卷。
+
+下图显示了在 GCP 上部署并使用 VPN 连接到数据中心的集群。
+
+image:rhhc-self-managed-gcp.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+NOTE: 在 GCP 中部署 Red Hat OpenShift Container 平台集群有多种方法。此设置的高级描述提供了所使用的特定方法的文档链接。您可以参考link:os-solutions-resources.html["资源部分"]。
+
+设置过程可分为以下步骤：
+
+.从 CLI 在 GCP 上安装 OCP 集群
+* 确保您已满足所有规定的先决条件link:https://docs.openshift.com/container-platform/4.13/installing/installing_gcp/installing-gcp-default.html["此处"]。
+* 为了实现本地和 GCP 之间的 VPN 连接，我们创建并配置了一个 pfSense VM。有关说明，请参阅 https://docs.netgate.com/pfsense/en/latest/recipes/ipsec-s2s-psk.html["此处"]。
++
+** 只有在 Google Cloud Platform 中创建 VPN 网关后，才能配置 pfSense 中的远程网关地址。
+** 只有在 OpenShift 集群安装程序运行并创建集群的基础架构组件后，才能配置第 2 阶段的远程网络 IP 地址。
+** 只有在安装程序创建集群的基础架构组件后，才能配置 Google Cloud 中的 VPN。
+
+
+* 现在在 GCP 上安装 OpenShift 集群。
++
+** 获取安装程序和pull secret，按照文档提供的步骤部署集群 https://docs.openshift.com/container-platform/4.13/installing/installing_gcp/installing-gcp-default.html["此处"]。
+** 安装在 Google Cloud Platform 中创建一个 VPC 网络。它还在 Cloud DNS 中创建一个私有区域并添加 A 记录。
++
+*** 使用VPC网络的CIDR块地址配置pfSense并建立VPN连接。确保防火墙设置正确。
+*** 使用 Google Cloud DNS 的 A 记录中的 IP 地址在本地环境的 DNS 中添加 A 记录。
+
+
+** 集群安装完成，会提供一个kubeconfig文件以及登录集群控制台的用户名和密码。
+
+
+
+
+.部署Google Cloud NetApp Volumes
+* 可以按照概述将Google Cloud NetApp Volumes添加到您的项目中link:https://cloud.google.com/netapp/volumes/docs/discover/overview["此处"]。
+
+
+.使用BlueXP在 GCP 中部署Cloud Volumes ONTAP
+* 在 Google Cloud 中安装连接器。参考说明 https://docs.netapp.com/us-en/bluexp-setup-admin/task-install-connector-google-bluexp-gcloud.html["此处"]。
+* 使用连接器在 Google Cloud 中部署 CVO 实例。请参阅此处的说明。 https://docs.netapp.com/us-en/bluexp-cloud-volumes-ontap/task-getting-started-gcp.html[]
+
+
+.在 GCP 中的 OCP 集群中安装Trident
+* 部署Trident 的方法有很多，如下所示 https://docs.netapp.com/us-en/trident/trident-get-started/kubernetes-deploy.html["此处"]。
+* 对于这个项目， Trident是通过按照说明手动部署Trident Operator 来安装的 https://docs.netapp.com/us-en/trident/trident-get-started/kubernetes-deploy-operator.html["此处"]。
+* 创建后端和存储类。参考说明link:https://docs.netapp.com/us-en/trident/trident-use/backends.html["此处"]。
+
+
+.使用Trident的 CSI 拓扑功能实现多区域架构
+如今，云提供商使 Kubernetes/OpenShift 集群管理员能够生成基于区域的集群节点。节点可以位于一个区域内的不同可用区，也可以跨多个区域。为了方便在多区域架构中为工作负载配置卷， Trident使用了 CSI 拓扑。使用 CSI 拓扑功能，可以根据区域和可用区域将对卷的访问限制到节点子集。参考link:https://docs.netapp.com/us-en/trident/trident-use/csi-topology.html["此处"]了解更多详细信息。
+
+
+NOTE: Kubernetes 支持两种卷绑定模式： - 当 **_VolumeBindingMode_ 设置为 _Immediate_**（默认）时， Trident会在没有任何拓扑感知的情况下创建卷。持久卷的创建不依赖于请求 pod 的调度要求。 - 当 **_VolumeBindingMode_ 设置为 _WaitForFirstConsumer_** 时，PVC 的持久卷的创建和绑定将被延迟，直到使用该 PVC 的 pod 被调度和创建。这样，就可以创建卷来满足拓扑要求所强制执行的调度约束。 Trident存储后端可以设计为根据可用区域（拓扑感知后端）选择性地配置卷。对于使用此类后端的 StorageClasses，只有在受支持的区域/区域中调度的应用程序请求时才会创建卷。  （拓扑感知 StorageClass）参考link:https://docs.netapp.com/us-en/trident/trident-use/csi-topology.html["此处"]了解更多详细信息。
+
+[下划线]#*演示视频*#
+
+.在 Google Cloud Platform 上安装 OpenShift 集群
+video::4efc68f1-d37f-4cdd-874a-b09700e71da9[panopto,width=360]
+.将 OpenShift 集群导入Trident Protect
+video::57b63822-6bf0-4d7b-b844-b09700eac6ac[panopto,width=360]

@@ -1,0 +1,72 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-control-plane-arch.html 
+keywords: identity, access, management, authorization, permission, service accounts, cloud volumes service api, jwt tokens 
+summary: 对Google Cloud NetApp Volumes 的所有管理操作均通过 API 完成。集成到 GCP Cloud Console 中的Google Cloud NetApp Volumes管理也使用Google Cloud NetApp Volumes API。 
+---
+= 控制平面架构
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+对Google Cloud NetApp Volumes 的所有管理操作均通过 API 完成。集成到 GCP Cloud Console 中的Google Cloud NetApp Volumes管理也使用Google Cloud NetApp Volumes API。
+
+
+
+== 身份和访问管理
+
+身份和访问管理(https://cloud.google.com/iam/docs/overview["我是"^]) 是一项标准服务，可让您控制对 Google Cloud 项目实例的身份验证（登录）和授权（权限）。 Google IAM 提供权限授权和删除的完整审计跟踪。目前， Google Cloud NetApp Volumes不提供控制平面审计。
+
+
+
+=== 授权/许可概述
+
+IAM 为Google Cloud NetApp Volumes提供内置的细粒度权限。您可以找到 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/security-considerations?hl=en_US["此处有详细的权限完整列表"^]。
+
+IAM 还提供了两个预定义角色，称为 `netappcloudvolumes.admin`和 `netappcloudvolumes.viewer`。这些角色可以分配给特定用户或服务帐户。
+
+分配适当的角色和权限以允许 IAM 用户管理Google Cloud NetApp Volumes。
+
+使用细粒度权限的示例包括：
+
+* 构建仅具有获取/列出/创建/更新权限的自定义角色，以便用户无法删除卷。
+* 使用仅具有 `snapshot.*`创建用于构建应用程序一致的快照集成的服务帐户的权限。
+* 构建自定义角色以进行委派 `volumereplication.*`针对特定用户。
+
+
+
+
+=== 服务帐户
+
+通过脚本Google Cloud NetApp Volumes https://registry.terraform.io/providers/NetApp/netapp-gcp/latest/docs["地形"^]，您必须使用 `roles/netappcloudvolumes.admin`角色。您可以使用此服务帐户以两种不同的方式生成验证Google Cloud NetApp Volumes API 请求所需的 JWT 令牌：
+
+* 生成 JSON 密钥并使用 Google API 从中派生出 JWT 令牌。这是最简单的方法，但它涉及手动机密（JSON 密钥）管理。
+* 使用 https://cloud.google.com/iam/docs/impersonating-service-accounts["服务帐户模拟"^]和 `roles/iam.serviceAccountTokenCreator`。代码（脚本、Terraform 等）运行 https://google.aip.dev/auth/4110["应用程序默认凭证"^]并模拟服务帐户以获取其权限。这种方法体现了 Google 安全最佳实践。
+
+
+看 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/api?hl=en_US["创建您的服务帐户和私钥"^]请参阅 Google 云文档以获取更多信息。
+
+
+
+== Google Cloud NetApp VolumesAPI
+
+Google Cloud NetApp Volumes API 使用基于 REST 的 API，并使用 HTTPS（TLSv1.2）作为底层网络传输。您可以找到最新的 API 定义 https://cloudvolumesgcp-api.netapp.com/swagger.json["此处"^]以及如何使用 API 的信息 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/api?hl=en_US["Google 云文档中的 Cloud Volumes API"^]。
+
+NetApp使用标准 HTTPS（TLSv1.2）功能来操作和保护 API 端点。
+
+
+
+=== JWT 令牌
+
+使用 JWT 承载令牌执行 API 身份验证(https://datatracker.ietf.org/doc/html/rfc7519["RFC-7519"^]）。必须使用 Google Cloud IAM 身份验证获取有效的 JWT 令牌。这必须通过提供服务帐户 JSON 密钥从 IAM 获取令牌来完成。
+
+
+
+== 审计日志
+
+目前，没有可供用户访问的控制平面审计日志。

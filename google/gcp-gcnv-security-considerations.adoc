@@ -1,0 +1,179 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-security-considerations.html 
+keywords: secure logins, cluster administration, upgrades, data at-rest, mitigation 
+summary: 了解如何保护数据的第一步是识别风险和潜在的攻击面。 
+---
+= 安全考虑和攻击面
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+了解如何保护数据的第一步是识别风险和潜在的攻击面。
+
+这些包括（但不限于）以下内容：
+
+* 管理和登录
+* 静态数据
+* 飞行中的数据
+* 网络和防火墙
+* 勒索软件、恶意软件和病毒
+
+
+了解攻击面可以帮助您更好地保护您的环境。  Google Cloud 中的Google Cloud NetApp Volumes已经考虑了许多此类主题，并默认实现了安全功能，无需任何管理交互。
+
+
+
+== 确保安全登录
+
+在保护关键基础设施组件时，必须确保只有经过批准的用户才能登录和管理您的环境。如果不法分子破坏了您的管理凭证，那么他们就拥有了城堡的钥匙，可以做任何他们想做的事情 - 更改配置、删除卷和备份、创建后门或禁用快照计划。
+
+Google Cloud NetApp Volumes for Google Cloud 通过混淆存储即服务 (StaaS) 来防止未经授权的管理登录。 Google Cloud NetApp Volumes完全由云提供商维护，无法从外部登录。所有设置和配置操作都是完全自动化的，因此除了极少数情况外，人工管理员无需与系统进行交互。
+
+如果需要登录，Google Cloud 中的Google Cloud NetApp Volumes通过维护一个有权登录系统的受信任管理员的极短列表来确保登录安全。这种把关有助于减少有访问权限的潜在不良行为者的数量。此外，Google Cloud 网络将系统隐藏在多层网络安全之后，只向外界公开所需的内容。有关 Google Cloud、 Google Cloud NetApp Volumes架构的信息，请参阅link:gcp-gcnv-arch-detail.html["Google Cloud NetApp Volumes架构。"]
+
+
+
+== 集群管理和升级
+
+存在潜在安全风险的两个领域包括集群管理（如果不良行为者拥有管理员访问权限会发生什么情况）和升级（如果软件映像被泄露会发生什么情况）。
+
+
+
+=== 存储管理保护
+
+作为服务提供的存储通过删除云数据中心之外的最终用户的访问权限，消除了管理员面临的额外风险。相反，唯一完成的配置是针对客户的数据访问平面。每个租户管理自己的卷，并且没有租户可以访问其他Google Cloud NetApp Volumes实例。该服务由自动化管理，只有极少数受信任的管理员可以通过本节介绍的流程访问系统link:gcp-gcnv-service-operation.html["服務運作。"]
+
+NetApp Volumes-Performance 服务类型提供跨区域复制选项，以便在发生区域故障时为不同区域提供数据保护。在这些情况下， Google Cloud NetApp Volumes可以故障转移到未受影响的区域以维持数据访问。
+
+
+
+=== 服务升级
+
+更新有助于保护易受攻击的系统。每次更新都提供安全性增强和错误修复，以最大限度地减少攻击面。软件更新从集中式存储库下载，并在允许更新之前进行验证，以验证是否使用了官方映像以及升级是否未被不良行为者破坏。
+
+使用Google Cloud NetApp Volumes，更新由云提供商团队处理，通过提供精通配置和升级的专家（这些专家已经对流程进行了自动化和全面测试），从而消除了管理员团队的风险敞口。升级不会造成中断，并且Google Cloud NetApp Volumes会维护最新更新以获得最佳整体效果。
+
+有关执行这些服务升级的管理员团队的信息，请参阅link:gcp-gcnv-service-operation.html["服務運作。"]
+
+
+
+== 保护静态数据
+
+当磁盘被盗、被退回或被重新利用时，静态数据加密对于保护敏感数据非常重要。  Google Cloud NetApp Volumes中的数据通过使用基于软件的加密进行静态保护。
+
+* Google 生成的密钥用于NetApp Volumes-SW。
+* 对于NetApp Volumes-Performance，每个卷的密钥都存储在Google Cloud NetApp Volumes内置的密钥管理器中，该管理器使用NetApp ONTAP CryptoMod 生成 AES-256 加密密钥。 CryptoMod 列在 CMVP FIPS 140-2 验证模块列表中。看 https://csrc.nist.gov/projects/cryptographic-module-validation-program/certificate/4144["FIPS 140-2 证书 #4144"^]。
+
+
+从 2021 年 11 月开始，预览版客户管理加密 (CMEK) 功能已为NetApp Volumes-Performance 提供。此功能允许您使用托管在 Google 密钥管理服务 (KMS) 中的每个项目、每个区域的主密钥加密每个卷的密钥。  KMS 使您能够附加外部密钥管理器。
+
+有关如何为NetApp Volumes-Performance 配置 KMS 的详细信息， https://cloud.google.com/architecture/partners/netapp-cloud-volumes/customer-managed-keys?hl=en_US["请参阅Google Cloud NetApp Volumes文档"^] 。
+
+有关架构的更多信息，请参阅link:gcp-gcnv-arch-detail.html["Google Cloud NetApp Volumes架构。"]
+
+
+
+=== 确保传输中的数据安全
+
+除了保护静态数据之外，您还必须能够保护在Google Cloud NetApp Volumes实例和客户端或复制目标之间传输的数据。  Google Cloud NetApp Volumes使用加密方法（例如使用 Kerberos 的 SMB 加密、数据包的签名/密封以及用于数据传输端到端加密的 NFS Kerberos 5p）为通过 NAS 协议传输的数据提供加密。
+
+Google Cloud NetApp Volumes卷的复制使用 TLS 1.2，它利用了 AES-GCM 加密方法。
+
+大多数不安全的运行中协议（如 telnet、NDMP 等）默认都是禁用的。但是，DNS 并未由Google Cloud NetApp Volumes加密（不支持 DNS Sec），因此应尽可能使用外部网络加密进行加密。请参阅link:gcp-gcnv-data-encrypt-in-transit.html["传输中的数据加密"]有关保护传输中数据的更多信息。
+
+有关 NAS 协议加密的信息，请参阅link:gcp-gcnv-data-encrypt-in-transit.html#nas-protocols["NAS 协议。"]
+
+
+
+== NAS 权限的用户和组
+
+保护云中数据安全的一部分涉及正确的用户和组身份验证，其中访问数据的用户被验证为环境中的真实用户，并且组包含有效用户。这些用户和组提供初始共享和导出访问权限，以及存储系统中文件和文件夹的权限验证。
+
+Google Cloud NetApp Volumes使用基于标准 Active Directory 的 Windows 用户和组身份验证来实现 SMB 共享和 Windows 风格的权限。该服务还可以利用 UNIX 身份提供程序，例如用于 UNIX 用户和组的 LDAP，以进行 NFS 导出、NFSv4 ID 验证、Kerberos 身份验证和 NFSv4 ACL。
+
+
+NOTE: 目前， Google Cloud NetApp Volumes仅支持 Active Directory LDAP 的 LDAP 功能。
+
+
+
+== 检测、预防和缓解勒索软件、恶意软件和病毒
+
+勒索软件、恶意软件和病毒对管理员来说是一个持续的威胁，检测、预防和缓解这些威胁始终是企业组织的首要任务。针对关键数据集的一次勒索软件事件就可能造成数百万美元的损失，因此尽最大努力将风险降至最低是有益的。
+
+尽管Google Cloud NetApp Volumes目前不包含原生检测或预防措施，例如防病毒保护或 https://www.netapp.com/blog/prevent-ransomware-spread-ONTAP/["自动勒索软件检测"^]，可以通过启用定期快照计划来快速从勒索软件事件中恢复。快照副本是不可变的，并且只读取文件系统中更改块的指针，接近即时的，对性能的影响极小，并且仅在数据更改或删除时才会占用空间。您可以设置 Snapshot 副本的计划以匹配所需的可接受恢复点目标 (RPO)/恢复时间目标 (RTO)，并且每个卷最多可保留 1,024 个 Snapshot 副本。
+
+Google Cloud NetApp Volumes提供免费的快照支持（除了 Snapshot 副本保留的更改块/数据的数据存储费用之外），并且在发生勒索软件攻击时，可用于回滚到攻击发生之前的 Snapshot 副本。快照恢复只需几秒钟即可完成，然后您就可以恢复正常提供数据。有关更多信息，请参阅 https://www.netapp.com/pdf.html?item=/media/16716-sb-3938pdf.pdf&v=202093745["NetApp勒索软件解决方案"^] 。
+
+防止勒索软件影响您的业务需要采取多层次的方法，包括以下一项或多项措施：
+
+* 端点保护
+* 通过网络防火墙防御外部威胁
+* 数据异常检测
+* 关键数据集的多重备份（现场和异地）
+* 定期对备份进行恢复测试
+* 不可变的只读NetApp Snapshot 副本
+* 关键基础设施的多因素身份验证
+* 系统登录安全审计
+
+
+此列表远非详尽无遗，但在处理潜在的勒索软件攻击时，它是一个很好的蓝图。  Google Cloud 中的Google Cloud NetApp Volumes提供了多种方法来防范勒索软件事件并减少其影响。
+
+
+
+=== 不可变的 Snapshot 副本
+
+Google Cloud NetApp Volumes本身提供不可变的只读 Snapshot 副本，这些副本按照可自定义的时间表进行，以便在数据删除或整个卷受到勒索软件攻击时快速进行时间点恢复。  Snapshot 恢复到以前的良好 Snapshot 副本速度很快，并且可以根据 Snapshot 计划和 RTO/RPO 的保留期最大限度地减少数据丢失。  Snapshot 技术对性能的影响微乎其微。
+
+由于Google Cloud NetApp Volumes中的 Snapshot 副本是只读的，因此它们不会被勒索软件感染，除非勒索软件在不知不觉中扩散到数据集中，并且已经从受勒索软件感染的数据中获取了 Snapshot 副本。这就是为什么您还必须考虑基于数据异常的勒索软件检测。  Google Cloud NetApp Volumes目前不提供原生检测，但您可以使用外部监控软件。
+
+
+
+=== 备份和恢复
+
+Google Cloud NetApp Volumes提供标准 NAS 客户端备份功能（例如通过 NFS 或 SMB 进行备份）。
+
+* NetApp Volumes-Performance 提供跨区域卷复制到其他NetApp Volumes-Performance 卷的功能。有关详细信息，请参阅 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/volume-replication?hl=en_US["卷复制"^]在Google Cloud NetApp Volumes文档中。
+* NetApp Volumes-SW 提供服务原生卷备份/恢复功能。有关详细信息，请参阅 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/back-up?hl=en_US["云备份"^]在Google Cloud NetApp Volumes文档中。
+
+
+卷复制提供了源卷的精确副本，以便在发生灾难（包括勒索软件事件）时实现快速故障转移。
+
+
+
+=== 跨区域复制
+
+NetApp Volumes-Performance 使您能够在NetApp控制的后端服务网络上使用 TLS1.2 AES 256 GCM 加密，使用在 Google 网络上运行的用于复制的特定接口，安全地跨 Google Cloud 区域复制卷以进行数据保护和存档用例。主（源）卷包含活动生产数据，并复制到辅助（目标）卷以提供主数据集的精确副本。
+
+初始复制传输所有块，但更新仅传输主卷中更改的块。例如，如果将位于主卷上的 1TB 数据库复制到辅助卷，则在初始复制时会传输 1TB 的空间。如果该数据库在初始化和下次更新之间有几百行（假设几 MB）发生变化，则只有包含已更改行的块才会复制到辅助数据库（几 MB）。这有助于确保传输时间保持较低水平并降低复制费用。
+
+文件和文件夹的所有权限都复制到辅助卷，但共享访问权限（例如导出策略和规则或 SMB 共享和共享 ACL）必须单独处理。在发生站点故障转移的情况下，目标站点应利用相同的名称服务和 Active Directory 域连接来提供对用户和组身份和权限的一致处理。您可以通过中断复制关系（将辅助卷转换为读写关系）在发生灾难时将辅助卷用作故障转移目标。
+
+卷副本是只读的，它提供了异地数据的不可变副本，以便在病毒感染数据或勒索软件加密主数据集的情况下快速恢复数据。只读数据不会被加密，但是，如果主卷受到影响并发生复制，则受感染的块也会复制。您可以使用较旧的、未受影响的 Snapshot 副本进行恢复，但根据检测到攻击的速度，SLA 可能会超出承诺的 RTO/RPO 范围。
+
+此外，您还可以利用 Google Cloud 中的跨区域复制 (CRR) 管理来防止恶意管理操作，例如卷删除、快照删除或快照计划更改。这是通过创建自定义角色来实现的，这些自定义角色将卷管理员（可以删除源卷但不能破坏镜像，因此不能删除目标卷）与 CRR 管理员（不能执行任何卷操作）分开。看 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/security-considerations?hl=en_US["安全注意事项"^]在Google Cloud NetApp Volumes文档中了解每个管理员组允许的权限。
+
+
+
+=== Google Cloud NetApp Volumes备份
+
+尽管Google Cloud NetApp Volumes提供了高数据持久性，但外部事件可能会导致数据丢失。如果发生病毒或勒索软件等安全事件，备份和恢复对于及时恢复数据访问至关重要。管理员可能会意外删除Google Cloud NetApp Volumes卷。或者用户只是想将其数据的备份版本保留数月，而保留卷内的额外 Snapshot 副本空间则成为一项成本挑战。尽管 Snapshot 副本应该是保留过去几周的备份版本以从中恢复丢失数据的首选方式，但它们位于卷内，如果卷消失，它们也会丢失。
+
+出于所有这些原因， Google Cloud NetApp Volumes通过以下方式提供备份服务 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/back-up?hl=en_US["Google Cloud NetApp Volumes备份"^]。
+
+Google Cloud NetApp Volumes备份会在 Google Cloud Storage (GCS) 上生成该卷的副本。它仅备份卷内存储的实际数据，而不是可用空间。它永远以增量方式工作，这意味着它传输一次卷内容，然后从那时起继续仅备份更改的数据。与具有多次完整备份的传统备份概念相比，它节省了大量的备份存储，从而降低了成本。由于备份空间的月费与卷相比较低，因此它是长期保存备份版本的理想场所。
+
+用户可以使用Google Cloud NetApp Volumes备份将任何备份版本恢复到同一区域内的相同或不同卷。如果删除源卷，备份数据将保留，并且需要单独管理（例如，删除）。
+
+Google Cloud NetApp Volumes备份作为选项内置于Google Cloud NetApp Volumes中。用户可以通过按卷激活Google Cloud NetApp Volumes备份来决定要保护哪些卷。查看 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/back-up?hl=en_US["Google Cloud NetApp Volumes备份文档"^]有关备份的信息， https://cloud.google.com/architecture/partners/netapp-cloud-volumes/resource-limits-quotas?hl=en_US["支持的最大备份版本数量"^] 、调度和 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/costs?hl=en_US["定价"^]。
+
+项目的所有备份数据都存储在 GCS 存储桶中，该存储桶由服务管理，用户不可见。每个项目使用不同的存储桶。目前，这些存储桶与Google Cloud NetApp Volumes卷位于同一区域，但正在讨论更多选项。查阅文档以了解最新状态。
+
+从Google Cloud NetApp Volumes存储桶到 GCS 的数据传输使用带有 HTTPS 和 TLS1.2 的服务内部 Google 网络。数据使用 Google 管理的密钥进行静态加密。
+
+要管理Google Cloud NetApp Volumes备份（创建、删除和恢复备份），用户必须拥有 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/security-considerations?hl=en_US["角色/netappcloudvolumes.admin"^]角色。

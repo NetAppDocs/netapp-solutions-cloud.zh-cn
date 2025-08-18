@@ -1,0 +1,247 @@
+---
+sidebar: sidebar 
+permalink: vmware/vmw-azure-avs-dr-jetstream.html 
+keywords: NetApp Solutions, microsoft azure, avs, azure, anf, azure netapp files, ontap, disaster recovery, dr 
+summary:  
+---
+= 使用 ANF 和 JetStream 进行灾难恢复
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+云端灾难恢复是一种具有弹性且经济高效的方法，可以保护工作负载免受站点中断和数据损坏事件（例如勒索软件）的影响。使用 VMware VAIO 框架，可以将本地 VMware 工作负载复制到 Azure Blob 存储并进行恢复，从而实现最少或几乎无数据丢失以及接近零的 RTO。
+
+JetStream DR 可用于无缝恢复从本地复制到 AVS 以及特别是Azure NetApp Files 的工作负载。它通过使用灾难恢复站点的最少资源和经济高效的云存储实现经济高效的灾难恢复。  JetStream DR 通过 Azure Blob Storage 自动恢复到 ANF 数据存储。  JetStream DR 根据网络映射将独立的虚拟机或相关虚拟机组恢复到恢复站点基础设施中，并提供时间点恢复以进行勒索软件保护。
+
+本文档帮助您了解 JetStream DR 的操作原理及其主要组件。
+
+.解决方案部署概述
+[%collapsible%open]
+====
+. 在本地数据中心安装 JetStream DR 软件。
++
+.. 从 Azure 市场 (ZIP) 下载 JetStream DR 软件包，并在指定集群中部署 JetStream DR MSA (OVA)。
+.. 使用 I/O 过滤器包配置集群（安装 JetStream VIB）。
+.. 在与 DR AVS 集群相同的区域中配置 Azure Blob（Azure 存储帐户）。
+.. 部署 DRVA 设备并分配复制日志卷（来自现有数据存储或共享 iSCSI 存储的 VMDK）。
+.. 创建受保护的域（相关 VM 组）并分配 DRVA 和 Azure Blob 存储/ANF。
+.. 开始保护。
+
+
+. 在 Azure VMware 解决方案私有云中安装 JetStream DR 软件。
++
+.. 使用运行命令安装和配置 JetStream DR。
+.. 添加相同的 Azure Blob 容器并使用扫描域选项发现域。
+.. 部署所需的 DRVA 设备。
+.. 使用可用的 vSAN 或 ANF 数据存储创建复制日志卷。
+.. 导入受保护的域并配置 RocVA（恢复 VA）以使用 ANF 数据存储进行 VM 放置。
+.. 选择适当的故障转移选项并开始对接近零 RTO 域或虚拟机进行持续补水。
+
+
+. 在发生灾难事件期间，触发故障转移到指定 AVS DR 站点中的Azure NetApp Files数据存储。
+. 在受保护站点恢复后，调用故障回复到受保护站点。开始之前，请确保满足本 https://docs.microsoft.com/en-us/azure/azure-vmware/deploy-disaster-recovery-using-jetstream["链接"^]并运行 JetStream Software 提供的带宽测试工具 (BWT) 来评估与 JetStream DR 软件一起使用时 Azure Blob 存储及其复制带宽的潜在性能。满足先决条件（包括连接性）后，设置并订阅 JetStream DR for AVS https://portal.azure.com/["Azure 市场"^] 。下载软件包后，继续执行上面描述的安装过程。
+
+
+====
+在规划和启动对大量虚拟机（例如 100 多个）的保护时，请使用 JetStream DR 自动化工具包中的容量规划工具 (CPT)。提供要保护的虚拟机列表及其 RTO 和恢复组首选项，然后运行 CPT。
+
+CPT 执行以下功能：
+
+* 根据 RTO 将虚拟机组合到保护域中。
+* 定义 DRVA 及其资源的最佳数量。
+* 估计所需的复制带宽。
+* 识别复制日志卷特征（容量、带宽等）。
+* 估算所需的对象存储容量等等。
+
+
+
+NOTE: 规定的域的数量和内容取决于各种 VM 特性，例如平均 IOPS、总容量、优先级（定义故障转移顺序）、RTO 等。
+
+
+
+== 在本地数据中心安装 JetStream DR
+
+JetStream DR 软件由三个主要组件组成：JetStream DR 管理服务器虚拟设备 (MSA)、DR 虚拟设备 (DRVA) 和主机组件（I/O 筛选器包）。 MSA 用于在计算集群上安装和配置主机组件，然后管理 JetStream DR 软件。以下列表提供了安装过程的高级描述：
+
+.如何为本地安装 JetStream DR
+[%collapsible%open]
+====
+. 检查先决条件。
+. 运行容量规划工具获取资源和配置建议（可选，但建议用于概念验证试验）。
+. 将 JetStream DR MSA 部署到指定集群中的 vSphere 主机。
+. 在浏览器中使用其 DNS 名称启动 MSA。
+. 向 MSA 注册 vCenter 服务器。要执行安装，请完成以下详细步骤：
+. 部署 JetStream DR MSA 并注册 vCenter Server 后，使用 vSphere Web Client 访问 JetStream DR 插件。这可以通过导航到数据中心 > 配置 > JetStream DR 来完成。
++
+image:vmware-dr-008.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 从 JetStream DR 界面中，选择适当的集群。
++
+image:vmware-dr-009.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 使用 I/O 筛选器包配置集群。
++
+image:vmware-dr-010.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 添加位于恢复站点的 Azure Blob 存储。
+. 从设备选项卡部署 DR 虚拟设备 (DRVA)。
+
+
+
+NOTE: DRVA 可以由 CPT 自动创建，但对于 POC 试验，我们建议手动配置和运行 DR 周期（启动保护 > 故障转移 > 故障恢复）。
+
+JetStream DRVA 是一种虚拟设备，可促进数据复制过程中的关键功能。受保护的集群必须至少包含一个 DRVA，并且通常每个主机配置一个 DRVA。每个 DRVA 可以管理多个受保护域。
+
+image:vmware-dr-011.png["该图显示输入/输出对话框或表示书面内容"]
+
+在此示例中，为 80 台虚拟机创建了 4 个 DRVA。
+
+. 使用来自可用数据存储或独立共享 iSCSI 存储池的 VMDK 为每个 DRVA 创建复制日志卷。
+. 在“受保护的域”选项卡中，使用有关 Azure Blob 存储站点、DRVA 实例和复制日志的信息创建所需数量的受保护域。受保护域定义了集群内的特定虚拟机或一组虚拟机，这些虚拟机受到共同保护，并分配了故障转移/故障回复操作的优先级顺序。
++
+image:vmware-dr-012.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 选择需要保护的虚拟机，启动受保护域的虚拟机保护。这将开始将数据复制到指定的 Blob 存储。
+
+
+
+NOTE: 验证受保护域中的所有虚拟机是否使用相同的保护模式。
+
+
+NOTE: 写回（VMDK）模式可以提供更高的性能。
+
+image:vmware-dr-013.png["该图显示输入/输出对话框或表示书面内容"]
+
+验证复制日志卷是否放置在高性能存储上。
+
+
+NOTE: 可以配置故障转移运行手册来对虚拟机进行分组（称为恢复组）、设置启动顺序以及修改 CPU/内存设置以及 IP 配置。
+
+====
+
+
+== 使用运行命令在 Azure VMware 解决方案私有云中安装 JetStream DR for AVS
+
+恢复站点 (AVS) 的最佳实践是提前创建一个三节点的试点灯集群。这允许预先配置恢复站点基础设施，包括以下项目：
+
+* 目标网络段、防火墙、DHCP 和 DNS 等服务等等。
+* 为 AVS 安装 JetStream DR
+* 将 ANF 卷配置为数据存储，并且更多 JetStream DR 支持关键任务域的近零 RTO 模式。对于这些域，应该预先安装目标存储。在这种情况下，ANF 是推荐的存储类型。
+
+
+
+NOTE: 应在 AVS 集群上配置包括段创建在内的网络配置以满足本地要求。
+
+根据 SLA 和 RTO 要求，可以使用连续故障转移或常规（标准）故障转移模式。对于接近于零的 RTO，应在恢复站点开始持续补液。
+
+.如何在私有云中安装 JetStream DR for AVS
+[%collapsible%open]
+====
+要在 Azure VMware 解决方案私有云上安装 JetStream DR for AVS，请完成以下步骤：
+
+. 从 Azure 门户转到 Azure VMware 解决方案，选择私有云，然后选择运行命令> 包> JSDR.Configuration。
++
+
+NOTE: Azure VMware 解决方案中的默认 CloudAdmin 用户没有足够的权限来为 AVS 安装 JetStream DR。  Azure VMware 解决方案通过调用 JetStream DR 的 Azure VMware 解决方案运行命令，实现了 JetStream DR 的简化和自动化安装。
+
++
+以下屏幕截图显示了使用基于 DHCP 的 IP 地址的安装。
+
++
+image:vmware-dr-014.png["该图显示输入/输出对话框或表示书面内容"]
+
+. JetStream DR for AVS 安装完成后，刷新浏览器。要访问 JetStream DR UI，请转到 SDDC 数据中心 > 配置 > JetStream DR。
++
+image:vmware-dr-015.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 从 JetStream DR 界面，添加用于保护本地集群的 Azure Blob 存储帐户作为存储站点，然后运行扫描域选项。
++
+image:vmware-dr-016.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 导入受保护域后，部署 DRVA 设备。在此示例中，使用 JetStream DR UI 从恢复站点手动启动连续补水。
++
+
+NOTE: 这些步骤也可以使用 CPT 创建的计划自动执行。
+
+. 使用可用的 vSAN 或 ANF 数据存储创建复制日志卷。
+. 导入受保护的域并配置恢复 VA 以使用 ANF 数据存储进行 VM 放置。
++
+image:vmware-dr-017.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+
+NOTE: 确保所选网段上启用了 DHCP 并且有足够的可用 IP。在域名恢复期间，暂时使用动态 IP。每个恢复的虚拟机（包括持续补水）都需要一个单独的动态 IP。恢复完成后，IP 被释放并可重复使用。
+
+. 选择适当的故障转移选项（连续故障转移或故障转移）。在这个例子中，选择了持续补水（持续故障转移）。
++
+image:vmware-dr-018.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+====
+
+
+== 执行故障转移/故障回复
+
+.如何执行故障转移/故障恢复
+[%collapsible%open]
+====
+. 当本地环境受保护集群发生灾难（部分或全部故障）后，触发故障转移。
++
+
+NOTE: CPT 可用于执行故障转移计划，将虚拟机从 Azure Blob 存储恢复到 AVS 集群恢复站点。
+
++
+
+NOTE: 在 AVS 中启动受保护的虚拟机后进行故障转移（用于连续或标准补水），保护将自动恢复，并且 JetStream DR 将继续将其数据复制到 Azure Blob 存储中的相应/原始容器中。
+
++
+image:vmware-dr-019.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+image:vmware-dr-020.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+任务栏显示故障转移活动的进度。
+
+. 任务完成后，访问恢复的虚拟机，业务继续正常进行。
++
+image:vmware-dr-021.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+主站点重新启动并运行后，可以执行故障恢复。  VM 保护已恢复，应检查数据一致性。
+
+. 恢复本地环境。根据灾难事件的类型，可能需要恢复和/或验证受保护集群的配置。如有必要，可能需要重新安装 JetStream DR 软件。
++
+
+NOTE: 注意： `recovery_utility_prepare_failback`自动化工具包中提供的脚本可用于帮助清理原始受保护站点中的任何过时的虚拟机、域信息等。
+
+. 访问恢复的本地环境，转到 Jetstream DR UI，然后选择适当的受保护域。受保护站点准备好故障恢复后，在 UI 中选择故障恢复选项。
++
+image:vmware-dr-022.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+
+NOTE: CPT 生成的故障恢复计划还可用于启动虚拟机及其数据从对象存储返回到原始 VMware 环境。
+
+
+NOTE: 指定在恢复站点中暂停虚拟机并在受保护站点中重新启动后的最大延迟。此时间包括停止故障转移虚拟机后完成复制的时间、清理恢复站点的时间以及在受保护站点中重新创建虚拟机的时间。  NetApp建议值为 10 分钟。
+
+完成故障恢复过程，然后确认恢复虚拟机保护和数据一致性。
+
+====
+
+
+== 勒索软件恢复
+
+从勒索软件中恢复可能是一项艰巨的任务。具体来说，IT 组织很难确定安全的返回点，而且一旦确定，如何确保恢复的工作负载免受再次发生的攻击（来自休眠恶意软件或通过易受攻击的应用程序）。
+
+JetStream DR for AVS 与Azure NetApp Files数据存储相结合，可以解决这些问题，允许组织从可用的时间点恢复，以便在需要时将工作负载恢复到功能齐全的隔离网络。恢复允许应用程序运行并相互通信，同时不会将它们暴露在南北流量中，从而为安全团队提供一个安全的地方来执行取证和其他必要的补救措施。
+
+image:vmware-dr-023.png["该图显示输入/输出对话框或表示书面内容"]

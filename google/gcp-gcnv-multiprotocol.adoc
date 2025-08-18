@@ -1,0 +1,51 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-multiprotocol.html 
+keywords: access control, user mapping, permission model 
+summary: Google Cloud NetApp Volumes能够与 SMB 和 NFS 客户端共享相同的数据集，同时保持适当的双协议访问权限。这是通过协调协议之间的身份映射并使用集中式后端 LDAP 服务器向Google Cloud NetApp Volumes提供 UNIX 身份来实现的。您可以使用 Windows Active Directory 为 Windows 和 UNIX 用户提供易用性。 
+---
+= 双协议/多协议
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Google Cloud NetApp Volumes能够与 SMB 和 NFS 客户端共享相同的数据集，同时保持适当的访问权限(https://cloud.google.com/architecture/partners/netapp-cloud-volumes/managing-dual-protocol-access["双协议"^]）。这是通过协调协议之间的身份映射并使用集中式后端 LDAP 服务器向Google Cloud NetApp Volumes提供 UNIX 身份来实现的。您可以使用 Windows Active Directory 为 Windows 和 UNIX 用户提供易用性。
+
+
+
+== 访问控制
+
+* *共享访问控制。*确定哪些客户端和/或用户和组可以访问 NAS 共享。对于 NFS，导出策略和规则控制客户端对导出的访问。  NFS 导出由Google Cloud NetApp Volumes实例管理。 SMB 利用 CIFS/SMB 共享和共享 ACL 在用户和组级别提供更精细的控制。您只能通过使用https://library.netapp.com/ecmdocs/ECMP1401220/html/GUID-C1772CDF-8AEE-422B-AB87-CFCB7E50FF94.html [MMC/Computer Management^] 和在Google Cloud NetApp Volumes实例上具有管理员权限的帐户从 SMB 客户端配置共享级 ACL（请参阅部分链接：gcp-gcnv-smb.html#Accounts with local/BUILTIN administrator/backup rights["Accounts with local/BUILTIN administrator/backup rights."]）。
+* *文件访问控制。*控制文件或文件夹级别的权限，并始终从 NAS 客户端进行管理。  NFS 客户端可以使用传统模式位 (rwx) 或 NFSv4 ACL。  SMB 客户端利用 NTFS 权限。
+
+
+向 NFS 和 SMB 提供数据的卷的访问控制取决于所使用的协议。有关双协议权限的信息，请参阅“<<权限模型>> “
+
+
+
+== 用户映射
+
+当客户端访问卷时， Google Cloud NetApp Volumes会尝试将传入用户映射到相反方向的有效用户。这对于跨协议确定正确的访问权限以及确保请求访问的用户确实是他们所声称的用户来说是必要的。
+
+例如，如果 Windows 用户名为 `joe`尝试通过 SMB 访问具有 UNIX 权限的卷，然后Google Cloud NetApp Volumes执行搜索以查找名为 `joe`。如果存在，则以 Windows 用户身份写入 SMB 共享的文件 `joe`显示为 UNIX 用户 `joe`来自 NFS 客户端。
+
+或者，如果 UNIX 用户名为 `joe`尝试使用 Windows 权限访问Google Cloud NetApp Volumes卷，则 UNIX 用户必须能够映射到有效的 Windows 用户。否则，将拒绝访问该卷。
+
+目前，仅支持使用 LDAP 进行外部 UNIX 身份管理的 Active Directory。有关配置此服务的访问权限的更多信息，请参阅 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/creating-smb-volumes["创建 AD 连接"^]。
+
+
+
+== 权限模型
+
+使用双协议设置时， Google Cloud NetApp Volumes会利用卷的安全样式来确定 ACL 的类型。这些安全样式是根据指定的 NAS 协议设置的，或者在双协议的情况下，是在创建Google Cloud NetApp Volumes卷时做出的选择。
+
+* 如果您仅使用 NFS， Google Cloud NetApp Volumes卷将使用 UNIX 权限。
+* 如果您仅使用 SMB， Google Cloud NetApp Volumes卷将使用 NTFS 权限。
+
+
+如果您正在创建双协议卷，则可以在创建卷时选择 ACL 样式。此决定应根据所需的权限管理做出。如果您的用户从 Windows/SMB 客户端管理权限，请选择 NTFS。如果您的用户更喜欢使用 NFS 客户端和 chmod/chown，请使用 UNIX 安全样式。

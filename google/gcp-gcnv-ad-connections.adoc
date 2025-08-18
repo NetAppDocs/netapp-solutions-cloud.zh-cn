@@ -1,0 +1,152 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-ad-connections.html 
+keywords: active directory, credentials, permissions, smb machine accounts, region, backup users, security privilege, 
+summary: Google Cloud NetApp Volumes可以将您的Google Cloud NetApp Volumes实例连接到外部 Active Directory 服务器，以便为 SMB 和 UNIX 用户进行身份管理。需要创建 Active Directory 连接才能在Google Cloud NetApp Volumes中使用 SMB。 
+---
+= 创建 Active Directory 连接的注意事项
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Google Cloud NetApp Volumes可以将您的Google Cloud NetApp Volumes实例连接到外部 Active Directory 服务器，以便为 SMB 和 UNIX 用户进行身份管理。需要创建 Active Directory 连接才能在Google Cloud NetApp Volumes中使用 SMB。
+
+该配置提供了几个需要考虑安全性的选项。外部 Active Directory 服务器可以是本地实例或云原生实例。如果您使用的是本地 Active Directory 服务器，请不要将域暴露给外部网络（例如使用 DMZ 或外部 IP 地址）。相反，使用安全的私有隧道或 VPN、单向林信任或专用网络连接到本地网络 https://cloud.google.com/vpc/docs/private-google-access["私人 Google 访问权限"^]。有关更多信息，请参阅 Google Cloud 文档 https://cloud.google.com/managed-microsoft-ad/docs/best-practices["在 Google Cloud 中使用 Active Directory 的最佳实践"^]。
+
+
+NOTE: NetApp Volumes-SW 要求 Active Directory 服务器位于同一区域。如果在NetApp Volumes-SW 中尝试建立到另一个区域的 DC 连接，则尝试会失败。使用NetApp Volumes-SW 时，请确保创建包含 Active Directory DC 的 Active Directory 站点，然后在Google Cloud NetApp Volumes中指定站点，以避免跨区域 DC 连接尝试。
+
+
+
+== Active Directory 凭据
+
+启用 SMB 或 LDAP for NFS 后， Google Cloud NetApp Volumes会与 Active Directory 控制器交互以创建用于身份验证的机器帐户对象。这与 Windows SMB 客户端加入域并需要对 Active Directory 中的组织单位 (OU) 具有相同的访问权限的方式没有什么不同。
+
+在许多情况下，安全组不允许在外部服务器（例如Google Cloud NetApp Volumes）上使用 Windows 管理员帐户。在某些情况下，为了确保最佳安全措施，Windows 管理员用户会被完全禁用。
+
+
+
+=== 创建 SMB 机器帐户所需的权限
+
+要将Google Cloud NetApp Volumes机器对象添加到 Active Directory，需要具有域管理权限或具有 https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/plan/delegating-administration-by-using-ou-objects["委派创建和修改计算机帐户对象的权限"^]需要指定 OU。您可以使用 Active Directory 中的控制委派向导来执行此操作，方法是创建自定义任务，该任务为用户提供创建/删除计算机对象的权限，并提供以下访问权限：
+
+* 读写
+* 创建/删除所有子对象
+* 读/写所有属性
+* 更改/重置密码
+
+
+这样做会自动将定义的用户的安全 ACL 添加到 Active Directory 中的 OU，并最大限度地减少对 Active Directory 环境的访问。委派用户后，可在此窗口中提供该用户名和密码作为 Active Directory 凭据。
+
+
+NOTE: 传递给 Active Directory 域的用户名和密码在机器帐户对象查询和创建期间利用 Kerberos 加密来增强安全性。
+
+
+
+== Active Directory 连接详细信息
+
+这 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/creating-smb-volumes["Active Directory 连接详细信息"^]为管理员提供字段，以便为机器帐户放置提供特定的 Active Directory 架构信息，例如：
+
+* Active Directory 连接类型。用于指定区域中的 Active Directory 连接是否用于Google Cloud NetApp Volumes或NetApp Volumes-Performance 服务类型的卷。如果在现有连接上设置不正确，则使用或编辑时可能无法正常工作。
+* *领域。*  Active Directory 域名。
+* *地点。*出于安全性和性能考虑，将 Active Directory 服务器限制到特定站点 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/managing-active-directory-connections["注意事项"^]。当多个 Active Directory 服务器跨区域时，这是必要的，因为Google Cloud NetApp Volumes目前不支持允许 Active Directory 身份验证请求发送到与Google Cloud NetApp Volumes实例不同区域的 Active Directory 服务器。  （例如，Active Directory 域控制器位于仅NetApp Volumes-Performance 支持的区域中，但您希望在NetApp Volumes-SW 实例中进行 SMB 共享。）
+* DNS 服务器。用于名称查找的 DNS 服务器。
+* NetBIOS 名称（可选）。如果需要，服务器的 NetBIOS 名称。这是使用 Active Directory 连接创建新机器帐户时使用的内容。例如，如果 NetBIOS 名称设置为NetApp Volumes-EAST，则机器帐户名称将为NetApp Volumes-EAST-{1234}。请参阅link:gcp-gcnv-ad-connections.html#how-cloud-volumes-service-shows-up-in-active-directory["Google Cloud NetApp Volumes如何在 Active Directory 中显示"]了解更多信息。
+* 组织单位 (OU)。创建计算机帐户的特定 OU。如果您将机器帐户的控制权委托给特定 OU 的用户，这将非常有用。
+* *AES 加密。*您还可以选中或取消选中“为 AD 身份验证启用 AES 加密”复选框。为 Active Directory 身份验证启用 AES 加密可为用户和组查找期间Google Cloud NetApp Volumes与 Active Directory 的通信提供额外的安全性。启用此选项之前，请与域管理员核实，以确认 Active Directory 域控制器支持 AES 身份验证。
+
+
+
+NOTE: 默认情况下，大多数 Windows 服务器不会禁用较弱的密码（例如 DES 或 RC4-HMAC），但如果您选择禁用较弱的密码，请确认Google Cloud NetApp Volumes Active Directory 连接已配置为启用 AES。否则，身份验证将失败。启用 AES 加密不会禁用较弱的密码，而是向Google Cloud NetApp Volumes SMB 机器帐户添加对 AES 密码的支持。
+
+
+
+== Kerberos 领域详细信息
+
+此选项不适用于 SMB 服务器。相反，它用于为Google Cloud NetApp Volumes系统配置 NFS Kerberos。填充这些详细信息后，将配置 NFS Kerberos 领域（类似于 Linux 上的 krb5.conf 文件），并在Google Cloud NetApp Volumes卷创建上指定 NFS Kerberos 时使用，因为 Active Directory 连接充当 NFS Kerberos 分发中心 (KDC)。
+
+
+NOTE: 非 Windows KDC 当前不支持与Google Cloud NetApp Volumes一起使用。
+
+
+
+== 地区
+
+通过区域，您可以指定 Active Directory 连接所在的位置。该区域必须与Google Cloud NetApp Volumes卷位于同一区域。
+
+* *具有 LDAP 的本地 NFS 用户。*在本节中，还有一个选项允许本地 NFS 用户使用 LDAP。如果您想要扩展 UNIX 用户组成员资格支持，使其超出 NFS（扩展组）的 16 个组限制，则必须取消选择此选项。但是，使用扩展组需要为 UNIX 身份配置 LDAP 服务器。如果您没有 LDAP 服务器，请不要选择此选项。如果您有 LDAP 服务器并且还想使用本地 UNIX 用户（例如 root），请选择此选项。
+
+
+
+
+== 备份用户
+
+此选项使您能够指定对Google Cloud NetApp Volumes卷具有备份权限的 Windows 用户。某些应用程序需要备份权限（SeBackupPrivilege）才能正确备份和恢复 NAS 卷中的数据。此用户对卷中的数据具有高级别访问权限，因此您应该考虑 https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/audit-audit-the-use-of-backup-and-restore-privilege["启用该用户访问的审计"^]。启用后，审计事件将显示在事件查看器 > Windows 日志 > 安全中。
+
+image:ncvs-gc-019.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+== 安全特权用户
+
+通过此选项，您可以指定对Google Cloud NetApp Volumes卷具有安全修改权限的 Windows 用户。某些应用程序需要安全权限（SeSecurityPrivilege）(https://docs.netapp.com/us-en/ontap/smb-hyper-v-sql/add-sesecurityprivilege-user-account-task.html["例如 SQL Server"^] ) 在安装过程中正确设置权限。管理安全日志需要此权限。虽然此权限不如 SeBackupPrivilege 强大，NetApp建议 https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/basic-audit-privilege-use["审计用户的用户访问"^]如果需要的话，可以使用此权限级别。
+
+有关更多信息，请参阅 https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4672["分配给新登录的特殊权限"^] 。
+
+
+
+== Google Cloud NetApp Volumes如何在 Active Directory 中显示
+
+Google Cloud NetApp Volumes在 Active Directory 中显示为普通机器帐户对象。命名约定如下。
+
+* CIFS/SMB 和 NFS Kerberos 创建单独的机器帐户对象。
+* 启用 LDAP 的 NFS 在 Active Directory 中为 Kerberos LDAP 绑定创建一个机器帐户。
+* 具有 LDAP 的双协议卷共享 LDAP 和 SMB 的 CIFS/SMB 机器帐户。
+* CIFS/SMB 机器帐户使用 NAME-1234 的命名约定（随机四位 ID，在 <10 个字符的名称后附加连字符）。您可以通过 Active Directory 连接上的 NetBIOS 名称设置来定义 NAME（请参阅“<<Active Directory 连接详细信息>> ")。
+* NFS Kerberos 使用 NFS-NAME-1234 作为命名约定（最多 15 个字符）。如果使用超过 15 个字符，则名称为 NFS-TRUNCATED-NAME-1234。
+* 启用 LDAP 的仅 NFS NetApp Volumes-Performance 实例会创建一个 SMB 机器帐户，以与 CIFS/SMB 实例具有相同的命名约定来绑定到 LDAP 服务器。
+* 创建 SMB 机器帐户时，默认隐藏的管理共享（请参阅link:gcp-gcnv-smb.html#default-hidden-shares["默认隐藏共享"]) 也被创建（c$、admin$、ipc$），但这些共享没有分配 ACL，因此无法访问。
+* 默认情况下，机器帐户对象放在 CN=Computers 中，但您可以在必要时指定不同的 OU。请参阅“<<创建 SMB 机器帐户所需的权限>> “有关添加/删除Google Cloud NetApp Volumes的机器帐户对象所需的访问权限的信息。
+
+
+当Google Cloud NetApp Volumes将 SMB 机器帐户添加到 Active Directory 时，将填充以下字段：
+
+* cn（带有指定的 SMB 服务器名称）
+* dNSHostName（使用 SMBserver.domain.com）
+* msDS-SupportedEncryptionTypes（如果未启用 AES 加密，则允许使用 DES_CBC_MD5、RC4_HMAC_MD5；如果启用了 AES 加密，则允许使用 DES_CBC_MD5、RC4_HMAC_MD5、AES128_CTS_HMAC_SHA1_96、AES256_CTS_HMAC_SHA1_96 与 SMB 的机器帐户进行 Kerberos 票证交换）
+* 名称（使用 SMB 服务器名称）
+* sAMAccountName（带有 SMBserver$）
+* servicePrincipalName（对于 Kerberos，使用 host/smbserver.domain.com 和 host/smbserver SPN）
+
+
+如果要在计算机帐户上禁用较弱的 Kerberos 加密类型 (enctype)，您可以将计算机帐户上的 msDS-SupportedEncryptionTypes 值更改为下表中的值之一，以仅允许 AES。
+
+|===
+| msDS-SupportedEncryptionTypes 值 | 已启用 Enctype 
+
+
+| 2 | DES_CBC_MD5 
+
+
+| 4 | RC4_HMAC 
+
+
+| 8 | 仅限 AES128_CTS_HMAC_SHA1_96 
+
+
+| 16 | 仅限 AES256_CTS_HMAC_SHA1_96 
+
+
+| 24 | AES128_CTS_HMAC_SHA1_96 和 AES256_CTS_HMAC_SHA1_96 
+
+
+| 30 | DES_CBC_MD5、RC4_HMAC、AES128_CTS_HMAC_SHA1_96 和 AES256_CTS_HMAC_SHA1_96 
+|===
+要为 SMB 机器帐户启用 AES 加密，请在创建 Active Directory 连接时单击为 AD 身份验证启用 AES 加密。
+
+要为 NFS Kerberos 启用 AES 加密， https://cloud.google.com/architecture/partners/netapp-cloud-volumes/creating-nfs-volumes["请参阅Google Cloud NetApp Volumes文档"^] 。

@@ -1,0 +1,469 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-nfs.html 
+keywords: default, local, unix users, groups, root user, anonymous user, acls for NFSv3, 
+summary: 'NFS 是一种分布式文件系统协议，它是请求评论 (RFC) 中定义的开放 IETF 标准，允许任何人实现该协议。' 
+---
+= NFS
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+NFS 是一种分布式文件系统协议，它是请求评论 (RFC) 中定义的开放 IETF 标准，允许任何人实现该协议。
+
+Google Cloud NetApp Volumes中的卷通过导出客户端或一组客户端可访问的路径共享给 NFS 客户端。安装这些导出的权限由导出策略和规则定义，可由Google Cloud NetApp Volumes管理员配置。
+
+NetApp NFS 实施被认为是该协议的黄金标准，并被应用于无数企业 NAS 环境中。以下部分介绍Google Cloud NetApp Volumes中提供的 NFS 和特定安全功能及其实现方式。
+
+
+
+== 默认本地 UNIX 用户和组
+
+Google Cloud NetApp Volumes包含几个用于各种基本功能的默认 UNIX 用户和组。目前无法修改或删除这些用户和组。目前无法将新的本地用户和组添加到Google Cloud NetApp Volumes。默认用户和组之外的 UNIX 用户和组需要由外部 LDAP 名称服务提供。
+
+下表显示了默认用户和组及其对应的数字 ID。  NetApp建议不要在 LDAP 中或重复使用这些数字 ID 的本地客户端上创建新的用户或组。
+
+|===
+| 默认用户：数字 ID | 默认组：数字 ID 
+
+
+ a| 
+* 根：0
+* pcuser：65534
+* 无人：65535
+
+ a| 
+* 根：0
+* 守护进程：1
+* pcuser：65534
+* 无人：65535
+
+
+|===
+
+NOTE: 使用 NFSv4.1 时，在 NFS 客户端上运行目录列表命令时，root 用户可能会显示为 nobody。这是由于客户端的ID域映射配置造成的。请参阅名为<<NFSv4.1 和 nobody 用户/组>>有关此问题及其解决方法的详细信息。
+
+
+
+== 根用户
+
+在 Linux 中，root 帐户可以访问基于 Linux 的文件系统中所有命令、文件和文件夹。由于此帐户的强大功能，安全最佳实践通常要求以某种方式禁用或限制根用户。在 NFS 导出中，可以通过导出策略和规则以及称为 root squash 的概念在Google Cloud NetApp Volumes中控制 root 用户对文件和文件夹的权限。
+
+Root 压缩确保访问 NFS 挂载的 root 用户被压缩为匿名数字用户 65534（请参阅“<<匿名用户>> ")，目前仅在使用NetApp Volumes-Performance 时可用，方法是在创建导出策略规则期间选择关闭 root 访问权限。如果 root 用户被压缩为匿名用户，则它不再具有运行 chown 或 https://en.wikipedia.org/wiki/Setuid["setuid/setgid 命令（粘滞位）"^]在 NFS 挂载中的文件或文件夹上，以及由 root 用户创建的文件或文件夹显示匿名 UID 作为所有者/组。此外，root 用户无法修改 NFSv4 ACL。但是，root 用户仍然可以访问 chmod 并删除其没有明确权限的文件。如果要限制对 root 用户的文件和文件夹权限的访问，请考虑使用具有 NTFS ACL 的卷，创建名为 `root`并将所需的权限应用到文件或文件夹。
+
+
+
+== 匿名用户
+
+匿名 (anon) 用户 ID 指定映射到没有有效 NFS 凭据的客户端请求的 UNIX 用户 ID 或用户名。当使用 root 压缩时，这可以包括 root 用户。  Google Cloud NetApp Volumes中的匿名用户是 65534。
+
+此 UID 通常与用户名相关联 `nobody`或者 `nfsnobody`在 Linux 环境中。  Google Cloud NetApp Volumes也使用 65534 作为本地 UNIX 用户 `pcuser`（请参阅“<<默认本地 UNIX 用户和组>> ")，当在 LDAP 中找不到有效匹配的 UNIX 用户时，它也是 Windows 到 UNIX 名称映射的默认后备用户。
+
+由于 Linux 和Google Cloud NetApp Volumes中 UID 65534 的用户名存在差异，因此使用 NFSv4.1 时映射到 65534 的用户的名称字符串可能不匹配。因此，你可能会看到 `nobody`作为某些文件和文件夹的用户。请参阅“<<NFSv4.1 和 nobody 用户/组>> “以获取有关此问题及其解决方法的信息。
+
+
+
+== 访问控制/导出
+
+NFS 挂载的初始导出/共享访问通过导出策略中包含的基于主机的导出策略规则进行控制。定义主机 IP、主机名、子网、网络组或域以允许访问挂载 NFS 共享以及允许对主机的访问级别。导出策略规则配置选项取决于Google Cloud NetApp Volumes级别。
+
+对于NetApp Volumes-SW，以下选项可用于导出策略配置：
+
+* *客户匹配。*以逗号分隔的 IP 地址列表、以逗号分隔的主机名、子网、网络组、域名列表。
+* *RO/RW 访问规则。*选择读/写或只读来控制导出的访问级别。NetApp NetApp -Performance 提供以下选项：
+* *客户匹配。*以逗号分隔的 IP 地址列表、以逗号分隔的主机名、子网、网络组、域名列表。
+* *RO/RW 访问规则。*选择读/写或只读来控制导出的访问级别。
+* *Root 访问权限（开/关）。*配置根壁球（参见“<<根用户>> ”以了解详情）。
+* *协议类型。*这会将对 NFS 挂载的访问限制到特定的协议版本。当为卷同时指定 NFSv3 和 NFSv4.1 时，请将两者留空或选中两个框。
+* *Kerberos 安全级别（选择“启用 Kerberos”时）。*提供 krb5、krb5i 和/或 krb5p 选项以进行只读或读写访问。
+
+
+
+
+== 更改所有权（chown）和更改组（chgrp）
+
+Google Cloud NetApp Volumes上的 NFS 仅允许 root 用户对文件和文件夹运行 chown/chgrp。其他用户看到 `Operation not permitted`错误——即使是他们自己的文件。如果你使用根南瓜（如“<<根用户>> ")，root 被压缩为非 root 用户，并且不允许访问 chown 和 chgrp。目前， Google Cloud NetApp Volumes中没有允许非 root 用户使用 chown 和 chgrp 的解决方法。如果需要更改所有权，请考虑使用双协议卷并将安全样式设置为 NTFS 以从 Windows 端控制权限。
+
+
+
+== 权限管理
+
+Google Cloud NetApp Volumes支持模式位（例如 rwx 的 644、777 等）和 NFSv4.1 ACL，以控制使用 UNIX 安全样式的卷的 NFS 客户端权限。这些使用标准权限管理（例如 chmod、chown 或 nfs4_setfacl）并可与任何支持它们的 Linux 客户端一起使用。
+
+此外，当使用设置为 NTFS 的双协议卷时，NFS 客户端可以利用Google Cloud NetApp Volumes名称映射到 Windows 用户，然后用于解析 NTFS 权限。这需要与Google Cloud NetApp Volumes建立 LDAP 连接以提供数字 ID 到用户名的转换，因为Google Cloud NetApp Volumes需要有效的 UNIX 用户名才能正确映射到 Windows 用户名。
+
+
+
+=== 为 NFSv3 提供细粒度的 ACL
+
+模式位权限在语义上仅涵盖所有者、组和其他所有人 - 这意味着基本 NFSv3 没有细粒度的用户访问控制。  Google Cloud NetApp Volumes不支持 POSIX ACL 和扩展属性（例如 chattr），因此细粒度 ACL 仅在以下使用 NFSv3 的场景中可用：
+
+* 具有有效 UNIX 到 Windows 用户映射的 NTFS 安全样式卷（需要 CIFS 服务器）。
+* 使用安装 NFSv4.1 的管理客户端应用 NFSv4.1 ACL 来应用 ACL。
+
+
+两种方法都需要 LDAP 连接来进行 UNIX 身份管理，并填充有效的 UNIX 用户和组信息（请参阅link:gcp-gcnv-nas-dependencies.html#ldap["LDAP"]) 并且仅适用于NetApp Volumes-Performance 实例。要将 NTFS 安全样式卷与 NFS 一起使用，您必须使用双协议（SMB 和 NFSv3）或双协议（SMB 和 NFSv4.1），即使没有建立 SMB 连接。要将 NFSv4.1 ACL 与 NFSv3 挂载一起使用，您必须选择 `Both (NFSv3/NFSv4.1)`作为协议类型。
+
+常规 UNIX 模式位不提供与 NTFS 或 NFSv4.x ACL 相同的权限粒度。下表比较了 NFSv3 模式位和 NFSv4.1 ACL 之间的权限粒度。有关 NFSv4.1 ACL 的信息，请参阅 https://linux.die.net/man/5/nfs4_acl["nfs4_acl - NFSv4 访问控制列表"^]。
+
+|===
+| NFSv3 模式位 | NFSv4.1 ACL 
+
+
+ a| 
+* 执行时设置用户 ID
+* 执行时设置组 ID
+* 保存交换的文本（POSIX 中未定义）
+* 所有者的读取权限
+* 所有者的写入权限
+* 执行文件所有者的权限；或在目录中查找（搜索）所有者的权限
+* 组的读取权限
+* 组的写入权限
+* 执行文件上的组的权限；或在目录中查找（搜索）组的权限
+* 其他人的阅读权限
+* 为其他人授予写入权限
+* 为其他人在文件上执行权限；或在目录中查找（搜索）其他人的权限
+
+ a| 
+访问控制条目 (ACE) 类型（允许/拒绝/审核）* 继承标志* 目录继承* 文件继承* 不传播继承* 仅继承
+
+权限 * 读取数据（文件）/列出目录（目录） * 写入数据（文件）/创建文件（目录） * 附加数据（文件）/创建子目录（目录） * 执行（文件）/更改目录（目录） * 删除 * 删除子项 * 读取属性 * 写入属性 * 读取命名属性 * 写入命名属性 * 读取 ACL * 写入 ACL * 写入所有者 * 同步
+
+|===
+最后，根据 RPC 数据包限制，NFS 组成员资格（在 NFSv3 和 NFSV4.x 中）对于 AUTH_SYS 的默认最大值限制为 16。  NFS Kerberos 提供最多 32 个组，NFSv4 ACL 通过细粒度的用户和组 ACL（每个 ACE 最多 1024 个条目）消除了限制。
+
+此外， Google Cloud NetApp Volumes还提供扩展组支持，将最大支持组数扩展至 32 个。这需要与包含有效 UNIX 用户和组身份的 LDAP 服务器建立 LDAP 连接。有关配置此功能的更多信息，请参阅 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/creating-nfs-volumes?hl=en_US["创建和管理 NFS 卷"^]在 Google 文档中。
+
+
+
+== NFSv3 用户和组 ID
+
+NFSv3 用户和组 ID 以数字 ID 而不是名称的形式通过网络传输。 Google Cloud NetApp Volumes不会通过 NFSv3 对这些数字 ID 进行用户名解析，而 UNIX 安全样式卷仅使用模式位。当存在 NFSv4.1 ACL 时，需要进行数字 ID 查找和/或名称字符串查找才能正确解析 ACL - 即使使用 NFSv3。对于 NTFS 安全样式卷， Google Cloud NetApp Volumes必须将数字 ID 解析为有效的 UNIX 用户，然后映射到有效的 Windows 用户以协商访问权限。
+
+
+
+=== NFSv3 用户和组 ID 的安全限制
+
+使用 NFSv3，客户端和服务器永远不必确认尝试使用数字 ID 进行读取或写入的用户是否是有效用户；它只是隐式地受到信任。只需伪造任何数字 ID，文件系统就有可能受到破坏。为了防止此类安全漏洞， Google Cloud NetApp Volumes提供了一些选项。
+
+* 为 NFS 实施 Kerberos 强制用户使用用户名和密码或密钥表文件进行身份验证，以获取 Kerberos 票证以允许访问挂载。  Kerberos 适用于NetApp Volumes-Performance 实例，并且仅适用于 NFSv4.1。
+* 限制导出策略规则中的主机列表会限制哪些 NFSv3 客户端可以访问Google Cloud NetApp Volumes卷。
+* 使用双协议卷并将 NTFS ACL 应用于卷会强制 NFSv3 客户端将数字 ID 解析为有效的 UNIX 用户名，以正确验证访问挂载。这需要启用 LDAP 并配置 UNIX 用户和组身份。
+* 压缩 root 用户可以限制 root 用户对 NFS 挂载造成的损害，但并不能完全消除风险。有关详细信息，请参阅“<<根用户>> “
+
+
+最终，NFS 安全性受限于您所使用的协议版本所提供的功能。  NFSv3 虽然总体上比 NFSv4.1 性能更好，但却不能提供相同级别的安全性。
+
+
+
+== NFSv4.1
+
+与 NFSv3 相比，NFSv4.1 提供了更高的安全性和可靠性，原因如下：
+
+* 通过基于租赁的机制集成锁定
+* 有状态会话
+* 所有 NFS 功能均通过单个端口 (2049)
+* 仅 TCP
+* ID域映射
+* Kerberos 集成（NFSv3 可以使用 Kerberos，但仅限于 NFS，不适用于 NLM 等辅助协议）
+
+
+
+
+=== NFSv4.1 依赖项
+
+由于 NFSv4.1 中增加了安全功能，因此涉及一些使用 NFSv3 时不需要的外部依赖项（类似于 SMB 需要 Active Directory 等依赖项）。
+
+
+
+=== NFSv4.1 ACL
+
+Google Cloud NetApp Volumes提供对 NFSv4.x ACL 的支持，与普通 POSIX 样式权限相比，它具有明显的优势，例如：
+
+* 精细控制用户对文件和目录的访问
+* 更好的 NFS 安全性
+* 改进了与 CIFS/SMB 的互操作性
+* 取消了使用 AUTH_SYS 安全性的 NFS 每个用户 16 个组的限制
+* ACL 绕过了组 ID (GID) 解析的需要，从而有效地消除了 GID 限制。NFSv4.1 ACL 由 NFS 客户端控制，而不是由Google Cloud NetApp Volumes控制。要使用 NFSv4.1 ACL，请确保您的客户端的软件版本支持它们并且安装了正确的 NFS 实用程序。
+
+
+
+
+=== NFSv4.1 ACL 与 SMB 客户端之间的兼容性
+
+NFSv4 ACL 与 Windows 文件级 ACL（NTFS ACL）不同，但具有类似的功能。但是，在多协议 NAS 环境中，如果存在 NFSv4.1 ACL 并且您使用双协议访问（同一数据集上的 NFS 和 SMB），则使用 SMB2.0 及更高版本的客户端将无法从 Windows 安全选项卡查看或管理 ACL。
+
+
+
+=== NFSv4.1 ACL 的工作原理
+
+为供参考，定义以下术语：
+
+* 访问控制列表 (ACL)。权限条目列表。
+* 访问控制入口 (ACE)。列表中的权限条目。
+
+
+当客户端在 SETATTR 操作期间在文件上设置 NFSv4.1 ACL 时， Google Cloud NetApp Volumes会在对象上设置该 ACL，替换任何现有的 ACL。如果文件上没有 ACL，则文件的模式权限将根据 OWNER@、GROUP@ 和 EVERYONE@ 计算。如果文件上存在任何现有的 SUID/SGID/STICKY 位，则它们不受影响。
+
+当客户端在 GETATTR 操作过程中获取文件上的 NFSv4.1 ACL 时， Google Cloud NetApp Volumes会读取与该对象关联的 NFSv4.1 ACL，构建 ACE 列表，并将该列表返回给客户端。如果文件具有 NT ACL 或模式位，则由模式位构建 ACL 并返回给客户端。
+
+如果 ACL 中存在 DENY ACE，则拒绝访问；如果存在 ALLOW ACE，则允许访问。但是，如果 ACL 中不存在任何 ACE，访问也会被拒绝。
+
+安全描述符由安全 ACL (SACL) 和自由 ACL (DACL) 组成。  NFSv4.1与CIFS/SMB互操作时，DACL与NFSv4、CIFS是一一映射的。  DACL 由 ALLOW ACE 和 DENY ACE 组成。
+
+如果一个基本的 `chmod`在设置了 NFSv4.1 ACL 的文件或文件夹上运行，现有用户和组 ACL 将被保留，但默认的 OWNER@、GROUP@、EVERYONE@ ACL 将被修改。
+
+使用 NFSv4.1 ACL 的客户端可以设置和查看系统上文件和目录的 ACL。当在具有 ACL 的目录中创建新文件或子目录时，该对象将继承 ACL 中所有已使用适当标记的 ACE http://linux.die.net/man/5/nfs4_acl["继承标志"^] 。
+
+如果文件或目录具有 NFSv4.1 ACL，则无论使用哪种协议访问该文件或目录，都使用该 ACL 来控制访问。
+
+只要 ACE 标有正确的继承标志，文件和目录就会从父目录上的 NFSv4 ACL 继承 ACE（可能经过适当的修改）。
+
+当根据 NFSv4 请求创建文件或目录时，生成的文件或目录上的 ACL 取决于文件创建请求是否包含 ACL 或仅包含标准 UNIX 文件访问权限。  ACL 还取决于父目录是否具有 ACL。
+
+* 如果请求包含 ACL，则使用该 ACL。
+* 如果请求仅包含标准 UNIX 文件访问权限，并且父目录没有 ACL，则使用客户端文件模式设置标准 UNIX 文件访问权限。
+* 如果请求仅包含标准 UNIX 文件访问权限，并且父目录具有不可继承的 ACL，则会在新对象上设置基于传递到请求中的模式位的默认 ACL。
+* 如果请求仅包含标准 UNIX 文件访问权限，但父目录具有 ACL，则只要 ACE 已使用适当的继承标志进行标记，父目录的 ACL 中的 ACE 就会被新文件或目录继承。
+
+
+
+
+=== ACE 权限
+
+NFSv4.1 ACL 权限使用一系列大写和小写字母值（例如 `rxtncy`) 来控制访问。有关这些字母值的更多信息，请参阅 https://www.osc.edu/book/export/html/4523["如何使用 NFSv4 ACL"^]。
+
+
+
+=== 具有 umask 和 ACL 继承的 NFSv4.1 ACL 行为
+
+http://linux.die.net/man/5/nfs4_acl["NFSv4 ACL 提供 ACL 继承功能"^] 。ACL 继承意味着在设置了 NFSv4.1 ACL 的对象下创建的文件或文件夹可以根据 http://linux.die.net/man/5/nfs4_acl["ACL 继承标志"^]。
+
+https://man7.org/linux/man-pages/man2/umask.2.html["乌马斯克"^]用于控制无需管理员交互即可在目录中创建文件和文件夹的权限级别。默认情况下， Google Cloud NetApp Volumes允许 umask 覆盖继承的 ACL，这是根据 https://datatracker.ietf.org/doc/html/rfc5661["RFC 5661"^]。
+
+
+
+=== ACL 格式
+
+NFSv4.1 ACL 具有特定的格式。以下示例是文件上的 ACE 设置：
+
+....
+A::ldapuser@domain.netapp.com:rwatTnNcCy
+....
+上述示例遵循以下 ACL 格式准则：
+
+....
+type:flags:principal:permissions
+....
+一种 `A`意思是“允许”。在这种情况下，不会设置继承标志，因为主体不是一个组并且不包括继承。此外，由于 ACE 不是 AUDIT 条目，因此无需设置审计标志。有关 NFSv4.1 ACL 的更多信息，请参阅 http://linux.die.net/man/5/nfs4_acl["http://linux.die.net/man/5/nfs4_acl"^]。
+
+如果 NFSv4.1 ACL 设置不正确（或者客户端和服务器无法解析名称字符串），ACL 可能不会按预期运行，或者 ACL 更改可能无法应用并引发错误。
+
+示例错误包括：
+
+....
+Failed setxattr operation: Invalid argument
+Scanning ACE string 'A:: user@rwaDxtTnNcCy' failed.
+....
+
+
+=== 明确拒绝
+
+NFSv4.1 权限可以包括 OWNER、GROUP 和 EVERYONE 的明确 DENY 属性。这是因为 NFSv4.1 ACL 是默认拒绝的，这意味着如果 ACE 未明确授予 ACL，则会被拒绝。明确的 DENY 属性将覆盖任何 ACCESS ACE，无论是否明确。
+
+DENY ACE 的属性标签为 `D`。
+
+在下面的示例中，GROUP@ 被允许所有读取和执行权限，但被拒绝所有写入访问权限。
+
+....
+sh-4.1$ nfs4_getfacl /mixed
+A::ldapuser@domain.netapp.com:ratTnNcCy
+A::OWNER@:rwaDxtTnNcCy
+D::OWNER@:
+A:g:GROUP@:rxtncy
+D:g:GROUP@:waDTC
+A::EVERYONE@:rxtncy
+D::EVERYONE@:waDTC
+....
+应尽可能避免使用 DENY ACE，因为它们可能令人困惑且复杂；未明确定义的 ALLOW ACL 将被隐式拒绝。当设置了 DENY ACE 时，用户在期望获得访问权限时可能会被拒绝访问。
+
+上述一组 ACE 相当于模式位中的 755，这意味着：
+
+* 所有者拥有充分的权利。
+* 群组具有只读权限。
+* 其他人只读。
+
+
+但是，即使将权限调整为 775，由于 EVERYONE 上明确设置了 DENY，访问也可能会被拒绝。
+
+
+
+=== NFSv4.1 ID 域映射依赖关系
+
+NFSv4.1 利用 ID 域映射逻辑作为安全层，帮助验证尝试访问 NFSv4.1 挂载的用户确实是他们所声称的用户。在这些情况下，来自 NFSv4.1 客户端的用户名和组名会附加一个名称字符串并将其发送到Google Cloud NetApp Volumes实例。如果用户名/组名和 ID 字符串组合不匹配，则该用户和/或组将被压缩为 `/etc/idmapd.conf`客户端上的文件。
+
+此 ID 字符串是遵守正确权限的必要条件，尤其是在使用 NFSv4.1 ACL 和/或 Kerberos 时。因此，需要名称服务服务器依赖项（例如 LDAP 服务器）来确保客户端和Google Cloud NetApp Volumes之间的一致性，以便正确解析用户和组名身份。
+
+Google Cloud NetApp Volumes使用静态默认 ID 域名值 `defaultv4iddomain.com`。  NFS 客户端默认使用 DNS 域名作为其 ID 域名设置，但您可以手动调整 `/etc/idmapd.conf`。
+
+如果在Google Cloud NetApp Volumes中启用了 LDAP，则Google Cloud NetApp Volumes会自动将 NFS ID 域更改为 DNS 中搜索域的配置，并且客户端无需修改，除非它们使用不同的 DNS 域搜索名称。
+
+当Google Cloud NetApp Volumes可以解析本地文件或 LDAP 中的用户名或组名时，将使用域字符串，而不匹配的域 ID 将被压缩为 nobody。如果Google Cloud NetApp Volumes在本地文件或 LDAP 中找不到用户名或组名，则使用数字 ID 值，并且 NFS 客户端会正确解析该名称（这类似于 NFSv3 行为）。
+
+如果不更改客户端的 NFSv4.1 ID 域以匹配Google Cloud NetApp Volumes卷正在使用的域，您会看到以下行为：
+
+* Google Cloud NetApp Volumes中具有本地条目的 UNIX 用户和组（例如 root，如本地 UNIX 用户和组中所定义）被压缩为 nobody 值。
+* 如果 NFS 客户端和Google Cloud NetApp Volumes Volumes 之间的 DNS 域不同，则具有 LDAP 条目的 UNIX 用户和组（如果Google Cloud NetApp Volumes配置为使用 LDAP）将被压缩为 nobody。
+* 没有本地条目或 LDAP 条目的 UNIX 用户和组使用数字 ID 值并解析为 NFS 客户端上指定的名称。如果客户端上不存在名称，则仅显示数字 ID。
+
+
+下面显示了上述场景的结果：
+
+....
+# ls -la /mnt/home/prof1/nfs4/
+total 8
+drwxr-xr-x 2 nobody nobody 4096 Feb  3 12:07 .
+drwxrwxrwx 7 root   root   4096 Feb  3 12:06 ..
+-rw-r--r-- 1   9835   9835    0 Feb  3 12:07 client-user-no-name
+-rw-r--r-- 1 nobody nobody    0 Feb  3 12:07 ldap-user-file
+-rw-r--r-- 1 nobody nobody    0 Feb  3 12:06 root-user-file
+....
+当客户端和服务器 ID 域匹配时，相同的文件列表如下所示：
+
+....
+# ls -la
+total 8
+drwxr-xr-x 2 root   root         4096 Feb  3 12:07 .
+drwxrwxrwx 7 root   root         4096 Feb  3 12:06 ..
+-rw-r--r-- 1   9835         9835    0 Feb  3 12:07 client-user-no-name
+-rw-r--r-- 1 apache apache-group    0 Feb  3 12:07 ldap-user-file
+-rw-r--r-- 1 root   root            0 Feb  3 12:06 root-user-file
+....
+有关此问题及其解决方法的更多信息，请参阅“<<NFSv4.1 和 nobody 用户/组>> “
+
+
+
+=== Kerberos 依赖项
+
+如果您计划将 Kerberos 与 NFS 结合使用，则必须具备以下Google Cloud NetApp Volumes：
+
+* Kerberos 分发中心服务 (KDC) 的 Active Directory 域
+* 具有用户和组属性的 Active Directory 域，其中填充了用于 LDAP 功能的 UNIX 信息（ Google Cloud NetApp Volumes中的 NFS Kerberos 需要用户 SPN 到 UNIX 用户映射才能正常运行。）
+* Google Cloud NetApp Volumes实例上启用了 LDAP
+* DNS 服务的 Active Directory 域
+
+
+
+
+=== NFSv4.1 和 nobody 用户/组
+
+NFSv4.1 配置中最常见的问题之一是当文件或文件夹显示在列表中时使用 `ls`归 `user:group`组合 `nobody:nobody`。
+
+例如：
+
+....
+sh-4.2$ ls -la | grep prof1-file
+-rw-r--r-- 1 nobody nobody    0 Apr 24 13:25 prof1-file
+....
+数字 ID 是 `99`。
+
+....
+sh-4.2$ ls -lan | grep prof1-file
+-rw-r--r-- 1 99 99    0 Apr 24 13:25 prof1-file
+....
+在某些情况下，文件可能会显示正确的所有者，但 `nobody`作为团体。
+
+....
+sh-4.2$ ls -la | grep newfile1
+-rw-r--r-- 1 prof1  nobody    0 Oct  9  2019 newfile1
+....
+谁是没人？
+
+这 `nobody`NFSv4.1 中的用户与 `nfsnobody`用户。您可以通过运行以下命令来查看 NFS 客户端如何查看每个用户 `id`命令：
+
+....
+# id nobody
+uid=99(nobody) gid=99(nobody) groups=99(nobody)
+# id nfsnobody
+uid=65534(nfsnobody) gid=65534(nfsnobody) groups=65534(nfsnobody)
+....
+使用 NFSv4.1， `nobody`用户是 `idmapd.conf`文件，可以定义为您想要使用的任何用户。
+
+....
+# cat /etc/idmapd.conf | grep nobody
+#Nobody-User = nobody
+#Nobody-Group = nobody
+....
+为什么会发生这种情况？
+
+因为通过名称字符串映射实现的安全性是 NFSv4.1 操作的一个关键原则，所以当名称字符串不能正确匹配时，默认行为是将该用户压缩为通常无法访问用户和组所拥有的文件和文件夹的用户。
+
+当你看到 `nobody`对于文件列表中的用户和/或组，这通常意味着 NFSv4.1 中的某些内容配置错误。这里需要区分大小写。
+
+例如，如果 user1@CVSDEMO.LOCAL (uid 1234, gid 1234) 正在访问导出，则Google Cloud NetApp Volumes必须能够找到 user1@CVSDEMO.LOCAL (uid 1234, gid 1234)。如果Google Cloud NetApp Volumes中的用户是 USER1@CVSDEMO.LOCAL，则不会匹配（大写 USER1 与小写 user1）。在许多情况下，您可以在客户端的消息文件中看到以下内容：
+
+....
+May 19 13:14:29 centos7 nfsidmap[17481]: nss_getpwnam: name 'root@defaultv4iddomain.com' does not map into domain 'CVSDEMO.LOCAL'
+May 19 13:15:05 centos7 nfsidmap[17534]: nss_getpwnam: name 'nobody' does not map into domain 'CVSDEMO.LOCAL'
+....
+客户端和服务器必须都同意用户确实是他们所声称的用户，因此您必须检查以下内容以确保客户端看到的用户与Google Cloud NetApp Volumes看到的用户具有相同的信息。
+
+* NFSv4.x ID 域。客户： `idmapd.conf`文件； Google Cloud NetApp Volumes使用 `defaultv4iddomain.com`并且无法手动更改。如果将 LDAP 与 NFSv4.1 一起使用， Google Cloud NetApp Volumes会将 ID 域更改为 DNS 搜索域正在使用的域，该域与 AD 域相同。
+* *用户名和数字 ID。*这确定了客户端在哪里寻找用户名，并利用名称服务交换机配置客户端： `nsswitch.conf`和/或本地密码和组文件； Google Cloud NetApp Volumes不允许对此进行修改，但在启用时会自动将 LDAP 添加到配置中。
+* *组名和数字 ID。*这确定了客户端在哪里寻找组名，并利用名称服务交换机配置客户端： `nsswitch.conf`和/或本地密码和组文件； Google Cloud NetApp Volumes不允许对此进行修改，但在启用时会自动将 LDAP 添加到配置中。
+
+
+在几乎所有情况下，如果你看到 `nobody`在客户端的用户和组列表中，问题是Google Cloud NetApp Volumes和 NFS 客户端之间的用户或组名域 ID 转换。为避免这种情况，请使用 LDAP 解析客户端和Google Cloud NetApp Volumes之间的用户和组信息。
+
+
+
+=== 在客户端上查看 NFSv4.1 的名称 ID 字符串
+
+如果您使用的是 NFSv4.1，则在 NFS 操作期间会发生名称字符串映射，如前所述。
+
+除了使用 `/var/log/messages`要查找 NFSv4 ID 的问题，您可以使用 https://man7.org/linux/man-pages/man5/nfsidmap.5.html["nfsidmap -l"^]在 NFS 客户端上运行命令来查看哪些用户名已正确映射到 NFSv4 域。
+
+例如，这是客户端和Google Cloud NetApp Volumes可以找到的用户访问 NFSv4.x 挂载后命令的输出：
+
+....
+# nfsidmap -l
+4 .id_resolver keys found:
+  gid:daemon@CVSDEMO.LOCAL
+  uid:nfs4@CVSDEMO.LOCAL
+  gid:root@CVSDEMO.LOCAL
+  uid:root@CVSDEMO.LOCAL
+....
+当用户没有正确映射到 NFSv4.1 ID 域时（在这种情况下， `netapp-user` ) 尝试访问相同的挂载并接触文件，它们被分配 `nobody:nobody`，正如预期的那样。
+
+....
+# su netapp-user
+sh-4.2$ id
+uid=482600012(netapp-user), 2000(secondary)
+sh-4.2$ cd /mnt/nfs4/
+sh-4.2$ touch newfile
+sh-4.2$ ls -la
+total 16
+drwxrwxrwx  5 root   root   4096 Jan 14 17:13 .
+drwxr-xr-x. 8 root   root     81 Jan 14 10:02 ..
+-rw-r--r--  1 nobody nobody    0 Jan 14 17:13 newfile
+drwxrwxrwx  2 root   root   4096 Jan 13 13:20 qtree1
+drwxrwxrwx  2 root   root   4096 Jan 13 13:13 qtree2
+drwxr-xr-x  2 nfs4   daemon 4096 Jan 11 14:30 testdir
+....
+这 `nfsidmap -l`输出显示用户 `pcuser`在显示屏上，但没有 `netapp-user`；这是我们的导出策略规则中的匿名用户(`65534`）。
+
+....
+# nfsidmap -l
+6 .id_resolver keys found:
+  gid:pcuser@CVSDEMO.LOCAL
+  uid:pcuser@CVSDEMO.LOCAL
+  gid:daemon@CVSDEMO.LOCAL
+  uid:nfs4@CVSDEMO.LOCAL
+  gid:root@CVSDEMO.LOCAL
+  uid:root@CVSDEMO.LOCAL
+....

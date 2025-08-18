@@ -1,0 +1,29 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-sm-solution.html 
+keywords: NetApp Solutions, redhat OpenShift, red hat OpenShift, redhat openshift container platform, ocp, openshift container platform, Advanced Cluster Management, ACM, Hub Cluster, containers, container workloads, VMware, customer managed storage, ONTAP 
+summary:  
+---
+= NetApp解决方案与混合云中的 Red Hat OpenShift 容器平台工作负载
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+当客户准备将部分选定的工作负载或所有工作负载从数据中心迁移到云端时，他们可能正处于现代化转型的某个阶段。他们可能出于各种原因选择在云中使用自管理的 OpenShift 容器和自管理的NetApp存储。他们应该在云中规划和部署 Red Hat OpenShift 容器平台 (OCP)，以便成功构建一个可用于生产的环境，以便从数据中心迁移容器工作负载。他们的 OCP 集群可以在其数据中心部署在 VMware 或 Bare Metal 上，也可以在云环境中部署在 AWS、Azure 或 Google Cloud 上。
+
+NetApp Cloud Volumes ONTAP存储为 AWS、Azure 和 Google Cloud 中的容器部署提供数据保护、可靠性和灵活性。  Trident作为动态存储供应器，为客户的有状态应用程序使用持久性Cloud Volumes ONTAP存储。  Trident Protect 可用于有状态应用程序的数据管理需求，例如数据保护、迁移和业务连续性。
+
+
+
+== 使用Trident Protect 为混合云中的 OpenShift Container 工作负载提供数据保护和迁移解决方案
+
+本地和 AWSimage:rhhc-self-managed-aws.png["该图显示输入/输出对话框或表示书面内容"]
+
+本地和 Google Cloudimage:rhhc-self-managed-gcp.png["该图显示输入/输出对话框或表示书面内容"]
+
+本地和 Azure 云image:rhhc-self-managed-azure.png["该图显示输入/输出对话框或表示书面内容"]

@@ -1,0 +1,106 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-solutions-validated.html 
+keywords: NetApp Solutions, hybrid cloud, container workloads, containers, Red Hat OpenShift, RedHat OpenShift, VMware, ROSA, ACC, Trident Protect, Advanced Cluster Management, ACM, Hub Cluster 
+summary:  
+---
+= NetApp混合多云支持 Red Hat OpenShift 容器工作负载的解决方案
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+该解决方案使用 OpenShift 容器平台 (OCP)、OpenShift 高级集群管理器 (ACM)、 NetApp ONTAP、 NetApp BlueXP和NetApp Trident Protect (ACC) 测试并验证迁移和集中数据保护。
+
+对于此解决方案， NetApp已测试并验证了以下场景。该解决方案根据以下特点分为多个场景：
+
+* 本地
+* cloud
++
+** 自我管理的 OpenShift 集群和自我管理的NetApp存储
+** 提供商管理的 OpenShift 集群和提供商管理的NetApp存储
+
+
+
+
+**我们将在未来构建更多解决方案和用例。**
+
+
+
+== 场景 1：使用Trident Protect 在本地环境中进行数据保护和迁移
+
+**本地：自我管理的 OpenShift 集群和自我管理的NetApp存储**
+
+* 使用 ACC 创建 Snapshot 副本、备份和恢复以保护数据。
+* 使用 ACC 执行容器应用程序的SnapMirror复制。
+
+
+
+
+=== 场景 1
+
+image:rhhc-on-premises.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+== 场景 2：使用Trident Protect 进行数据保护以及从本地环境到 AWS 环境的迁移
+
+**本地：自管理 OpenShift 集群和自管理存储** **AWS 云：自管理 OpenShift 集群和自管理存储**
+
+* 使用 ACC 执行备份和恢复以保护数据。
+* 使用 ACC 执行容器应用程序的SnapMirror复制。
+
+
+
+
+=== 场景 2
+
+image:rhhc-self-managed-aws.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+== 场景 3：数据保护以及从本地环境到 AWS 环境的迁移
+
+**本地：自管理 OpenShift 集群和自管理存储** **AWS 云：提供商管理的 OpenShift 集群 (ROSA) 和提供商管理的存储 (FSx ONTAP)**
+
+* 使用BlueXP执行持久卷的复制（FSx ONTAP）。
+* 使用 OpenShift GitOps 重新创建应用程序元数据。
+
+
+
+
+=== 场景 3
+
+image:rhhc-rosa-with-fsxn.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+=== 场景 4：使用Trident Protect 进行数据保护以及从本地环境到 GCP 环境的迁移
+
+**本地：自管理 OpenShift 集群和自管理存储** **Google Cloud：自管理 OpenShift 集群和自管理存储**
+
+* 使用 ACC 执行备份和恢复以保护数据。
+* 使用 ACC 执行容器应用程序的SnapMirror复制。
+
+
+image:rhhc-self-managed-gcp.png["该图显示输入/输出对话框或表示书面内容"]
+
+有关在MetroCluster配置中使用ONTAP时的注意事项，请参阅link:https://docs.netapp.com/us-en/ontap-metrocluster/install-stretch/concept_considerations_when_using_ontap_in_a_mcc_configuration.html["此处"]。
+
+
+
+=== 场景 5：使用Trident Protect 进行数据保护以及从本地环境到 Azure 环境的迁移
+
+**本地：自管理 OpenShift 集群和自管理存储** **Azure 云：自管理 OpenShift 集群和自管理存储**
+
+* 使用 ACC 执行备份和恢复以保护数据。
+* 使用 ACC 执行容器应用程序的SnapMirror复制。
+
+
+image:rhhc-self-managed-azure.png["该图显示输入/输出对话框或表示书面内容"]
+
+有关在MetroCluster配置中使用ONTAP时的注意事项，请参阅link:https://docs.netapp.com/us-en/ontap-metrocluster/install-stretch/concept_considerations_when_using_ontap_in_a_mcc_configuration.html["此处"]。

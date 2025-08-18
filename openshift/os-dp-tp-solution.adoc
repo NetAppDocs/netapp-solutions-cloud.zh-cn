@@ -1,0 +1,353 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-dp-tp-solution.html 
+keywords: OpenShift, OCP, Trident, Trident-protect, NetApp ONTAP, Red Hat OpenShift, app data protection, Containers 
+summary: Red Hat OpenShift 容器应用程序数据保护使用Trident和NetApp ONTAP进行保护 
+---
+= 使用Trident Protect 为 OpenShift 容器平台中的容器应用提供数据保护
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+参考文档的此部分提供了使用Trident保护创建容器应用程序的快照和备份的详细信息。  NetApp Trident Protect 提供高级应用程序数据管理功能，可增强由NetApp ONTAP存储系统和NetApp Trident CSI 存储配置器支持的有状态 Kubernetes 应用程序的功能和可用性。  Trident Protect 创建应用程序快照和备份，这意味着不仅创建持久卷中的应用程序数据的快照和备份，还创建应用程序元数据的快照和备份。  Trident Protect 创建的快照和备份可以存储在以下任何对象存储中，并在稍后从中恢复。
+
+* AWS S3
+* Azure Blob 存储
+* Google Cloud Storage
+* Ontap S3
+* 存储网格
+* 任何其他 S3 兼容存储
+
+
+Trident Protect 使用基于角色的访问控制 (RBAC) 的 Kubernetes 模型。默认情况下， Trident Protect 提供一个名为 trident-protect 的单一系统命名空间及其关联的默认服务帐户。如果您的组织拥有许多用户或特定的安全需求，您可以使用Trident Protect 的 RBAC 功能来更精细地控制对资源和命名空间的访问。
+
+有关Trident Protect 中的 RBAC 的更多信息，请参阅link:https://docs.netapp.com/us-en/trident/trident-protect/manage-authorization-access-control.html["Trident保护文档"]
+
+
+NOTE: 集群管理员可以访问默认的 trident-protect 命名空间中的资源，也可以访问所有其他命名空间中的资源。用户无法在 trident-protect 命名空间中创建应用程序数据管理自定义资源 (CR)，如快照和备份 CR。作为最佳实践，用户需要在应用程序命名空间中创建这些 CR。
+
+可以按照文档中提供的说明安装Trident Protectlink:https://docs.netapp.com/us-en/trident/trident-protect/trident-protect-installation.html["此处"]本节将展示使用Trident Protect 对容器应用程序进行数据保护和恢复应用程序的工作流程。1.快照创建（按需、按计划）2.从快照恢复（恢复到相同和不同的命名空间）3.备份创建4.从备份还原
+
+.先决条件
+[%collapsible%open]
+====
+在为应用程序创建快照和备份之前，必须在Trident Protect 中配置对象存储来存储快照和备份。这是使用存储桶 CR 完成的。只有管理员可以创建存储桶 CR 并对其进行配置。在Trident Protect 中，存储桶 CR 被称为 AppVault。  AppVault 对象是存储桶的声明性 Kubernetes 工作流表示。  AppVault CR 包含存储桶在保护操作（例如备份、快照、恢复操作和SnapMirror复制）中使用的必要配置。
+
+在此示例中，我们将展示如何使用ONTAP S3 作为对象存储。以下是为ONTAP S3 创建 AppVault CR 的工作流程： 1.在ONTAP集群中的 SVM 中创建 S3 对象存储服务器。2.在对象存储服务器中创建一个存储桶。3.在 SVM 中创建 S3 用户。将访问密钥和密钥保存在安全的地方。4.在 OpenShift 中，创建一个密钥来存储ONTAP S3 凭证。5.为ONTAP S3 创建 AppVault 对象
+
+**为ONTAP S3 配置Trident保护 AppVault**
+
+***使用ONTAP S3 作为 AppVault 配置Trident Protect 的示例 yaml 文件***
+
+[source, yaml]
+----
+# alias tp='tridentctl-protect'
+
+appvault-secret.yaml
+
+apiVersion: v1
+stringData:
+  accessKeyID: "<access key id created for a user to access ONTAP S3 bucket>"
+  secretAccessKey: "corresponding Secret Access Key"
+#data:
+# base 64 encoded values
+#  accessKeyID: <base64 access key id created for a user to access ONTAP S3 bucket>
+#  secretAccessKey: <base 64  Secret Access Key>
+kind: Secret
+metadata:
+  name: appvault-secret
+  namespace: trident-protect
+type: Opaque
+
+appvault.yaml
+
+apiVersion: protect.trident.netapp.io/v1
+kind: AppVault
+metadata:
+  name: ontap-s3-appvault
+  namespace: trident-protect
+spec:
+  providerConfig:
+    azure:
+      accountName: ""
+      bucketName: ""
+      endpoint: ""
+    gcp:
+      bucketName: ""
+      projectID: ""
+    s3:
+      bucketName: <bucket-name for storing the snapshots and backups>
+      endpoint: <endpoint IP for S3>
+      secure: "false"
+      skipCertValidation: "true"
+  providerCredentials:
+    accessKeyID:
+      valueFromSecret:
+        key: accessKeyID
+        name: appvault-secret
+    secretAccessKey:
+      valueFromSecret:
+        key: secretAccessKey
+        name: appvault-secret
+  providerType: OntapS3
+
+# oc create -f appvault-secret.yaml -n trident-protect
+# oc create -f appvault.yaml -n trident-protect
+----
+image:rhhc-dp-tp-solution-container-001.png["AppVault 已创建"]
+
+***用于安装 postgresql 应用程序的示例 yaml 文件***
+
+[source, yaml]
+----
+postgres.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:14
+        env:
+        - name: POSTGRES_USER
+          #value: "myuser"
+          value: "admin"
+        - name: POSTGRES_PASSWORD
+          #value: "mypassword"
+          value: "adminpass"
+        - name: POSTGRES_DB
+          value: "mydb"
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+  type: ClusterIP
+
+Now create the Trident protect application CR for the postgres app. Include the objects in the namespace postgres and create it in the postgres namespace.
+# tp create app postgres-app --namespaces postgres -n postgres
+
+----
+image:rhhc-dp-tp-solution-container-002.png["应用程序已创建"]
+
+====
+.创建快照
+[%collapsible%open]
+====
+**创建按需快照**
+
+[source, yaml]
+----
+
+# tp create snapshot postgres-snap1 --app postgres-app --appvault ontap-s3-appvault -n postgres
+Snapshot "postgres-snap1" created.
+
+----
+image:rhhc-dp-tp-solution-container-003.png["快照已创建"]
+
+image:rhhc-dp-tp-solution-container-004.png["快照-pvc已创建"]
+
+**创建计划** 使用以下命令，将每天 15:33 创建快照，并保留两个快照和备份。
+
+[source, yaml]
+----
+# tp create schedule schedule1 --app postgres-app --appvault ontap-s3-appvault --backup-retention 2 --snapshot-retention 2 --granularity Daily --hour 15 --minute 33 --data-mover Restic -n postgres
+Schedule "schedule1" created.
+----
+image:rhhc-dp-tp-solution-container-005.png["已创建 Schedule1"]
+
+**使用 yaml 创建计划**
+
+[source, yaml]
+----
+# tp create schedule schedule2 --app postgres-app --appvault ontap-s3-appvault --backup-retention 2 --snapshot-retention 2 --granularity Daily --hour 15 --minute 33 --data-mover Restic -n postgres --dry-run > hourly-snapshotschedule.yaml
+
+cat hourly-snapshotschedule.yaml
+
+apiVersion: protect.trident.netapp.io/v1
+kind: Schedule
+metadata:
+  creationTimestamp: null
+  name: schedule2
+  namespace: postgres
+spec:
+  appVaultRef: ontap-s3-appvault
+  applicationRef: postgres-app
+  backupRetention: "2"
+  dataMover: Restic
+  dayOfMonth: ""
+  dayOfWeek: ""
+  enabled: true
+  granularity: Hourly
+  #hour: "15"
+  minute: "33"
+  recurrenceRule: ""
+  snapshotRetention: "2"
+status: {}
+----
+image:rhhc-dp-tp-solution-container-006.png["已创建 Schedule2"]
+
+您可以看到按照此计划创建的快照。
+
+image:rhhc-dp-tp-solution-container-007.png["Snap 按计划创建"]
+
+还创建了卷快照。
+
+image:rhhc-dp-tp-solution-container-008.png["PVC Snap 按计划完成"]
+
+====
+.删除应用程序以模拟应用程序丢失
+[%collapsible%open]
+====
+[source, yaml]
+----
+# oc delete deployment/postgres -n postgres
+# oc get pod,pvc -n postgres
+No resources found in postgres namespace.
+----
+====
+.从快照恢复到同一命名空间
+[%collapsible%open]
+====
+[source, yaml]
+----
+# tp create sir postgres-sir --snapshot postgres/hourly-3f1ee-20250214183300 -n postgres
+SnapshotInplaceRestore "postgres-sir" created.
+----
+image:rhhc-dp-tp-solution-container-009.png["先生创造"]
+
+应用程序及其 PVC 恢复到同一个命名空间。
+
+image:rhhc-dp-tp-solution-container-010.png["应用程序已恢复，先生"]
+
+====
+.从快照还原到不同的命名空间
+[%collapsible%open]
+====
+[source, yaml]
+----
+# tp create snapshotrestore postgres-restore --snapshot postgres/hourly-3f1ee-20250214183300 --namespace-mapping postgres:postgres-restore -n postgres-restore
+SnapshotRestore "postgres-restore" created.
+----
+image:rhhc-dp-tp-solution-container-011.png["snapRestore 已创建"]
+
+您可以看到应用程序已恢复到新的命名空间。
+
+image:rhhc-dp-tp-solution-container-012.png["应用程序恢复，snapRestore"]
+
+====
+.创建备份
+[%collapsible%open]
+====
+**创建按需备份**
+
+[source, yaml]
+----
+# tp create backup postgres-backup1 --app postgres-app --appvault ontap-s3-appvault -n postgres
+Backup "postgres-backup1" created.
+----
+image:rhhc-dp-tp-solution-container-013.png["备份已创建"]
+
+**创建备份计划**
+
+上面列表中的每日和每小时备份是根据之前设置的计划创建的。
+
+[source, yaml]
+----
+# tp create schedule schedule1 --app postgres-app --appvault ontap-s3-appvault --backup-retention 2 --snapshot-retention 2 --granularity Daily --hour 15 --minute 33 --data-mover Restic -n postgres
+Schedule "schedule1" created.
+----
+image:rhhc-dp-tp-solution-container-013-a.png["先前创建的时间表"]
+
+====
+.从备份恢复
+[%collapsible%open]
+====
+**删除应用程序和 PVC 以模拟数据丢失。**
+
+image:rhhc-dp-tp-solution-container-014.png["先前创建的时间表"]
+
+**恢复到相同的命名空间** #tp create bir postgres-bir --backup postgres/hourly-3f1ee-20250224023300 -n postgres BackupInplaceRestore "postgres-bir" created。
+
+image:rhhc-dp-tp-solution-container-015.png["恢复到相同的命名空间"]
+
+应用程序和 PVC 在同一个命名空间中恢复。
+
+image:rhhc-dp-tp-solution-container-016.png["应用程序和 pvcs 恢复到同一个命名空间"]
+
+**恢复到不同的命名空间** 创建一个新的命名空间。从备份恢复到新的命名空间。
+
+image:rhhc-dp-tp-solution-container-017.png["恢复到不同的命名空间"]
+
+====
+.迁移应用程序
+[%collapsible%open]
+====
+要将应用程序克隆或迁移到不同的集群（执行跨集群克隆），请在源集群上创建备份，然后将备份还原到不同的集群。确保目标集群上安装了Trident保护。
+
+在源集群上，执行下图所示的步骤：
+
+image:rhhc-dp-tp-solution-container-018.png["恢复到不同的命名空间"]
+
+从源集群，将上下文切换到目标集群。然后，确保可以从目标集群上下文访问 AppVault，并从目标集群获取 AppVault 内容。
+
+image:rhhc-dp-tp-solution-container-019.png["将上下文切换到目标"]
+
+使用列表中的备份路径并创建一个备份恢复 CR 对象，如下面的命令所示。
+
+[source, yaml]
+----
+# tp create backuprestore backup-restore-cluster2 --namespace-mapping postgres:postgres --appvault ontap-s3-appvault --path postgres-app_4d798ed5-cfa8-49ff-a5b6-c5e2d89aeb89/backups/postgres-backup-cluster1_ec0ed3f3-5500-4e72-afa8-117a04a0b1c3 -n postgres
+BackupRestore "backup-restore-cluster2" created.
+----
+image:rhhc-dp-tp-solution-container-020.png["恢复至目标"]
+
+现在您可以看到应用程序 pod 和 PVC 已在目标集群中创建。
+
+image:rhhc-dp-tp-solution-container-021.png["目标集群上的应用程序"]
+
+====

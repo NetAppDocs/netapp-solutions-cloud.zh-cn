@@ -1,0 +1,126 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-dp-velero-migrate.html 
+keywords: OpenShift, OCP, Trident, NetApp ONTAP, Red Hat OpenShift, OADP operator, Openshift Data Protection Application operator, Velero 
+summary: Red Hat OpenShift 容器应用程序数据保护与NetApp ONTAP 
+---
+= 将应用程序从一个集群迁移到另一个集群
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Velero 的备份和恢复功能使其成为在集群之间迁移数据的有价值的工具。本节介绍如何将应用程序从一个集群迁移到另一个集群，方法是在一个集群的对象存储中创建应用程序的备份，然后将应用程序从同一对象存储还原到另一个集群。。
+
+.从第一个集群备份
+[%collapsible%open]
+====
+**集群 1 的先决条件**
+
+* 必须在集群上安装Trident 。
+* 必须创建 trident 后端和存储类。
+* 必须在集群上安装 OADP 操作员。
+* 应该配置 DataProtectionApplication。
+
+
+使用以下规范来配置 DataProtectionApplication 对象。
+
+....
+spec:
+  backupLocations:
+    - velero:
+        config:
+          insecureSkipTLSVerify: 'false'
+          profile: default
+          region: us-east-1
+          s3ForcePathStyle: 'true'
+          s3Url: 'https://10.61.181.161'
+        credential:
+          key: cloud
+          name: ontap-s3-credentials
+        default: true
+        objectStorage:
+          bucket: velero
+          caCert: <base-64 encoded tls certificate>
+          prefix: container-backup
+        provider: aws
+  configuration:
+    nodeAgent:
+      enable: true
+      uploaderType: kopia
+    velero:
+      defaultPlugins:
+        - csi
+        - openshift
+        - aws
+        - kubevirt
+....
+* 在集群上创建一个应用程序并备份该应用程序。例如，安装一个 postgres 应用程序。
+
+
+image:redhat-openshift-oadp-migrate-001.png["安装 postgres 应用程序"]
+
+* 对备份 CR 使用以下规范：
+
+
+....
+spec:
+  csiSnapshotTimeout: 10m0s
+  defaultVolumesToFsBackup: false
+  includedNamespaces:
+    - postgresql
+  itemOperationTimeout: 4h0m0s
+  snapshotMoveData: true
+  storageLocation: velero-sample-1
+  ttl: 720h0m0s
+....
+image:redhat-openshift-oadp-migrate-002.png["安装 postgres 应用程序"]
+
+您可以点击**所有实例**选项卡来查看正在创建的不同对象，它们经过不同的阶段，最终进入备份**完成**阶段。
+
+命名空间 postgresql 中的资源备份将存储在 OADP 规范中的 backupLocation 中指定的对象存储位置 (ONTAP S3) 中。
+
+====
+.恢复到第二个集群
+[%collapsible%open]
+====
+**集群 2 的先决条件**
+
+* 必须在集群 2 上安装Trident 。
+* postgresql 应用程序一定不能已经安装在 postgresql 命名空间中。
+* OADP 操作员必须安装在集群 2 上，并且 BackupStorage Location 必须指向存储第一个集群的备份的相同对象存储位置。
+* 备份 CR 必须对第二个集群可见。
+
+
+image:redhat-openshift-oadp-migrate-003.png["三叉戟已安装"]
+
+image:redhat-openshift-oadp-migrate-004.png["postgres 尚未安装"]
+
+image:redhat-openshift-oadp-migrate-005.png["集群 2 上的 OADP 已安装"]
+
+image:redhat-openshift-oadp-migrate-006.png["指向同一对象存储的备份存储位置"]
+
+从备份恢复此集群上的应用程序。使用以下 yaml 创建 Restore CR。
+
+....
+apiVersion: velero.io/v1
+kind: Restore
+apiVersion: velero.io/v1
+metadata:
+  name: restore
+  namespace: openshift-adp
+spec:
+  backupName: backup
+  restorePVs: true
+....
+恢复完成后，您将看到 postgresql 应用程序正在此集群上运行，并与 pvc 和相应的 pv 相关联。应用程序的状态与备份时的状态相同。
+
+image:redhat-openshift-oadp-migrate-007.png["恢复成功"]
+
+image:redhat-openshift-oadp-migrate-008.png["postgres 已迁移"]
+
+====

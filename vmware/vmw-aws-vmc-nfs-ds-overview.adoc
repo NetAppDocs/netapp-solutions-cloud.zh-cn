@@ -1,0 +1,68 @@
+---
+sidebar: sidebar 
+permalink: vmware/vmw-aws-vmc-nfs-ds-overview.html 
+keywords:  
+summary:  
+---
+= TR-4938：使用 VMware Cloud on AWS 将Amazon FSx ONTAP挂载为 NFS 数据存储
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+本文档概述了如何使用 VMware Cloud on AWS 将Amazon FSx ONTAP作为 NFS 数据存储挂载。
+
+
+
+== 简介
+
+每个成功的组织都走在转型和现代化的道路上。作为此过程的一部分，公司通常利用其现有的 VMware 投资来利用云优势并探索如何尽可能无缝地迁移、爆发、扩展和为流程提供灾难恢复。迁移到云的客户必须评估弹性和爆发、数据中心退出、数据中心整合、生命周期终止场景、合并、收购等用例。
+
+尽管 VMware Cloud on AWS 是大多数客户的首选，因为它为客户提供了独特的混合功能，但有限的本机存储选项限制了它对于存储工作负载繁重的组织的实用性。由于存储直接与主机绑定，因此扩展存储的唯一方法是添加更多主机，这可能会使存储密集型工作负载的成本增加 35-40% 或更多。这些工作负载需要额外的存储和隔离性能，而不是额外的马力，但这意味着需要支付额外的主机费用。这就是 https://aws.amazon.com/about-aws/whats-new/2022/08/announcing-vmware-cloud-aws-integration-amazon-fsx-netapp-ontap/["最近的整合"^]FSx ONTAP对于使用 VMware Cloud on AWS 的存储和性能密集型工作负载非常有用。
+
+让我们考虑以下场景：客户需要八台主机来提供马力（vCPU/vMem），但他们对存储也有很大的需求。根据他们的评估，他们需要 16 台主机来满足存储需求。这会增加总体 TCO，因为他们必须购买所有额外的马力，而他们真正需要的只是更多的存储空间。这适用于任何用例，包括迁移、灾难恢复、爆发、开发/测试等等。
+
+本文档将引导您完成将 FSx ONTAP配置并连接为 VMware Cloud on AWS 的 NFS 数据存储所需的步骤。
+
+
+NOTE: VMware 也提供此解决方案。请访问link:https://docs.vmware.com/en/VMware-Cloud-on-AWS/services/com.vmware.vmc-aws-operations/GUID-D55294A3-7C40-4AD8-80AA-B33A25769CCA.html["VMware Cloud on AWS 文档"]了解更多信息。
+
+
+
+== 连接选项
+
+
+NOTE: VMware Cloud on AWS 支持 FSx ONTAP的多可用区和单可用区部署。
+
+本节介绍高级连接架构以及实施解决方案所需的步骤，以扩展 SDDC 集群中的存储，而无需添加其他主机。
+
+image:fsx-nfs-001.png["该图显示输入/输出对话框或表示书面内容"]
+
+高级部署步骤如下：
+
+. 在新的指定 VPC 中创建Amazon FSx ONTAP 。
+. 创建 SDDC 组。
+. 创建 VMware Transit Connect 和 TGW 附件。
+. 配置路由（AWS VPC 和 SDDC）和安全组。
+. 将 NFS 卷作为数据存储附加到 SDDC 集群。
+
+
+在将 FSx ONTAP配置并连接为 NFS 数据存储之前，您必须首先设置 VMware on Cloud SDDC 环境或将现有 SDDC 升级到 v1.20 或更高版本。有关更多信息，请参阅link:https://docs.vmware.com/en/VMware-Cloud-on-AWS/services/com.vmware.vmc-aws.getting-started/GUID-3D741363-F66A-4CF9-80EA-AA2866D1834E.html["VMware Cloud on AWS 入门"^] 。
+
+
+NOTE: FSx ONTAP目前不支持延伸集群。
+
+
+
+== 结束语
+
+本文档介绍了使用 AWS 上的 VMware 云配置Amazon FSx ONTAP所需的步骤。 Amazon FSx ONTAP提供了部署和管理应用程序工作负载以及文件服务的绝佳选项，同时通过使数据需求无缝连接到应用程序层来降低 TCO。无论使用情况如何，选择 VMware Cloud on AWS 以及Amazon FSx ONTAP都可以快速实现云优势、一致的基础架构和从本地到 AWS 的操作、工作负载的双向可移植性以及企业级容量和性能。它与连接存储所用的过程和程序相同。请记住，只是数据的位置随着新名称而发生了变化；工具和流程都保持不变， Amazon FSx ONTAP有助于优化整体部署。
+
+要了解有关此过程的更多信息，请随意观看详细的演示视频。
+
+.Amazon FSx ONTAP VMware 云
+video::6462f4e4-2320-42d2-8d0b-b01200f00ccb[panopto]

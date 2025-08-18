@@ -1,0 +1,234 @@
+---
+sidebar: sidebar 
+permalink: vmware/vmw-azure-anf-avs-ds-dr-veeam.html 
+keywords: disaster recovery, avs, azure vmware solution, anf, azure netapp files, disaster recovery, dr, veeam, replication 
+summary:  
+---
+= 使用 Veeam Replication 和Azure NetApp Files数据存储区对 Azure VMware 解决方案进行灾难恢复
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Azure NetApp Files (ANF) 数据存储将存储与计算分离，并释放了任何组织将其工作负载转移到云端所需的灵活性。它为客户提供灵活、高性能的存储基础设施，可独立于计算资源进行扩展。  Azure NetApp Files数据存储简化并优化了与 Azure VMware 解决方案 (AVS) 一起的部署，作为本地 VMWare 环境的灾难恢复站点。
+
+
+
+== 概述
+
+基于Azure NetApp Files(ANF) 卷的 NFS 数据存储可用于使用任何经过验证的提供 VM 复制功能的第三方解决方案从本地复制数据。通过添加Azure NetApp Files数据存储，它将实现成本优化部署，而不是构建具有大量 ESXi 主机来容纳存储的 Azure VMware 解决方案 SDDC。这种方法被称为“Pilot Light Cluster”。试点灯集群是最小 AVS 主机配置（3 x AVS 节点）以及Azure NetApp Files数据存储容量。
+
+目标是维护一个拥有所有核心组件的低成本基础设施来处理故障转移。如果发生故障转移，指示灯集群可以扩展并提供更多的 AVS 主机。一旦故障转移完成并且恢复正常操作，指示灯集群就可以缩减到低成本的运行模式。
+
+
+
+== 本文件的目的
+
+本文介绍如何将Azure NetApp Files数据存储与 Veeam Backup 和复制结合使用，以使用 Veeam VM 复制软件功能为本地 VMware VM 到 (AVS) 设置灾难恢复。
+
+Veeam Backup & Replication 是一款用于虚拟环境的备份和复制应用程序。当虚拟机被复制时，Veeam Backup & Replication 会从 AVS 上复制，该软件将在目标 AVS SDDC 集群上以原生 VMware vSphere 格式创建虚拟机的精确副本。 Veeam Backup & Replication 将使副本与原始 VM 保持同步。复制提供了最佳的恢复时间目标 (RTO)，因为 DR 站点上有一个处于准备启动状态的 VM 的安装副本。
+
+这种复制机制可确保在发生灾难事件时工作负载能够在 AVS SDDC 中快速启动。 Veeam Backup & Replication 软件还优化了通过 WAN 和慢速连接进行复制的流量传输。此外，它还过滤掉重复的数据块、零数据块、交换文件和“排除的 VM 客户操作系统文件”。该软件还将压缩副本流量。为了防止复制作业消耗整个网络带宽，可以利用 WAN 加速器和网络限制规则。
+
+Veeam Backup & Replication 中的复制过程由作业驱动，这意味着复制是通过配置复制作业来执行的。如果发生灾难事件，可以触发故障转移，通过故障转移到其副本来恢复虚拟机。当执行故障转移时，复制的虚拟机将接管原始虚拟机的角色。可以执行故障转移至副本的最新状态或任何已知的良好还原点。这使得勒索软件恢复或隔离测试能够根据需要进行。  Veeam Backup & Replication 提供多种选项来处理不同的灾难恢复场景。
+
+image:dr-veeam-anf-001.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+== 解决方案部署
+
+
+
+=== 高级步骤
+
+. Veeam Backup and Replication 软件在具有适当网络连接的本地环境中运行。
+. link:https://learn.microsoft.com/en-us/azure/azure-vmware/deploy-azure-vmware-solution?tabs=azure-portal["部署 Azure VMware 解决方案 (AVS)"]私有云和link:https://learn.microsoft.com/en-us/azure/azure-vmware/attach-azure-netapp-files-to-azure-vmware-solution-hosts?tabs=azure-portal["附加Azure NetApp Files数据存储"]到 Azure VMware 解决方案主机。
++
+可以使用以最小配置设置的指示灯环境来实现 DR 目的。一旦发生事故，虚拟机将故障转移到该集群，并且可以添加其他节点）。
+
+. 设置复制作业以使用 Veeam Backup and Replication 创建 VM 副本。
+. 创建故障转移计划并执行故障转移。
+. 灾难事件结束且主站点启动后，切换回生产虚拟机。
+
+
+
+
+=== Veeam VM 复制到 AVS 和 ANF 数据存储区的先决条件
+
+. 确保 Veeam Backup & Replication 备份 VM 连接到源以及目标 AVS SDDC 集群。
+. 备份服务器必须能够解析短名称并连接到源 vCenter 和目标 vCenter。
+. 目标Azure NetApp Files数据存储必须具有足够的可用空间来存储复制的 VM 的 VMDK。
+
+
+有关更多信息，请参阅“注意事项和限制”link:https://helpcenter.veeam.com/docs/backup/vsphere/replica_limitations.html?ver=120["此处"] 。
+
+
+
+=== 部署详情
+
+.步骤 1：复制虚拟机
+[%collapsible%open]
+====
+Veeam Backup & Replication 利用 VMware vSphere 快照功能/在复制期间，Veeam Backup & Replication 请求 VMware vSphere 创建 VM 快照。  VM 快照是 VM 的时间点副本，其中包括虚拟磁盘、系统状态、配置和元数据。  Veeam Backup & Replication 使用快照作为复制的数据源。
+
+要复制虚拟机，请按照以下步骤操作：
+
+. 打开 Veeam 备份和复制控制台。
+. 在主页视图上。右键单击作业节点并选择复制作业>虚拟机。
+. 指定作业名称并选择适当的高级控制复选框。单击“下一步”。
++
+** 如果本地和 Azure 之间的连接带宽受限，请选中“副本种子”复选框。  *如果 Azure VMware 解决方案 SDDC 上的段与本地站点网络的段不匹配，请选中“网络重新映射（针对具有不同网络的 AVS SDDC 站点）”复选框。
+** 如果本地生产站点中的 IP 寻址方案与目标 AVS 站点中的方案不同，请选中“副本重新 IP（适用于具有不同 IP 寻址方案的 DR 站点）”复选框。
++
+image:dr-veeam-anf-002.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+. 在“虚拟”*计算机*步骤中选择要复制到附加到 Azure VMware 解决方案 SDDC的 Azure NetApp Files数据存储的 VM。可以将虚拟机放置在 vSAN 上以填充可用的 vSAN 数据存储容量。在试点集群中，3 节点集群的可用容量将受到限制。其余数据可以轻松放置在Azure NetApp Files数据存储中，以便可以恢复虚拟机，并且扩展集群以满足 CPU/内存要求。单击*添加*，然后在*添加对象*窗口中选择必要的虚拟机或虚拟机容器，然后单击*添加*。单击“下一步”。
++
+image:dr-veeam-anf-003.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 之后，选择目标作为 Azure VMware 解决方案 SDDC 群集/主机，并选择适当的资源池、VM 文件夹和 VM 副本的 FSx ONTAP数据存储。然后单击“下一步”。
++
+image:dr-veeam-anf-004.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 下一步根据需要创建源虚拟网络和目标虚拟网络之间的映射。
++
+image:dr-veeam-anf-005.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在*作业设置*步骤中，指定将存储 VM 副本、保留策略等元数据的备份存储库。
+. 在*数据传输*步骤中更新*源*和*目标*代理服务器，保留*自动*选择（默认）并保持选择*直接*选项，然后单击*下一步*。
+. 在*Guest Processing*步骤中，根据需要选择*Enable application-aware processing*选项。单击“下一步”。
++
+image:dr-veeam-anf-006.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 选择复制计划来定期运行复制作业。
++
+image:dr-veeam-anf-007.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在向导的*摘要*步骤中，查看复制作业的详细信息。要在向导关闭后立即启动作业，请选中*单击“完成”时运行作业*复选框，否则请不要选中该复选框。然后单击“*完成*”关闭向导。
++
+image:dr-veeam-anf-008.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+复制作业启动后，具有指定后缀的虚拟机将填充到目标 AVS SDDC 集群/主机上。
+
+image:dr-veeam-anf-009.png["该图显示输入/输出对话框或表示书面内容"]
+
+有关 Veeam 复制的更多信息，请参阅link:https://helpcenter.veeam.com/docs/backup/vsphere/replication_process.html?ver=120["复制的工作原理"]
+
+====
+.步骤 2：创建故障转移计划
+[%collapsible%open]
+====
+初始复制或播种完成后，创建故障转移计划。故障转移计划有助于自动对从属虚拟机逐个或按组执行故障转移。故障转移计划是虚拟机处理顺序（包括启动延迟）的蓝图。故障转移计划还有助于确保关键依赖的虚拟机已经在运行。
+
+要创建计划，请导航到名为“*副本*”的新子部分并选择“*故障转移计划*”。选择适当的虚拟机。  Veeam Backup & Replication 将查找最接近此时间点的还原点并使用它们启动 VM 副本。
+
+
+NOTE: 仅当初始复制完成且 VM 副本处于就绪状态后，才能添加故障转移计划。
+
+
+NOTE: 运行故障转移计划时可同时启动的虚拟机数量上限为 10
+
+
+NOTE: 在故障转移过程中，源虚拟机不会关闭
+
+要创建*故障转移计划*，请执行以下操作：
+
+. 在主页视图上。右键单击“副本”节点并选择“故障转移计划”>“故障转移计划”>“VMware vSphere”。
++
+image:dr-veeam-anf-010.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 接下来为计划提供名称和描述。可以根据需要添加故障转移前和故障转移后脚本。例如，在启动复制的虚拟机之前运行脚本来关闭虚拟机。
++
+image:dr-veeam-anf-011.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 将虚拟机添加到计划中，并修改虚拟机启动顺序和启动延迟以满足应用程序依赖关系。
++
+image:dr-veeam-anf-012.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+有关创建复制作业的其他信息，请参阅link:https://helpcenter.veeam.com/docs/backup/vsphere/replica_job.html?ver=120["创建复制作业"]。
+
+====
+.步骤 3：运行故障转移计划
+[%collapsible%open]
+====
+在故障转移期间，生产站点中的源虚拟机将切换到灾难恢复站点上的副本。作为故障转移过程的一部分，Veeam Backup & Replication 将 VM 副本恢复到所需的恢复点，并将所有 I/O 活动从源 VM 移动到其副本。副本不仅可用于灾难发生时，还可用于模拟灾难恢复演习。在故障转移模拟期间，源虚拟机仍保持运行。一旦完成所有必要的测试，您就可以撤消故障转移并恢复正常操作。
+
+
+NOTE: 确保网络分段到位，以避免故障转移期间发生 IP 冲突。
+
+要启动故障转移计划，只需单击“*故障转移计划*”选项卡，然后右键单击您的故障转移计划。选择“开始”。这将使用 VM 副本的最新还原点进行故障转移。要故障转移到 VM 副本的特定还原点，请选择*开始*。
+
+image:dr-veeam-anf-013.png["该图显示输入/输出对话框或表示书面内容"]
+
+image:dr-veeam-anf-014.png["该图显示输入/输出对话框或表示书面内容"]
+
+VM 副本的状态从“就绪”更改为“故障转移”，并且 VM 将在目标 Azure VMware 解决方案 (AVS) SDDC 群集/主机上启动。
+
+image:dr-veeam-anf-015.png["该图显示输入/输出对话框或表示书面内容"]
+
+故障转移完成后，虚拟机的状态将变为“故障转移”。
+
+image:dr-veeam-anf-016.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+NOTE: Veeam Backup & Replication 停止源 VM 的所有复制活动，直到其副本返回到就绪状态。
+
+有关故障转移计划的详细信息，请参阅link:https://helpcenter.veeam.com/docs/backup/vsphere/failover_plan.html?ver=120["故障转移计划"]。
+
+====
+.步骤 4：故障恢复到生产站点
+[%collapsible%open]
+====
+当故障转移计划运行时，它被视为一个中间步骤，需要根据需求最终确定。选项包括以下内容：
+
+* *故障恢复到生产* - 切换回原始 VM，并将 VM 副本运行时发生的所有更改传输到原始 VM。
+
+
+
+NOTE: 当您执行故障回复时，更改仅被传输但不会被发布。如果原始虚拟机未按预期工作，请选择*提交故障恢复*（一旦确认原始虚拟机按预期工作）或撤消故障恢复以返回虚拟机副本。
+
+* *撤消故障转移* - 切换回原始虚拟机并放弃运行时对虚拟机副本所做的所有更改。
+* *永久故障转移* - 从原始 VM 永久切换到 VM 副本，并使用此副本作为原始 VM。
+
+
+在这个演示中，选择了故障恢复到生产。在向导的目标步骤中选择了故障回复到原始虚拟机，并且启用了“恢复后启动虚拟机”复选框。
+
+image:dr-veeam-anf-017.png["该图显示输入/输出对话框或表示书面内容"]
+
+image:dr-veeam-anf-018.png["该图显示输入/输出对话框或表示书面内容"]
+
+image:dr-veeam-anf-019.png["该图显示输入/输出对话框或表示书面内容"]
+
+image:dr-veeam-anf-020.png["该图显示输入/输出对话框或表示书面内容"]
+
+故障回复提交是完成故障回复操作的方法之一。当故障回复被提交时，它会确认发送到故障回复的虚拟机（生产虚拟机）的更改是否按预期工作。提交操作后，Veeam Backup & Replication 将恢复生产虚拟机的复制活动。
+
+有关故障恢复过程的详细信息，请参阅 Veeam 文档link:https://helpcenter.veeam.com/docs/backup/vsphere/failover_failback.html?ver=120["复制的故障转移和故障恢复"]。
+
+image:dr-veeam-anf-021.png["该图显示输入/输出对话框或表示书面内容"]
+
+故障恢复生产成功后，所有虚拟机都将恢复到原始生产站点。
+
+image:dr-veeam-anf-022.png["该图显示输入/输出对话框或表示书面内容"]
+
+====
+
+
+== 结束语
+
+Azure NetApp Files数据存储功能使 Veeam 或任何经过验证的第三方工具能够利用 Pilot light 集群来提供低成本的 DR 解决方案，而不是仅仅为了容纳 VM 副本而建立大型集群。这提供了一种有效的方法来处理量身定制的灾难恢复计划，并重复使用内部现有的备份产品进行灾难恢复，通过退出内部灾难恢复数据中心实现基于云的灾难恢复。发生灾难时，可以通过单击按钮进行故障转移，或者在发生灾难时自动进行故障转移。
+
+要了解有关此过程的更多信息，请随意观看详细的演示视频。
+
+video::2855e0d5-97e7-430f-944a-b061015e9278[panopto,width=Video walkthrough of the solution]

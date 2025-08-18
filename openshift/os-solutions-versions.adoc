@@ -1,0 +1,99 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-solutions-versions.html 
+keywords: NetApp Solutions, hybrid cloud, container workloads, containers, Red Hat OpenShift, RedHat OpenShift, vmware, ROSA, ACC, Trident Protect, Advanced Cluster Management, ACM, Hub Cluster 
+summary:  
+---
+= 解决方案验证中使用的各种组件的版本
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+该解决方案使用 OpenShift 容器平台、OpenShift Advanced Cluster Manager、 NetApp ONTAP和NetApp Trident Protect 测试并验证迁移和集中数据保护。
+
+解决方案的场景 1、2 和 3 使用下表所示的版本进行验证：
+
+[cols="25%, 75%"]
+|===
+
+
+| *成分* | *版本* 
+
+
+| VMware | vSphere Client 版本 8.0.0.10200 VMware ESXi，8.0.0，20842819 
+
+
+| *枢纽集群* | OpenShift 4.11.34 
+
+
+| 源集群和目标集群 | OpenShift 4.12.9 本地和 AWS 
+
+
+| NetApp Trident | Trident服务器和客户端 23.04.0 
+
+
+| * NetApp Trident保护* | Trident Protect 22.11.0-82 
+
+
+| NetApp ONTAP | ONTAP 9.12.1 
+
+
+| AWS FSx ONTAP | 单个 AZ 
+|===
+解决方案的场景 4 使用下表所示的版本进行了验证：
+
+[cols="25%, 75%"]
+|===
+
+
+| *成分* | *版本* 
+
+
+| VMware | vSphere Client 版本 8.0.2.00000 VMware ESXi，8.0.2，22380479 
+
+
+| *枢纽集群* | OpenShift 4.13.13 
+
+
+| 源集群和目标集群 | OpenShift 4.13.12 本地和 Google Cloud 中 
+
+
+| NetApp Trident | Trident服务器和客户端 23.07.0 
+
+
+| NetApp ONTAP | ONTAP 9.12.1 
+
+
+| * Cloud Volumes ONTAP* | 单可用区，单节点，9.14.0 
+|===
+解决方案的场景 5 使用下表所示的版本进行了验证：
+
+[cols="25%, 75%"]
+|===
+
+
+| *成分* | *版本* 
+
+
+| VMware | vSphere Client 版本 8.0.2.00000 VMware ESXi，8.0.2，22380479 
+
+
+| 源集群和目标集群 | OpenShift 4.13.25 本地和 Azure 
+
+
+| NetApp Trident | Trident服务器和客户端以及Astra Control Provisioner 23.10.0 
+
+
+| * NetApp Trident保护* | Trident Protect 23.10 
+
+
+| NetApp ONTAP | ONTAP 9.12.1 
+
+
+| * Cloud Volumes ONTAP* | 单可用区，单节点，9.14.0 
+|===

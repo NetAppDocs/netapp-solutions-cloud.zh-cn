@@ -1,0 +1,70 @@
+---
+sidebar: sidebar 
+permalink: vmware/vmw-hybrid-compute-config.html 
+keywords: NetApp Solutions, amazon, vmc, aws, microsoft azure, avs, azure, google cloud, gcp, gcve, vmware managed cloud, enterprise, hybrid, cloud, config, configuration 
+summary:  
+---
+= 在云提供商中配置虚拟化环境
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+这里介绍了如何在每个受支持的超大规模器中配置虚拟化环境的详细信息。
+
+[role="tabbed-block"]
+====
+.AWS/VMC
+--
+本节介绍如何设置和管理 VMware Cloud on AWS SDDC，并将其与可用于连接NetApp存储的选项结合使用。
+
+
+NOTE: 客户机内存储是将Cloud Volumes ONTAP连接到 AWS VMC 的唯一支持方法。
+
+设置过程可分为以下步骤：
+
+* 部署和配置 VMware Cloud for AWS
+* 将 VMware Cloud 连接到 FSx ONTAP
+
+
+查看详细信息link:../vmware/vmw-aws-vmc-setup.html["VMC 的配置步骤"]。
+
+--
+.Azure/AVS
+--
+本部分介绍如何设置和管理 Azure VMware 解决方案，并将其与用于连接NetApp存储的可用选项结合使用。
+
+
+NOTE: 来宾内存储是将Cloud Volumes ONTAP连接到 Azure VMware 解决方案的唯一支持方法。
+
+设置过程可分为以下步骤：
+
+* 注册资源提供者并创建私有云
+* 连接到新的或现有的 ExpressRoute 虚拟网络网关
+* 验证网络连接并访问私有云
+
+
+查看详细信息link:azure-setup.html["AVS配置步骤"]。
+
+--
+.良好操作规范/良好行为规范
+--
+本节介绍如何设置和管理 GCVE，以及如何将其与可用于连接NetApp存储的选项结合使用。
+
+
+NOTE: 客户机内存储是将Cloud Volumes ONTAP和Google Cloud NetApp Volumes连接到 GCVE 的唯一支持方法。
+
+设置过程可分为以下步骤：
+
+* 部署和配置 GCVE
+* 启用对 GCVE 的私人访问
+
+
+查看详细信息link:gcp-setup.html["GCVE 的配置步骤"]。
+
+--
+====

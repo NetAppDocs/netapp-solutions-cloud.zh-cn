@@ -1,0 +1,57 @@
+---
+sidebar: sidebar 
+permalink: vmware/evs-mount-fsxn-intro.html 
+keywords: Amazon, AWS, EVS, Elastic VMware Service, ONTAP, FSx 
+summary: '本文档将介绍创建 FSx for ONTAP文件系统并将其附加为互联网小型计算机系统接口 (iSCSI) 或网络文件系统 (NFS) 数据存储以供 Amazon EVS 使用的具体步骤。' 
+---
+= 如何将Amazon FSx for NetApp ONTAP挂载为 Amazon Elastic VMware Service 的外部数据存储
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+本文档将介绍创建 FSx for ONTAP文件系统并将其附加为互联网小型计算机系统接口 (iSCSI) 或网络文件系统 (NFS) 数据存储以供 Amazon EVS 使用的具体步骤。
+
+
+
+== 简介
+
+拥有现有本地 VMware 投资的组织正在寻求高效且经济高效的方式，通过在 AWS 上迁移、爆发、扩展或保护（备份、灾难恢复）副本来实现其部署的现代化，但他们面临着多项挑战。随着 Amazon Elastic VMware Service (Amazon EVS) 的发布，现在有了原生的 AWS 服务，可以直接在 Amazon Virtual Private Cloud (VPC) 中运行 VMware Cloud Foundation (VCF)。
+
+Amazon EVS 可以将现有的 VCF 部署扩展到 AWS，在高峰使用期间爆发到 AWS 以扩展性能，并在 AWS 上完全运行 VCF 工作负载以促进现代化、数据中心退出、整合和其他使用案例。
+
+尽管 Amazon EVS 提供了强大的优势，但默认的超融合架构将计算和存储结合在一起，从而阻止根据业务需求独立扩展其中一个或另一个。在当今以数据为中心的世界中，许多组织的存储需求高于计算需求。然而，在 VMware 超融合架构中，存储资源与计算资源是结合在一起的。这意味着只能通过添加永远不会使用的计算主机来实现存储扩展。这种情况会大大增加成本，尤其是在存储繁重的工作负载中。
+
+为了解决这个问题，AWS 和NetApp提供Amazon FSx for NetApp ONTAP （FSx for ONTAP）作为 Amazon EVS 的外部存储服务。 FSx for ONTAP是一种 AWS 原生存储服务，可提供NetApp ONTAP软件的高性能、数据弹性和成本效益功能。通过使用 FSx for ONTAP作为外部存储，Amazon EVS 用户可以独立扩展计算和存储资源，从而实现最佳总体拥有成本 (TCO)。
+
+
+
+== 概述
+
+本文档将介绍创建 FSx for ONTAP文件系统并将其附加为互联网小型计算机系统接口 (iSCSI) 或网络文件系统 (NFS) 数据存储以供 Amazon EVS 使用的具体步骤。
+
+
+
+== 本指南的目的
+
+本指南提供了有关如何为 Amazon EVS 设置 FSx for ONTAP数据存储的说明，以及最佳实践、可支持性要求、大小考虑因素和其他信息，以帮助您规划、设计和实施集成。
+
+
+
+== 受众
+
+本教程适用于熟悉 VMware vSphere、Amazon EVS、AWS 控制台和 FSx for ONTAP 的云架构师和云管理员。
+
+
+
+== 高级架构
+
+在本节中，我们将概述使用 FSx for ONTAP作为 Amazon EVS 数据存储的解决方案架构。
+
+下面您可以看到 AWS VPC 内具有 Amazon EVS 环境的 FSx for ONTAP数据存储区的架构高级视图。
+
+image:evs-mount-fsxn-001.png["该图表示该解决方案的高级架构"]

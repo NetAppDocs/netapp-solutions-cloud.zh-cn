@@ -1,0 +1,349 @@
+---
+sidebar: sidebar 
+permalink: vmware/vmw-azure-avs-dro.html 
+keywords: NetApp Solutions, hybrid, multicloud, multi cloud, hyperscalers, vmware, disaster recovery orchestrator, DRO 
+summary:  
+---
+= TR-4955：使用Azure NetApp Files(ANF) 和 Azure VMware 解决方案 (AVS) 进行灾难恢复
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+使用云内区域之间的块级复制进行灾难恢复是一种有弹性且经济高效的方法，可以保护工作负载免受站点中断和数据损坏事件（例如勒索软件）的影响。
+
+
+
+== 概述
+
+借助 Azure NetApp文件 (ANF) 跨区域卷复制，在 Azure VMware 解决方案 (AVS) SDDC 站点上运行的 VMware 工作负载（使用 Azure NetApp文件卷作为主 AVS 站点上的 NFS 数据存储）可以复制到目标恢复区域中的指定辅助 AVS 站点。
+
+灾难恢复编排器 (DRO)（带有 UI 的脚本解决方案）可用于无缝恢复从一个 AVS SDDC 复制到另一个 AVS SDDC 的工作负载。  DRO 通过中断复制对等，然后将目标卷作为数据存储安装，通过 VM 注册到 AVS，再到 NSX-T 上的网络映射（包含在所有 AVS 私有云中）来实现自动恢复。
+
+image:azure-dro-001.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+=== 先决条件和一般建议
+
+* 通过创建复制对等连接来验证您是否已启用跨区域复制。看 https://learn.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-create-peering["为Azure NetApp Files创建卷复制"^]。
+* 必须在源和目标 Azure VMware 解决方案私有云之间配置 ExpressRoute Global Reach。
+* 您必须拥有可以访问资源的服务主体。
+* 支持以下拓扑：主 AVS 站点到辅助 AVS 站点。
+* 配置 https://learn.microsoft.com/en-us/azure/reliability/cross-region-replication-azure["replication"^]根据业务需求和数据变化率适当地安排每个卷。
+
+
+
+NOTE: 不支持级联和扇入扇出拓扑。
+
+
+
+== 入门
+
+
+
+=== 部署 Azure VMware 解决方案
+
+这 https://learn.microsoft.com/en-us/azure/azure-vmware/introduction["Azure VMware 解决方案"^](AVS) 是一种混合云服务，可在 Microsoft Azure 公共云中提供功能齐全的 VMware SDDC。 AVS 是使用 Azure 基础架构、完全由 Microsoft 管理和支持并经过 VMware 验证的第一方解决方案。因此，客户可以获得用于计算虚拟化的 VMware ESXi、用于超融合存储的 vSAN 以及用于网络和安全的 NSX，同时利用 Microsoft Azure 的全球影响力、一流的数据中心设施以及与丰富的原生 Azure 服务和解决方案生态系统的接近性。  Azure VMware 解决方案 SDDC 和Azure NetApp Files的组合以最小的网络延迟提供了最佳性能。
+
+要在 Azure 上配置 AVS 私有云，请按照以下步骤操作link:vmw-azure-avs-setup.html["链接"^]请参阅NetApp文档以及 https://learn.microsoft.com/en-us/azure/azure-vmware/deploy-azure-vmware-solution?tabs=azure-portal["链接"^]用于 Microsoft 文档。可以使用以最小配置设置的指示灯环境来实现 DR 目的。此设置仅包含支持关键应用程序的核心组件，并且如果发生故障转移，它可以扩展并产生更多主机来承担大部分负载。
+
+
+NOTE: 在初始版本中，DRO 支持现有的 AVS SDDC 集群。按需 SDDC 创建功能将在即将发布的版本中提供。
+
+
+
+=== 预配和配置Azure NetApp Files
+
+https://learn.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-introduction["Azure NetApp Files"^]是一种高性能、企业级、计量文件存储服务。按照以下步骤操作 https://learn.microsoft.com/en-us/azure/azure-vmware/attach-azure-netapp-files-to-azure-vmware-solution-hosts?tabs=azure-portal["链接"^]将Azure NetApp Files配置为 NFS 数据存储，以优化 AVS 私有云部署。
+
+
+
+==== 为Azure NetApp Files支持的数据存储卷创建卷复制
+
+第一步是设置所需数据存储卷从 AVS 主站点到 AVS 辅助站点的跨区域复制，并采用适当的频率和保留。
+
+image:azure-dro-002.png["该图显示输入/输出对话框或表示书面内容"]
+
+按照以下步骤操作 https://learn.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-create-peering["链接"^]通过创建复制对等来设置跨区域复制。目标容量池的服务级别可以与源容量池的服务级别匹配。但是，对于这个特定的用例，您可以选择标准服务级别，然后 https://learn.microsoft.com/en-us/azure/azure-netapp-files/dynamic-change-volume-service-level["修改服务级别"^]在发生真实灾难或 DR 模拟时。
+
+
+NOTE: 跨区域复制关系是先决条件，必须事先创建。
+
+
+
+== DRO安装
+
+要开始使用 DRO，请在指定的 Azure 虚拟机上使用 Ubuntu 操作系统并确保满足先决条件。然后安装该包。
+
+*先决条件：*
+
+* 可以访问资源的服务主体。
+* 确保源和目标 SDDC 以及Azure NetApp Files实例之间存在适当的连接。
+* 如果您使用 DNS 名称，则应该进行 DNS 解析。否则，请使用 vCenter 的 IP 地址。
+
+
+*操作系统要求：*
+
+* Ubuntu Focal 20.04 (LTS)必须在指定的代理虚拟机上安装以下软件包：
+* Docker
+* Docker-Compose
+* JqChange `docker.sock`对于这个新权限： `sudo chmod 666 /var/run/docker.sock` 。
+
+
+
+NOTE: 这 `deploy.sh`脚本执行所有必需的先决条件。
+
+步骤如下：
+
+. 在指定虚拟机上下载安装包：
++
+....
+git clone https://github.com/NetApp/DRO-Azure.git
+....
++
+
+NOTE: 该代理必须安装在辅助 AVS 站点区域或与 SDDC 不同的 AZ 中的主 AVS 站点区域中。
+
+. 解压安装包，运行部署脚本，输入主机IP（例如， `10.10.10.10` ）。
++
+....
+tar xvf draas_package.tar
+Navigate to the directory and run the deploy script as below:
+sudo sh deploy.sh
+....
+. 使用以下凭据访问 UI：
++
+** 用户名: `admin`
+** 密码： `admin`
++
+image:azure-dro-003.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+
+
+
+
+== DRO 配置
+
+正确配置Azure NetApp Files和 AVS 后，您可以开始配置 DRO 以自动将工作负载从主 AVS 站点恢复到辅助 AVS 站点。  NetApp建议在辅助 AVS 站点部署 DRO 代理并配置 ExpressRoute 网关连接，以便 DRO 代理可以通过网络与适当的 AVS 和Azure NetApp Files组件进行通信。
+
+第一步是添加凭证。 DRO 需要权限才能发现Azure NetApp Files和 Azure VMware 解决方案。您可以通过创建和设置 Azure Active Directory (AD) 应用程序并获取 DRO 所需的 Azure 凭据来向 Azure 帐户授予所需的权限。您必须将服务主体绑定到您的 Azure 订阅，并为其分配具有相关所需权限的自定义角色。添加源环境和目标环境时，系统会提示您选择与服务主体关联的凭据。您需要将这些凭据添加到 DRO，然后才能单击“添加新站点”。
+
+要执行此操作，请完成以下步骤：
+
+. 在支持的浏览器中打开 DRO 并使用默认用户名和密码/`admin`/`admin`）。首次登录后可以使用“更改密码”选项重置密码。
+. 在 DRO 控制台的右上角，单击 *设置* 图标，然后选择 *凭据*。
+. 单击“添加新凭据”并按照向导中的步骤进行操作。
+. 要定义凭据，请输入有关授予所需权限的 Azure Active Directory 服务主体的信息：
++
+** 凭证名称
+** 租户 ID
+** 客户端 ID
+** 客户端机密
+** 订阅 ID
++
+您应该在创建 AD 应用程序时捕获此信息。
+
+
+
+. 确认有关新凭证的详细信息，然后单击“添加凭证”。
++
+image:azure-dro-004.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+添加凭据后，就可以发现并将主 AVS 站点和辅助 AVS 站点（vCenter 和 Azure NetApp文件存储帐户）添加到 DRO。要添加源站点和目标站点，请完成以下步骤：
+
+. 转到“*发现*”选项卡。
+. 单击“添加新站点”。
+. 添加以下主要 AVS 站点（在控制台中指定为 *源*）。
++
+** SDDC vCenter
+** Azure NetApp Files存储帐户
+
+
+. 添加以下辅助 AVS 站点（在控制台中指定为 *目标*）。
++
+** SDDC vCenter
+** Azure NetApp Files存储帐户
++
+image:azure-dro-005.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+. 通过单击“源”，输入友好的站点名称并选择连接器来添加站点详细信息。然后点击“继续”。
++
+
+NOTE: 为了演示目的，本文档涵盖了添加源站点的内容。
+
+. 更新 vCenter 详细信息。为此，请从主 AVS SDDC 的下拉列表中选择凭据、Azure 区域和资源组。
+. DRO 列出了该地区所有可用的 SDDC。从下拉菜单中选择指定的私有云 URL。
+. 输入 `cloudadmin@vsphere.local`用户凭证。可以从 Azure 门户访问。按照本文提到的步骤 https://learn.microsoft.com/en-us/azure/azure-vmware/tutorial-access-private-cloud["链接"^]。完成后，单击“继续”。
++
+image:azure-dro-006.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 通过选择 Azure 资源组和NetApp帐户来选择源存储详细信息 (ANF)。
+. 单击“创建站点”。
++
+image:azure-dro-007.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+添加后，DRO 会执行自动发现并显示从源站点到目标站点具有相应跨区域副本的虚拟机。  DRO 自动检测虚拟机使用的网络和段并填充它们。
+
+image:azure-dro-008.png["该图显示输入/输出对话框或表示书面内容"]
+
+下一步是将所需的虚拟机分组到其功能组中作为资源组。
+
+
+
+=== 资源分组
+
+添加平台后，将要恢复的虚拟机分组到资源组中。  DRO 资源组允许您将一组从属虚拟机分组为逻辑组，这些逻辑组包含它们的启动顺序、启动延迟以及可在恢复时执行的可选应用程序验证。
+
+要开始创建资源组，请单击“*创建新资源组*”菜单项。
+
+. 访问“*资源组*”并单击“*创建新资源组*”。
++
+image:azure-dro-009.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在新资源组下，从下拉菜单中选择源站点，然后单击*创建*。
+. 提供资源组详细信息，然后单击“继续”。
+. 使用搜索选项选择合适的虚拟机。
+. 为所有选定的虚拟机选择*启动顺序*和*启动延迟*（秒）。通过选择每个虚拟机并设置其优先级来设置开机顺序。所有虚拟机的默认值为 3。选项如下：
++
+** 第一个启动的虚拟机
+** 默认
+** 最后启动的虚拟机
++
+image:azure-dro-010.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+. 单击“创建资源组”。
++
+image:azure-dro-011.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+
+
+=== 复制计划
+
+您必须制定一个在发生灾难时恢复应用程序的计划。从下拉菜单中选择源和目标 vCenter 平台，选择要包含在此计划中的资源组，还包括应用程序应如何恢复和启动的分组（例如，域控制器、第 1 层、第 2 层等）。计划通常也被称为蓝图。要定义恢复计划，请导航到“复制计划”选项卡，然后单击“*新建复制计划*”。
+
+要开始创建复制计划，请完成以下步骤：
+
+. 导航到*复制计划*并单击*创建新复制计划*。
++
+image:azure-dro-012.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在*新复制计划*上，提供计划名称并通过选择源站点、关联 vCenter、目标站点和关联 vCenter 来添加恢复映射。
++
+image:azure-dro-013.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 恢复映射完成后，选择*集群映射*。
++
+image:azure-dro-014.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 选择*资源组详情*并点击*继续*。
+. 设置资源组的执行顺序。当存在多个资源组时，此选项可让您选择操作顺序。
+. 完成后，将网络映射设置到适当的段。这些段应该已经在辅助 AVS 集群上配置，并且要将虚拟机映射到这些段，请选择适当的段。
+. 根据虚拟机的选择自动选择数据存储映射。
++
+
+NOTE: 跨区域复制（CRR）处于卷级别。因此，驻留在相应卷上的所有虚拟机都被复制到 CRR 目标。确保选择数据存储区中的所有虚拟机，因为只有复制计划中的虚拟机才会被处理。
+
++
+image:azure-dro-015.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在 VM 详细信息下，您可以选择调整 VM 的 CPU 和 RAM 参数。当您将大型环境恢复到较小的目标集群或进行 DR 测试而无需配置一对一的物理 VMware 基础架构时，这会非常有用。另外，修改资源组中所有选定虚拟机的启动顺序和启动延迟（秒）。如果需要对资源组启动顺序选择过程中选择的内容进行任何更改，则可以使用附加选项来修改启动顺序。默认情况下，使用资源组选择期间选择的启动顺序，但可以在此阶段执行任何修改。
++
+image:azure-dro-016.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 单击*创建复制计划*。创建复制计划后，您可以根据需要执行故障转移、测试故障转移或迁移选项。
++
+image:azure-dro-017.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+在故障转移和测试故障转移选项期间，使用最新的快照，或者可以从时间点快照中选择特定快照。如果您面临勒索软件之类的损坏事件，则时间点选项可能非常有用，其中最新的副本已被破坏或加密。  DRO 显示所有可用的时间点。
+
+image:azure-dro-018.png["该图显示输入/输出对话框或表示书面内容"]
+
+要使用复制计划中指定的配置触发故障转移或测试故障转移，您可以单击*故障转移*或*测试故障转移*。您可以在任务菜单中监控复制计划。
+
+image:azure-dro-019.png["该图显示输入/输出对话框或表示书面内容"]
+
+触发故障转移后，可以在辅助站点 AVS SDDC vCenter（虚拟机、网络和数据存储区）中看到恢复的项目。默认情况下，虚拟机将恢复到工作负载文件夹。
+
+image:azure-dro-020.png["该图显示输入/输出对话框或表示书面内容"]
+
+可以在复制计划级别触发故障恢复。如果发生测试故障转移，可以使用拆除选项来回滚更改并删除新创建的卷。与故障转移相关的故障回复是一个两步过程。选择复制计划并选择*反向数据同步*。
+
+image:azure-dro-021.png["该图显示输入/输出对话框或表示书面内容"]
+
+此步骤完成后，触发故障恢复以移回主 AVS 站点。
+
+image:azure-dro-022.png["该图显示输入/输出对话框或表示书面内容"]
+
+image:azure-dro-023.png["该图显示输入/输出对话框或表示书面内容"]
+
+从 Azure 门户中，我们可以看到，对于作为读/写卷映射到辅助站点 AVS SDDC 的相应卷，复制运行状况已中断。在测试故障转移期间，DRO 不会映射目标卷或副本卷。相反，它会创建所需的跨区域复制快照的新卷，并将该卷公开为数据存储，这会消耗容量池中的额外物理容量并确保源卷不会被修改。值得注意的是，复制作业可以在 DR 测试或分类工作流程期间继续进行。此外，此过程可确保在发生错误或恢复损坏的数据时可以清理恢复，而不会有副本被破坏的风险。
+
+
+
+=== 勒索软件恢复
+
+从勒索软件中恢复可能是一项艰巨的任务。具体来说，IT 组织很难确定安全的返回点，而且，一旦确定，如何确保恢复的工作负载免受再次发生的攻击（例如，来自休眠恶意软件或通过易受攻击的应用程序）。
+
+DRO 通过允许组织从任何可用的时间点恢复来解决这些问题。然后将工作负载恢复到功能齐全但隔离的网络中，以便应用程序可以运行并相互通信，但不会暴露于任何南北流量。此过程为安全团队提供了一个安全的地方来进行取证并识别任何隐藏或休眠的恶意软件。
+
+
+
+== 结束语
+
+Azure NetApp Files和 Azure VMware 灾难恢复解决方案为您提供以下优势：
+
+* 利用高效且有弹性的Azure NetApp Files跨区域复制。
+* 通过快照保留恢复到任何可用的时间点。
+* 完全自动化所有必需步骤，从存储、计算、网络和应用程序验证步骤中恢复数百到数千台虚拟机。
+* 工作负载恢复利用“从最新的快照创建新卷”过程，该过程不会操作复制的卷。
+* 避免卷或快照上的任何数据损坏风险。
+* 避免 DR 测试工作流程期间的复制中断。
+* 利用 DR 数据和云计算资源进行 DR 以外的工作流程，例如开发/测试、安全测试、补丁和升级测试以及补救测试。
+* CPU 和 RAM 优化可以通过允许恢复到较小的计算集群来帮助降低云成本。
+
+
+
+
+=== 在哪里可以找到更多信息
+
+要了解有关本文档中描述的信息的更多信息，请查看以下文档和/或网站：
+
+* 为Azure NetApp Files创建卷复制
++
+https://learn.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-create-peering["https://learn.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-create-peering"^]
+
+* Azure NetApp Files卷的跨区域复制
++
+https://learn.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction#service-level-objectives["https://learn.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction#service-level-objectives"^]
+
+* https://learn.microsoft.com/en-us/azure/azure-vmware/introduction["Azure VMware 解决方案"^]
++
+https://learn.microsoft.com/en-us/azure/azure-vmware/introduction["https://learn.microsoft.com/en-us/azure/azure-vmware/introduction"^]
+
+* 在 Azure 上部署和配置虚拟化环境
++
+link:vmw-azure-avs-setup.html["在 Azure 上设置 AVS"]
+
+* 部署和配置 Azure VMware 解决方案
++
+https://learn.microsoft.com/en-us/azure/azure-vmware/deploy-azure-vmware-solution?tabs=azure-portal["https://learn.microsoft.com/en-us/azure/azure-vmware/deploy-azure-vmware-solution?tabs=azure-portal"^]
+
+

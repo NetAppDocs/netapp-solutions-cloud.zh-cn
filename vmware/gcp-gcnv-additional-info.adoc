@@ -1,0 +1,51 @@
+---
+sidebar: sidebar 
+permalink: vmware/gcp-gcnv-additional-info.html 
+keywords:  
+summary:  
+---
+= 附加信息和联系信息
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+要了解有关本文档中描述的信息的更多信息，请查看以下文档和/或网站：
+
+* Google Google Cloud NetApp Volumes Cloud 文档
++
+https://cloud.google.com/architecture/partners/netapp-cloud-volumes/["https://cloud.google.com/architecture/partners/netapp-cloud-volumes/"^]
+
+* Google 私人服务访问
++
+https://cloud.google.com/vpc/docs/private-services-access?hl=en_US["https://cloud.google.com/vpc/docs/private-services-access?hl=en_US"^]
+
+* NetApp产品文档
++
+https://www.netapp.com/support-and-training/documentation/["https://www.netapp.com/support-and-training/documentation/"^]
+
+* 加密验证模块程序 - NetApp CryptoMod
++
+https://csrc.nist.gov/projects/cryptographic-module-validation-program/certificate/4144["https://csrc.nist.gov/projects/cryptographic-module-validation-program/certificate/4144"^]
+
+* NetApp勒索软件解决方案
++
+https://www.netapp.com/pdf.html?item=/media/16716-sb-3938pdf.pdf&v=202093745["https://www.netapp.com/pdf.html?item=/media/16716-sb-3938pdf.pdf&v=202093745"^]
+
+* TR-4616： ONTAP中的 NFS Kerberos
++
+https://www.netapp.com/pdf.html?item=/media/19384-tr-4616.pdf["https://www.netapp.com/pdf.html?item=/media/19384-tr-4616.pdf"^]
+
+
+
+
+
+== 联系我们
+
+敬请提出宝贵意见和建议，帮助我们改进本技术报告。
+
+请通过 mailto:doccomments@netapp.com[doccomments@netapp.com^] 联系我们。在主题行中包含技术报告 4918。

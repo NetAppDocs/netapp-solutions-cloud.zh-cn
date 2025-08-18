@@ -1,0 +1,25 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-data-encrypt-at-rest.html 
+keywords: aes-256 encryption, cmek 
+summary: Google Cloud NetApp Volumes中的所有卷均使用 AES-256 加密进行静态加密，这意味着写入媒体的所有用户数据都经过加密，并且只能使用每个卷的密钥解密。 
+---
+= 静态数据加密
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Google Cloud NetApp Volumes中的所有卷均使用 AES-256 加密进行静态加密，这意味着写入媒体的所有用户数据都经过加密，并且只能使用每个卷的密钥解密。
+
+* 对于NetApp Volumes-SW，使用 Google 生成的密钥。
+* 对于NetApp Volumes-Performance，每个卷的密钥都存储在Google Cloud NetApp Volumes内置的密钥管理器中。
+
+
+从 2021 年 11 月开始，预览客户管理加密密钥 (CMEK) 功能已推出。这使得您可以使用托管在以下位置的每个项目、每个区域的主密钥来加密每个卷密钥： https://cloud.google.com/kms/docs["Google 密钥管理服务 (KMS)。"^] KMS 使您能够附加外部密钥管理器。
+
+有关为NetApp Volumes-Performance 配置 KMS 的信息，请参阅 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/customer-managed-keys?hl=en_US["设置客户管理的加密密钥"^]。

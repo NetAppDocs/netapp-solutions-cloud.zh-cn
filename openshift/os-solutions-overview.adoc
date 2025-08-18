@@ -1,0 +1,66 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-solutions-overview.html 
+keywords: NetApp Solutions, hybrid cloud, container workloads, containers, Red Hat OpenShift, RedHat OpenShift, VMware, ROSA, ACC, Trident Protect, Advanced Cluster Management, ACM, Hub Cluster 
+summary:  
+---
+= 适用于 Red Hat OpenShift 容器工作负载的NetApp混合多云解决方案
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+NetApp发现，越来越多的客户正在对其传统企业应用程序进行现代化改造，并使用围绕 Kubernetes 构建的容器和编排平台来构建新的应用程序。  Red Hat OpenShift Container Platform 就是我们看到许多客户采用的一个例子。
+
+
+
+== 概述
+
+随着越来越多的客户开始在其企业内采用容器， NetApp完全有能力帮助满足其有状态应用程序的持久存储需求以及数据保护、数据安全和数据迁移等经典数据管理需求。然而，这些需求可以通过不同的策略、工具和方法来满足。
+
+下面列出的基于** NetApp ONTAP** 的存储选项为容器和 Kubernetes 部署提供安全性、数据保护、可靠性和灵活性。
+
+* 本地自我管理存储：
++
+** NetApp光纤连接存储 (FAS)、 NetApp全闪存FAS阵列 (AFF)、 NetApp全 SAN 阵列 (ASA) 和ONTAP Select
+
+
+* 本地提供商管理的存储：
++
+** NetApp Keystone提供存储即服务 (STaaS)
+
+
+* 云端自我管理存储：
++
+** NetApp Cloud Volumes ONTAP（CVO）在超大规模数据中心中提供自管理存储
+
+
+* 云中的提供商管理存储：
++
+** Amazon FSx for NetApp ONTAP、 Azure NetApp Files和Google Cloud NetApp Volumes在云中提供基于文件的存储。
+
+
+
+
+image:rhhc-ontap-features.png["该图显示输入/输出对话框或表示书面内容"]
+
+** NetApp BlueXP** 使您能够从单个控制平面/界面管理所有存储和数据资产。
+
+您可以使用BlueXP创建和管理云存储（例如， Cloud Volumes ONTAP和Azure NetApp Files），移动、保护和分析数据，以及控制许多本地和边缘存储设备。
+
+** NetApp Trident** 是一款符合 CSI 标准的存储编排器，可以快速轻松地使用由上述各种NetApp存储选项支持的持久存储。它是由NetApp维护和支持的开源软件。
+
+image:rhhc-trident-features.png["该图显示输入/输出对话框或表示书面内容"]
+
+业务关键型容器工作负载需要的不仅仅是持久卷。他们的数据管理要求也需要保护和迁移应用程序 Kubernetes 对象。
+
+
+NOTE: 应用程序数据除了用户数据之外，还包括 kubernetes 对象：以下是一些示例： - kubernetes 对象，例如 pod 规范、PVC、部署、服务 - 自定义配置对象，例如配置映射和机密 - 持久数据，例如 Snapshot 副本、备份、克隆 - 自定义资源，例如 CR 和 CRD
+
+** NetApp Trident Protect** 是一款由NetApp维护的开源免费软件，它提供高级应用程序数据管理功能，可增强由NetApp ONTAP存储系统和NetApp Trident CSI 存储配置器支持的有状态 Kubernetes 应用程序的功能和可用性。 Trident Protect 简化了跨公共云和本地环境的容器化工作负载的管理、保护和移动。它还通过其 API 和 CLI 提供自动化功能。
+
+该参考文档提供了使用Trident Protect 在 RedHat OpenShift 平台上部署的基于容器的应用程序的数据保护验证。此外，该解决方案还提供了有关部署和使用 Red Hat Advanced Cluster Management (ACM) 管理容器平台的高级详细信息。该文档还重点介绍了使用Trident CSI 配置器将NetApp存储与 Red Hat OpenShift 容器平台集成的细节。

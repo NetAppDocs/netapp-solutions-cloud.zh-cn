@@ -1,0 +1,41 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-sm-data-migration.html 
+keywords: NetApp Solutions, redhat OpenShift, red hat OpenShift, redhat openshift container platform, ocp, openshift container platform, Advanced Cluster Management, ACM, Hub Cluster, containers, container workloads, VMware, customer managed storage, ONTAP 
+summary:  
+---
+= 使用Trident Protect 进行数据迁移
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+此页面显示了带有Trident Protect (ACC) 的 Red Hat OpenShift 集群上的容器工作负载的数据迁移选项。具体来说，客户可以使用Trident Protect 将部分选定的工作负载或所有工作负载从其本地数据中心迁移到云端，将其应用程序克隆到云端以进行测试，或将其从数据中心迁移到云端
+
+
+
+== 数据迁移
+
+要将应用程序从一个环境迁移到另一个环境，可以使用 ACC 的以下功能之一：
+
+* **复制**
+* ** 备份和恢复 **
+* ** 克隆 **
+
+
+请参阅link:os-sm-data-protection.html["数据保护部分"]用于**复制和备份和恢复**选项。
+
+参考link:https://docs.netapp.com/us-en/astra-control-center/use/clone-apps.html["此处"]有关**克隆**的更多详细信息。
+
+
+NOTE: Astra复制功能仅支持Trident容器存储接口 (CSI)。但是，nas-economy 和 san-economy 驱动程序不支持复制。
+
+
+
+=== 使用 ACC 执行数据复制
+
+image:rhhc-onprem-dp-rep.png["Trident Protect 复制"]

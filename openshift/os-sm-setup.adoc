@@ -1,0 +1,69 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-sm-setup.html 
+keywords: NetApp Solutions, redhat OpenShift, red hat OpenShift, redhat openshift container platform, ocp, openshift container platform, Advanced Cluster Management, ACM, Hub Cluster, containers, container workloads, VMware, customer managed storage, ONTAP 
+summary:  
+---
+= 在 AWS 上部署和配置 Red Hat OpenShift Container 平台
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+本节介绍了如何在 AWS 中设置和管理 OpenShift 集群并在其上部署有状态应用程序的高级工作流程。它展示了如何使用NetApp Cloud Volumes ONTAP存储在Trident的帮助下提供持久卷。提供了有关使用Trident Protect 为有状态应用程序执行数据保护和迁移活动的详细信息。
+
+
+NOTE: 有几种方法可以在 AWS 上部署 Red Hat OpenShift Container 平台集群。此设置的高级描述提供了所使用的特定方法的文档链接。您可以参考link:os-solutions-resources.html["资源部分"]。
+
+下图描述了部署在 AWS 上并使用 VPN 连接到数据中心的集群。
+
+image:rhhc-self-managed-aws.png["该图显示输入/输出对话框或表示书面内容"]
+
+设置过程可分为以下步骤：
+
+.从高级集群管理在 AWS 上安装 OCP 集群。
+[%collapsible%open]
+====
+* 创建具有站点到站点 VPN 连接（使用 pfSense）的 VPC 以连接到本地网络。
+* 内部网络具有互联网连接。
+* 在 3 个不同的 AZ 中创建 3 个私有子网。
+* 为 VPC 创建 Route 53 私有托管区域和 DNS 解析器。
+
+
+从高级集群管理 (ACM) 向导在 AWS 上创建 OpenShift 集群。参考说明link:https://docs.openshift.com/dedicated/osd_install_access_delete_cluster/creating-an-aws-cluster.html["此处"]。
+
+
+NOTE: 您还可以从 OpenShift 混合云控制台在 AWS 中创建集群。参考link:https://docs.openshift.com/container-platform/4.10/installing/installing_aws/installing-aws-default.html["此处"]以获取说明。
+
+
+TIP: 使用 ACM 创建集群时，您可以在表单视图中填写详细信息后通过编辑 yaml 文件来自定义安装。集群创建完成后，可以通过ssh登录到集群的节点进行故障排除或额外的手动配置。使用您在安装过程中提供的 ssh 密钥和用户名 core 登录。
+
+====
+.使用BlueXP在 AWS 中部署Cloud Volumes ONTAP 。
+[%collapsible%open]
+====
+* 在本地 VMware 环境中安装连接器。参考说明link:https://docs.netapp.com/us-en/cloud-manager-setup-admin/task-install-connector-on-prem.html#install-the-connector["此处"]。
+* 使用连接器在 AWS 中部署 CVO 实例。参考说明link:https://docs.netapp.com/us-en/cloud-manager-cloud-volumes-ontap/task-getting-started-aws.html["此处"]。
+
+
+
+NOTE: 该连接器也可以安装在云环境中。参考link:https://docs.netapp.com/us-en/cloud-manager-setup-admin/concept-connectors.html["此处"]了解更多信息。
+
+====
+.在 OCP 集群中安装Trident
+[%collapsible%open]
+====
+* 使用 Helm 部署Trident Operator。参考说明link:https://docs.netapp.com/us-en/trident/trident-get-started/kubernetes-deploy-helm.html["此处"]
+* 创建后端和存储类。参考说明link:https://docs.netapp.com/us-en/trident/trident-use/backends.html["此处"]。
+
+
+====
+.使用Trident的 CSI 拓扑功能实现多区域架构
+如今，云提供商使 Kubernetes/OpenShift 集群管理员能够生成基于区域的集群节点。节点可以位于一个区域内的不同可用区，也可以跨多个区域。为了方便在多区域架构中为工作负载配置卷， Trident使用了 CSI 拓扑。使用 CSI 拓扑功能，可以根据区域和可用区域将对卷的访问限制到节点子集。参考link:https://docs.netapp.com/us-en/trident/trident-use/csi-topology.html["此处"]了解更多详细信息。
+
+
+NOTE: Kubernetes 支持两种卷绑定模式： - 当 **_VolumeBindingMode_ 设置为 _Immediate_**（默认）时， Trident会在没有任何拓扑感知的情况下创建卷。持久卷的创建不依赖于请求 pod 的调度要求。 - 当 **_VolumeBindingMode_ 设置为 _WaitForFirstConsumer_** 时，PVC 的持久卷的创建和绑定将被延迟，直到使用该 PVC 的 pod 被调度和创建。这样，就可以创建卷来满足拓扑要求所强制执行的调度约束。 Trident存储后端可以设计为根据可用区域（拓扑感知后端）选择性地配置卷。对于使用此类后端的 StorageClasses，只有在受支持的区域/区域中调度的应用程序请求时才会创建卷。  （拓扑感知 StorageClass）参考link:https://docs.netapp.com/us-en/trident/trident-use/csi-topology.html["此处"]了解更多详细信息。

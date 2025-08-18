@@ -1,0 +1,27 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-firewall.html 
+keywords: tcp, nfs, smb share, kerberos, active directory, dns 
+summary: Google Cloud NetApp Volumes公开多个 TCP 端口来为 NFS 和 SMB 共享提供服务。 
+---
+= 防火墙
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Google Cloud NetApp Volumes公开多个 TCP 端口来为 NFS 和 SMB 共享提供服务：
+
+* https://cloud.google.com/architecture/partners/netapp-cloud-volumes/security-considerations?hl=en_US["NFS 访问所需的端口"^]
+* https://cloud.google.com/architecture/partners/netapp-cloud-volumes/security-considerations?hl=en_US["SMB 访问所需的端口"^]
+
+
+此外，SMB、带有 LDAP（包括 Kerberos）的 NFS 以及双协议配置需要访问 Windows Active Directory 域。  Active Directory 连接必须 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/creating-smb-volumes?hl=en_US["配置"^]按地区划分。 Active Directory 域控制器 (DC) 通过使用 https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/7fcdce70-5205-44d6-9c3a-260e616a2f04["基于 DNS 的 DC 发现"^]使用指定的 DNS 服务器。任何返回的 DC 都会被使用。可以通过指定 Active Directory 站点来限制符合条件的 DC 列表。
+
+Google Cloud NetApp Volumes使用分配给 `gcloud compute address`命令同时 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/setting-up-private-services-access?hl=en_US["加入Google Cloud NetApp Volumes"^]。您可以使用此 CIDR 作为源地址来配置到 Active Directory 域控制器的入站防火墙。
+
+Active Directory 域控制器必须 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/security-considerations?hl=en_US["如此处所述，将端口暴露给Google Cloud NetApp Volumes CIDR"^]。

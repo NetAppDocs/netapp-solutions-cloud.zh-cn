@@ -1,0 +1,335 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-nas-dependencies.html 
+keywords: kerberos keytab rotation, ldap, network ports, bind, asymmetric name mapping, antivirus 
+summary: 当使用Google Cloud NetApp Volumes进行 NAS 共享时，可能需要外部依赖项才能正常发挥作用。这些依赖关系在特定情况下发挥作用。 
+---
+= 其他 NAS 基础设施服务依赖项（KDC、LDAP 和 DNS）
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+当使用Google Cloud NetApp Volumes进行 NAS 共享时，可能需要外部依赖项才能正常发挥作用。这些依赖关系在特定情况下发挥作用。下表显示了各种配置选项以及所需的依赖项（如果有）。
+
+|===
+| 配置 | 所需依赖项 
+
+
+| 仅限 NFSv3 | 无 
+
+
+| 仅限 NFSv3 Kerberos | Windows 活动目录：* KDC * DNS * LDAP 
+
+
+| 仅限 NFSv4.1 | 客户端 ID 映射配置（/etc/idmap.conf） 
+
+
+| 仅限 NFSv4.1 Kerberos  a| 
+* 客户端 ID 映射配置（/etc/idmap.conf）
+* Windows 活动目录：KDC DNS LDAP
+
+
+
+
+| 仅限 SMB | 活动目录：* KDC * DNS 
+
+
+| 多协议 NAS（NFS 和 SMB）  a| 
+* 客户端 ID 映射配置（仅限 NFSv4.1；/etc/idmap.conf）
+* Windows 活动目录：KDC DNS LDAP
+
+
+|===
+
+
+== 机器帐户对象的 Kerberos 密钥表轮换/密码重置
+
+使用 SMB 机器帐户， Google Cloud NetApp Volumes会为 SMB 机器帐户安排定期重置密码。这些密码重置使用 Kerberos 加密进行，并按照每月第四个星期日晚上 11 点到凌晨 1 点之间的随机时间进行。这些密码重置会更改 Kerberos 密钥版本，轮换存储在Google Cloud NetApp Volumes系统上的密钥表，并帮助为在Google Cloud NetApp Volumes中运行的 SMB 服务器维持更高级别的安全性。机器帐户密码是随机的，管理员不知道。
+
+对于 NFS Kerberos 机器帐户，仅当创建/与 KDC 交换新的密钥表时才会重置密码。目前，在Google Cloud NetApp Volumes中无法执行此操作。
+
+
+
+== 用于 LDAP 和 Kerberos 的网络端口
+
+使用 LDAP 和 Kerberos 时，您应该确定这些服务正在使用的网络端口。您可以在以下位置找到Google Cloud NetApp Volumes使用的端口的完整列表： https://cloud.google.com/architecture/partners/netapp-cloud-volumes/security-considerations?hl=en_US["Google Cloud NetApp Volumes有关安全注意事项的文档"^] 。
+
+
+
+== LDAP
+
+Google Cloud NetApp Volumes充当 LDAP 客户端，并使用标准 LDAP 搜索查询来查找 UNIX 身份的用户和组。如果您打算使用Google Cloud NetApp Volumes提供的标准默认用户之外的用户和组，则 LDAP 是必需的。如果您计划将 NFS Kerberos 与用户主体（例如 user1@domain.com）一起使用，则 LDAP 也是必需的。目前仅支持使用 Microsoft Active Directory 的 LDAP。
+
+要将 Active Directory 用作 UNIX LDAP 服务器，您必须在要用于 UNIX 身份的用户和组上填充必要的 UNIX 属性。 Google Cloud NetApp Volumes使用默认 LDAP 模式模板，该模板根据以下信息查询属性 https://tools.ietf.org/id/draft-howard-rfc2307bis-01.txt["RFC-2307-bis"^]。因此，下表显示了用户和组需要填充的最低限度的 Active Directory 属性以及每个属性的用途。
+
+有关在 Active Directory 中设置 LDAP 属性的详细信息，请参阅 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/managing-dual-protocol-access["管理双协议访问。"^]
+
+|===
+| 属性 | 它的作用 
+
+
+| uid* | 指定 UNIX 用户名 
+
+
+| uid编号* | 指定 UNIX 用户的数字 ID 
+
+
+| gid编号* | 指定 UNIX 用户的主要组数字 ID 
+
+
+| 对象类* | 指定正在使用的对象类型； Google Cloud NetApp Volumes要求将“用户”包含在对象类列表中（默认情况下包含在大多数 Active Directory 部署中）。 
+
+
+| name | 有关帐户的一般信息（真实姓名、电话号码等 - 也称为 gecos） 
+
+
+| unix用户密码 | 无需设置此项；不用于 NAS 身份验证的 UNIX 身份查找。设置此项将把配置的 unixUserPassword 值以纯文本形式放置。 
+
+
+| unix主目录 | 当用户从 Linux 客户端针对 LDAP 进行身份验证时，定义 UNIX 主目录的路径。如果您想要使用 LDAP 实现 UNIX 主目录功能，请设置此项。 
+
+
+| 登录外壳 | 当用户通过 LDAP 进行身份验证时，定义 Linux 客户端的 bash/profile shell 路径。 
+|===
+*表示该属性是Google Cloud NetApp Volumes正常功能所必需的。其余属性仅供客户端使用。
+
+|===
+| 属性 | 它的作用 
+
+
+| cn* | 指定 UNIX 组名。当使用 Active Directory 进行 LDAP 时，这是在首次创建对象时设置的，但以后可以更改。此名称不能与其他对象相同。例如，如果您的 UNIX 用户 user1 属于 Linux 客户端上名为 user1 的组，则 Windows 不允许两个对象具有相同 cn 属性。要解决此问题，请将 Windows 用户重命名为唯一名称（例如 user1-UNIX）； Google Cloud NetApp Volumes中的 LDAP 使用 uid 属性作为 UNIX 用户名。 
+
+
+| gid编号* | 指定 UNIX 组数字 ID。 
+
+
+| 对象类* | 指定正在使用的对象类型； Google Cloud NetApp Volumes要求将组包含在对象类列表中（默认情况下，此属性包含在大多数 Active Directory 部署中）。 
+
+
+| 会员ID | 指定哪些 UNIX 用户是 UNIX 组的成员。使用Google Cloud NetApp Volumes中的 Active Directory LDAP，此字段不是必需的。  Google Cloud NetApp Volumes LDAP 模式使用成员字段来表示组成员身份。 
+
+
+| 成员* | 对于组成员身份/次要 UNIX 组是必需的。通过将 Windows 用户添加到 Windows 组来填充此字段。但是，如果 Windows 组没有填充 UNIX 属性，则它们不会包含在 UNIX 用户的组成员资格列表中。任何需要在 NFS 中可用的组都必须填充此表中列出的所需 UNIX 组属性。 
+|===
+*表示该属性是Google Cloud NetApp Volumes正常功能所必需的。其余属性仅供客户端使用。
+
+
+
+=== LDAP 绑定信息
+
+要查询 LDAP 中的用户， Google Cloud NetApp Volumes必须绑定（登录）到 LDAP 服务。此登录具有只读权限，用于查询 LDAP UNIX 属性以进行目录查找。目前，只有使用 SMB 机器帐户才可以进行 LDAP 绑定。
+
+只能为以下对象启用 LDAP `NetApp Volumes-Performance`实例并将其用于 NFSv3、NFSv4.1 或双协议卷。必须在与Google Cloud NetApp Volumes卷相同的区域建立 Active Directory 连接才能成功部署启用 LDAP 的卷。
+
+启用LDAP后，在特定场景下会出现以下情况。
+
+* 如果Google Cloud NetApp Volumes项目仅使用 NFSv3 或 NFSv4.1，则会在 Active Directory 域控制器中创建一个新的机器帐户，并且Google Cloud NetApp Volumes中的 LDAP 客户端将使用机器帐户凭据绑定到 Active Directory。没有为 NFS 卷创建 SMB 共享，并且默认隐藏管理共享（请参阅link:gcp-gcnv-smb.html#default-hidden-shares["默认隐藏共享"]) 已删除共享 ACL。
+* 如果Google Cloud NetApp Volumes项目使用双协议卷，则仅使用为 SMB 访问创建的单个机器帐户将Google Cloud NetApp Volumes中的 LDAP 客户端绑定到 Active Directory。不创建额外的机器帐户。
+* 如果单独创建专用的 SMB 卷（在启用带有 LDAP 的 NFS 卷之前或之后），则 LDAP 绑定的机器帐户将与 SMB 机器帐户共享。
+* 如果还启用了 NFS Kerberos，则会创建两个机器帐户 - 一个用于 SMB 共享和/或 LDAP 绑定，一个用于 NFS Kerberos 身份验证。
+
+
+
+
+=== LDAP 查询
+
+尽管 LDAP 绑定是加密的，但 LDAP 查询仍通过使用通用 LDAP 端口 389 以纯文本形式通过网络传递。目前无法在Google Cloud NetApp Volumes中更改此知名端口。因此，有权访问网络中的数据包嗅探器的人可以看到用户和组名称、数字 ID 和组成员身份。
+
+但是，Google Cloud VM 无法嗅探其他 VM 的单播流量。只有主动参与 LDAP 流量（即能够绑定）的虚拟机才能看到来自 LDAP 服务器的流量。有关Google Cloud NetApp Volumes中的数据包嗅探的更多信息，请参阅link:gcp-gcnv-arch-detail.html#packet-sniffing["数据包嗅探/跟踪注意事项。"]
+
+
+
+=== LDAP 客户端配置默认设置
+
+在Google Cloud NetApp Volumes实例中启用 LDAP 时，默认情况下会使用特定的配置详细信息创建 LDAP 客户端配置。在某些情况下，选项不适用于Google Cloud NetApp Volumes （不受支持）或不可配置。
+
+|===
+| LDAP 客户端选项 | 它的作用 | 默认值 | 可以改嗎？ 
+
+
+| LDAP 服务器列表 | 设置用于查询的 LDAP 服务器名称或 IP 地址。这不适用于Google Cloud NetApp Volumes。相反，Active Directory 域用于定义 LDAP 服务器。 | 未设置 | 否 
+
+
+| Active Directory 域 | 设置用于 LDAP 查询的 Active Directory 域。  Google Cloud NetApp Volumes利用 DNS 中 LDAP 的 SRV 记录来查找域中的 LDAP 服务器。 | 设置为 Active Directory 连接中指定的 Active Directory 域。 | 否 
+
+
+| 首选 Active Directory 服务器 | 设置用于 LDAP 的首选 Active Directory 服务器。不受Google Cloud NetApp Volumes支持。相反，使用 Active Directory 站点来控制 LDAP 服务器选择。 | 未设置。 | 否 
+
+
+| 使用 SMB 服务器凭据绑定 | 使用 SMB 机器帐户绑定到 LDAP。目前， Google Cloud NetApp Volumes中唯一支持的 LDAP 绑定方法。 | True | 否 
+
+
+| 架构模板 | 用于 LDAP 查询的架构模板。 | MS-AD-BIS | 否 
+
+
+| LDAP 服务器端口 | 用于 LDAP 查询的端口号。  Google Cloud NetApp Volumes目前仅使用标准 LDAP 端口 389。  LDAPS/端口 636 当前不受支持。 | 389 | 否 
+
+
+| LDAPS 是否已启用 | 控制是否使用安全套接字层 (SSL) 上的 LDAP 进行查询和绑定。目前不受Google Cloud NetApp Volumes支持。 | False | 否 
+
+
+| 查询超时（秒） | 查询超时。如果查询时间超过指定值，则查询失败。 | 3 | 否 
+
+
+| 最低绑定身份验证级别 | 支持的最低绑定级别。由于Google Cloud NetApp Volumes使用机器帐户进行 LDAP 绑定，而 Active Directory 默认不支持匿名绑定，因此此选项对于安全性不起作用。 | 匿名的 | 否 
+
+
+| 绑定 DN | 使用简单绑定时用于绑定的用户/专有名称 (DN)。  Google Cloud NetApp Volumes使用机器账户进行 LDAP 绑定，目前不支持简单绑定身份验证。 | 未设置 | 否 
+
+
+| 基础 DN | 用于 LDAP 搜索的基本 DN。 | 用于 Active Directory 连接的 Windows 域，采用 DN 格式（即 DC=domain、DC=local）。 | 否 
+
+
+| 基本搜索范围 | 基本 DN 搜索的搜索范围。值可以包括 base、onelevel 或 subtree。  Google Cloud NetApp Volumes仅支持子树搜索。 | 子树 | 否 
+
+
+| 用户 DN | 定义用户开始搜索 LDAP 查询的 DN。目前不支持Google Cloud NetApp Volumes，因此所有用户搜索都从基本 DN 开始。 | 未设置 | 否 
+
+
+| 用户搜索范围 | 用户 DN 搜索的搜索范围。值可以包括 base、onelevel 或 subtree。  Google Cloud NetApp Volumes不支持设置用户搜索范围。 | 子树 | 否 
+
+
+| 组 DN | 定义 LDAP 查询的组搜索开始的 DN。目前不支持Google Cloud NetApp Volumes，因此所有组搜索都从基本 DN 开始。 | 未设置 | 否 
+
+
+| 群组搜索范围 | 组 DN 搜索的搜索范围。值可以包括 base、onelevel 或 subtree。  Google Cloud NetApp Volumes不支持设置组搜索范围。 | 子树 | 否 
+
+
+| 网络组 DN | 定义网络组搜索 LDAP 查询的起始 DN。目前不支持Google Cloud NetApp Volumes，因此所有网络组搜索都从基本 DN 开始。 | 未设置 | 否 
+
+
+| 网络组搜索范围 | 网络组 DN 搜索的搜索范围。值可以包括 base、onelevel 或 subtree。  Google Cloud NetApp Volumes不支持设置网络组搜索范围。 | 子树 | 否 
+
+
+| 通过 LDAP 使用 start_tls | 利用 Start TLS 通过端口 389 建立基于证书的 LDAP 连接。目前不受Google Cloud NetApp Volumes支持。 | False | 否 
+
+
+| 启用按主机查找网络组 | 启用按主机名查找网络组，而不是扩展网络组来列出所有成员。目前不受Google Cloud NetApp Volumes支持。 | False | 否 
+
+
+| 按主机 DN 划分的网络组 | 定义 LDAP 查询的 netgroup-by-host 搜索开始的 DN。  Google Cloud NetApp Volumes目前不支持 Netgroup-by-host。 | 未设置 | 否 
+
+
+| Netgroup-by-host 搜索范围 | 按主机 DN 搜索的网络组搜索范围。值可以包括 base、onelevel 或 subtree。  Google Cloud NetApp Volumes目前不支持 Netgroup-by-host。 | 子树 | 否 
+
+
+| 客户端会话安全 | 定义 LDAP 使用的会话安全级别（签名、印章或无）。如果 Active Directory 请求， NetApp Volumes-Performance 支持 LDAP 签名。 NetApp Volumes-SW 不支持 LDAP 签名。对于这两种服务类型，目前不支持密封。 | 无 | 否 
+
+
+| LDAP 引用追踪 | 当使用多个 LDAP 服务器时，如果在第一个服务器中找不到条目，则引用追踪允许客户端引用列表中的其他 LDAP 服务器。  Google Cloud NetApp Volumes目前不支持此功能。 | False | 否 
+
+
+| 群组成员资格过滤器 | 提供自定义 LDAP 搜索过滤器，用于从 LDAP 服务器查找组成员身份。目前不支持Google Cloud NetApp Volumes。 | 未设置 | 否 
+|===
+
+
+=== 使用 LDAP 进行非对称名称映射
+
+默认情况下， Google Cloud NetApp Volumes会双向映射具有相同用户名的 Windows 用户和 UNIX 用户，无需特殊配置。只要Google Cloud NetApp Volumes可以找到有效的 UNIX 用户（使用 LDAP），就会发生 1:1 名称映射。例如，如果 Windows 用户 `johnsmith`然后，如果Google Cloud NetApp Volumes可以找到名为 `johnsmith`在 LDAP 中，该用户的名称映射成功，由该用户创建的所有文件/文件夹 `johnsmith`显示正确的用户所有权，以及所有影响的 ACL `johnsmith`无论使用何种 NAS 协议，都将受到尊重。这被称为对称名称映射。
+
+非对称名称映射是指 Windows 用户和 UNIX 用户身份不匹配的情况。例如，如果 Windows 用户 `johnsmith`具有 UNIX 身份 `jsmith`， Google Cloud NetApp Volumes需要一种方法来获知这一变化。由于Google Cloud NetApp Volumes目前不支持创建静态名称映射规则，因此必须使用 LDAP 来查找 Windows 和 UNIX 身份的用户身份，以确保文件和文件夹的正确所有权和预期权限。
+
+默认情况下， Google Cloud NetApp Volumes包含 `LDAP`在名称映射数据库实例的 ns-switch 中，以便通过使用 LDAP 为非对称名称提供名称映射功能，您只需修改一些用户/组属性以反映Google Cloud NetApp Volumes所寻找的内容。
+
+下表显示了 LDAP 中必须填充哪些属性才能实现非对称名称映射功能。大多数情况下，Active Directory 已经配置为执行此操作。
+
+|===
+| Google Cloud NetApp Volumes属性 | 它的作用 | Google Cloud NetApp Volumes用于名称映射的值 
+
+
+| Windows 到 UNIX 对象类 | 指定正在使用的对象的类型。  （即用户、组、posixAccount 等） | 必须包含用户（如果需要，可以包含多个其他值。） 
+
+
+| Windows 到 UNIX 属性 | 在创建时定义 Windows 用户名。  Google Cloud NetApp Volumes使用它来进行 Windows 到 UNIX 的查找。 | 这里不需要更改；sAMAccountName 与 Windows 登录名相同。 
+
+
+| UID | 定义 UNIX 用户名。 | 所需的 UNIX 用户名。 
+|===
+Google Cloud NetApp Volumes目前在 LDAP 查找中不使用域前缀，因此多域 LDAP 环境无法正常进行 LDAP 名称映射查找。
+
+以下示例显示了具有 Windows 名称的用户 `asymmetric`，UNIX 名称 `unix-user`，以及从 SMB 和 NFS 写入文件时遵循的行为。
+
+下图显示了 LDAP 属性在 Windows 服务器上的样子。
+
+image:ncvs-gc-020.png["该图显示输入/输出对话框或表示书面内容"]
+
+从 NFS 客户端，您可以查询 UNIX 名称，但不能查询 Windows 名称：
+
+....
+# id unix-user
+uid=1207(unix-user) gid=1220(sharedgroup) groups=1220(sharedgroup)
+# id asymmetric
+id: asymmetric: no such user
+....
+当文件从 NFS 写入时 `unix-user`，以下是来自 NFS 客户端的结果：
+
+....
+sh-4.2$ pwd
+/mnt/home/ntfssh-4.2$ touch unix-user-file
+sh-4.2$ ls -la | grep unix-user
+-rwx------  1 unix-user sharedgroup     0 Feb 28 12:37 unix-user-nfs
+sh-4.2$ id
+uid=1207(unix-user) gid=1220(sharedgroup) groups=1220(sharedgroup)
+....
+从 Windows 客户端，您可以看到文件的所有者已设置为正确的 Windows 用户：
+
+....
+PS C:\ > Get-Acl \\demo\home\ntfs\unix-user-nfs | select Owner
+Owner
+-----
+NTAP\asymmetric
+....
+相反，Windows 用户创建的文件 `asymmetric`从 SMB 客户端显示正确的 UNIX 所有者，如下文所示。
+
+中小企业：
+
+....
+PS Z:\ntfs> echo TEXT > asymmetric-user-smb.txt
+....
+NFS：
+
+....
+sh-4.2$ ls -la | grep asymmetric-user-smb.txt
+-rwx------  1 unix-user         sharedgroup   14 Feb 28 12:43 asymmetric-user-smb.txt
+sh-4.2$ cat asymmetric-user-smb.txt
+TEXT
+....
+
+
+=== LDAP 通道绑定
+
+由于 Windows Active Directory 域控制器存在漏洞， https://msrc.microsoft.com/update-guide/vulnerability/ADV190023["Microsoft 安全公告 ADV190023"^]改变 DC 允许 LDAP 绑定的方式。
+
+对Google Cloud NetApp Volumes的影响与对任何 LDAP 客户端的影响相同。 Google Cloud NetApp Volumes目前不支持通道绑定。由于Google Cloud NetApp Volumes通过协商默认支持 LDAP 签名，因此 LDAP 通道绑定应该不是问题。如果您在启用通道绑定的情况下确实遇到 LDAP 绑定问题，请按照 ADV190023 中的修复步骤操作，以允许Google Cloud NetApp Volumes的 LDAP 绑定成功。
+
+
+
+== DNS
+
+Active Directory 和 Kerberos 都依赖 DNS 来实现主机名到 IP/IP 到主机名的解析。  DNS 要求端口 53 处于打开状态。  Google Cloud NetApp Volumes不会对 DNS 记录进行任何修改，目前也不支持使用 https://support.google.com/domains/answer/6147083?hl=en["动态 DNS"^]在网络接口上。
+
+您可以配置 Active Directory DNS 来限制哪些服务器可以更新 DNS 记录。有关更多信息，请参阅 https://docs.microsoft.com/en-us/learn/modules/secure-windows-server-domain-name-system/["安全 Windows DNS"^] 。
+
+请注意，Google 项目内的资源默认使用 Google Cloud DNS，它与 Active Directory DNS 无关。使用 Cloud DNS 的客户端无法解析Google Cloud NetApp Volumes返回的 UNC 路径。加入 Active Directory 域的 Windows 客户端配置为使用 Active Directory DNS，并且可以解析此类 UNC 路径。
+
+要将客户端加入 Active Directory，您必须配置其 DNS 配置以使用 Active Directory DNS。或者，您可以配置 Cloud DNS 以将请求转发到 Active Directory DNS。看 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/faqs-netapp["为什么我的客户端无法解析 SMB NetBIOS 名称？"^]了解更多信息。
+
+
+NOTE: Google Cloud NetApp Volumes目前不支持 DNSSEC，DNS 查询以纯文本形式执行。
+
+
+
+== 文件访问审计
+
+目前不支持Google Cloud NetApp Volumes。
+
+
+
+== 防病毒保护
+
+您必须在 NAS 共享客户端的Google Cloud NetApp Volumes中执行防病毒扫描。目前， Google Cloud NetApp Volumes尚未实现本机防病毒集成。

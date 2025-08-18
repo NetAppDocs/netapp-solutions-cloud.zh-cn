@@ -1,0 +1,49 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-pm-aws-data-migration.html 
+keywords: NetApp Solutions, redhat OpenShift, red hat OpenShift, redhat openshift container platform, ocp, openshift container platform, Advanced Cluster Management, ACM, Hub Cluster, containers, container workloads, VMware, customer managed storage, ONTAP, Ansible Automation Platform, BlueXP 
+summary:  
+---
+= 数据迁移
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+此页面显示使用 FSx ONTAP进行持久存储的托管 Red Hat OpenShift 集群上的容器工作负载的数据迁移选项。
+
+
+
+== 数据迁移
+
+AWS 上的 Red Hat OpenShift 服务以及Amazon FSx for NetApp ONTAP （FSx ONTAP）都是 AWS 服务组合的一部分。  FSx ONTAP可在单可用区或多可用区选项上使用。  Multi-Az 选项提供可用区域故障时的数据保护。  FSx ONTAP可以与Trident集成，为 ROSA 集群上的应用程序提供持久存储。
+
+
+
+=== 使用 Helm chart 将 FSx ONTAP与Trident集成
+
+.ROSA 集群与Amazon FSx ONTAP集成
+video::621ae20d-7567-4bbf-809d-b01200fa7a68[panopto]
+容器应用的迁移主要包括：
+
+* 持久卷：这可以使用BlueXP来实现。另一种选择是使用Trident Protect 来处理从本地到云环境的容器应用程序迁移。自动化可以用于相同的目的。
+* 应用程序元数据：这可以使用 OpenShift GitOps（Argo CD）来完成。
+
+
+
+
+=== 使用 FSx ONTAP进行 ROSA 集群上应用程序的故障转移和故障恢复，以实现持久存储
+
+以下视频演示了使用BlueXP和 Argo CD 的应用程序故障转移和故障恢复场景。
+
+.ROSA 集群上应用程序的故障转移和故障恢复
+video::e9a07d79-42a1-4480-86be-b01200fa62f5[panopto]
+
+
+=== OpenShift Container 工作负载的数据保护和迁移解决方案
+
+image:rhhc-rosa-with-fsxn.png["该图显示输入/输出对话框或表示书面内容"]

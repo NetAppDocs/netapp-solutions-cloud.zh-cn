@@ -1,0 +1,953 @@
+---
+sidebar: sidebar 
+permalink: vmware/vmw-aws-vmc-guest-storage-dr.html 
+keywords: tr4931, 4931, disaster recovery, vmc, vmware cloud, aws, amazon web services, guest connect 
+summary: '经过验证的灾难恢复 (DR) 环境和计划对于组织至关重要，以确保在发生重大中断时能够快速恢复关键业务应用程序。该解决方案专注于演示 DR 用例，重点关注 VMware 和NetApp技术，包括本地和 AWS 上的 VMware Cloud。' 
+---
+= TR-4931：使用 VMware Cloud on Amazon Web Services 和 Guest Connect 进行灾难恢复
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+经过验证的灾难恢复 (DR) 环境和计划对于组织至关重要，以确保在发生重大中断时能够快速恢复关键业务应用程序。该解决方案专注于演示 DR 用例，重点关注 VMware 和NetApp技术，包括本地和 AWS 上的 VMware Cloud。
+
+
+
+== 概述
+
+NetApp与 VMware 的整合历史悠久，数以万计的客户选择NetApp作为其虚拟化环境的存储合作伙伴，就证明了这一点。这种集成延续了云中的客户连接选项以及最近与 NFS 数据存储的集成。该解决方案专注于通常称为客户连接存储的用例。
+
+在来宾连接存储中，来宾 VMDK 部署在 VMware 配置的数据存储上，应用程序数据存放在 iSCSI 或 NFS 上并直接映射到 VM。  Oracle 和 MS SQL 应用程序用于演示 DR 场景，如下图所示。
+
+image:dr-vmc-aws-001.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+== 假设、先决条件和组件概述
+
+在部署此解决方案之前，请查看组件概述、部署此解决方案所需的先决条件以及记录此解决方案时所做的假设。
+
+link:vmw-aws-vmc-dr-prereqs.html["DR 解决方案要求、先决条件和规划"]
+
+
+
+== 使用SnapCenter执行灾难恢复
+
+在此解决方案中， SnapCenter为 SQL Server 和 Oracle 应用程序数据提供应用程序一致的快照。此配置与SnapMirror技术相结合，可在我们的内部AFF和 FSx ONTAP集群之间提供高速数据复制。此外，Veeam Backup & Replication 为我们的虚拟机提供备份和恢复功能。
+
+在本节中，我们介绍SnapCenter、 SnapMirror和 Veeam 的备份和恢复配置。
+
+以下部分介绍在辅助站点完成故障转移所需的配置和步骤：
+
+
+
+=== 配置SnapMirror关系和保留计划
+
+SnapCenter可以更新主存储系统 (主 > 镜像) 和二级存储系统 (主 > 保险库) 内的SnapMirror关系，以实现长期存档和保留。为此，您必须使用SnapMirror在目标卷和源卷之间建立并初始化数据复制关系。
+
+源 ONTAP 系统和目标ONTAP系统必须位于使用 Amazon VPC 对等连接、传输网关、AWS Direct Connect 或 AWS VPN 进行对等连接的网络中。
+
+在本地ONTAP系统和 FSx ONTAP之间设置SnapMirror关系需要执行以下步骤：
+
+
+NOTE: 请参阅 https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/ONTAPGuide.pdf["FSx ONTAP – ONTAP用户指南"^]有关使用 FSx 创建SnapMirror关系的更多信息。
+
+.记录源和目标集群间逻辑接口
+[%collapsible%open]
+====
+对于位于本地的源ONTAP系统，您可以从系统管理器或 CLI 检索集群间 LIF 信息。
+
+. 在ONTAP系统管理器中，导航到网络概览页面并检索配置为与安装了 FSx 的 AWS VPC 通信的类型：集群间的 IP 地址。
++
+image:dr-vmc-aws-010.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 要检索 FSx 的集群间 IP 地址，请登录 CLI 并运行以下命令：
++
+....
+FSx-Dest::> network interface show -role intercluster
+....
++
+image:dr-vmc-aws-011.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+====
+.在ONTAP和 FSx 之间建立集群对等连接
+[%collapsible%open]
+====
+要在ONTAP集群之间建立集群对等连接，必须在另一个对等集群中确认在启动ONTAP集群中输入的唯一密码。
+
+. 使用以下方式在目标 FSx 集群上设置对等连接 `cluster peer create`命令。出现提示时，请输入稍后在源集群上使用的唯一密码来完成创建过程。
++
+....
+FSx-Dest::> cluster peer create -address-family ipv4 -peer-addrs source_intercluster_1, source_intercluster_2
+Enter the passphrase:
+Confirm the passphrase:
+....
+. 在源集群中，您可以使用ONTAP系统管理器或 CLI 建立集群对等关系。从ONTAP系统管理器中，导航到“保护”>“概览”，然后选择“对等集群”。
++
+image:dr-vmc-aws-012.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在对等集群对话框中，填写所需信息：
++
+.. 输入用于在目标 FSx 集群上建立对等集群关系的密码。
+.. 选择 `Yes`建立加密关系。
+.. 输入目标 FSx 集群的集群间 LIF IP 地址。
+.. 单击“启动集群对等”以完成该过程。
++
+image:dr-vmc-aws-013.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+. 使用以下命令从 FSx 集群验证集群对等关系的状态：
++
+....
+FSx-Dest::> cluster peer show
+....
++
+image:dr-vmc-aws-014.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+====
+.建立 SVM 对等关系
+[%collapsible%open]
+====
+下一步是在包含将处于SnapMirror关系中的卷的目标存储虚拟机和源存储虚拟机之间建立 SVM 关系。
+
+. 从源 FSx 集群，使用 CLI 中的以下命令创建 SVM 对等关系：
++
+....
+FSx-Dest::> vserver peer create -vserver DestSVM -peer-vserver Backup -peer-cluster OnPremSourceSVM -applications snapmirror
+....
+. 从源ONTAP集群，使用ONTAP系统管理器或 CLI 接受对等关系。
+. 从ONTAP系统管理器中，转到“保护”>“概览”，然后选择“存储虚拟机对等体”下的“对等存储虚拟机”。
++
+image:dr-vmc-aws-015.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在对等存储虚拟机的对话框中，填写必填字段：
++
+** 源存储虚拟机
+** 目标集群
+** 目标存储虚拟机
++
+image:dr-vmc-aws-016.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+. 单击“对等存储虚拟机”以完成 SVM 对等连接过程。
+
+
+====
+.创建快照保留策略
+[%collapsible%open]
+====
+SnapCenter管理主存储系统上作为快照副本存在的备份的保留计划。这是在SnapCenter中创建策略时建立的。 SnapCenter不管理保留在二级存储系统上的备份的保留策略。这些策略通过在辅助 FSx 集群上创建的SnapMirror策略单独进行管理，并与与源卷具有SnapMirror关系的目标卷相关联。
+
+创建SnapCenter策略时，您可以选择指定一个辅助策略标签，该标签将添加到执行SnapCenter备份时生成的每个快照的SnapMirror标签中。
+
+
+NOTE: 在二级存储上，这些标签与目标卷相关的策略规则相匹配，以强制保留快照。
+
+以下示例显示了一个SnapMirror标签，该标签存在于作为用于 SQL Server 数据库和日志卷的每日备份的策略的一部分生成的所有快照上。
+
+image:dr-vmc-aws-017.png["该图显示输入/输出对话框或表示书面内容"]
+
+有关为 SQL Server 数据库创建SnapCenter策略的更多信息，请参阅 https://docs.netapp.com/us-en/snapcenter/protect-scsql/task_create_backup_policies_for_sql_server_databases.html["SnapCenter文档"^]。
+
+您必须首先创建一个SnapMirror策略，其中包含规定要保留的快照副本数量的规则。
+
+. 在 FSx 集群上创建SnapMirror策略。
++
+....
+FSx-Dest::> snapmirror policy create -vserver DestSVM -policy PolicyName -type mirror-vault -restart always
+....
+. 向具有与SnapCenter策略中指定的二级策略标签匹配的SnapMirror标签的策略添加规则。
++
+....
+FSx-Dest::> snapmirror policy add-rule -vserver DestSVM -policy PolicyName -snapmirror-label SnapMirrorLabelName -keep #ofSnapshotsToRetain
+....
++
+以下脚本提供了可以添加到策略的规则示例：
+
++
+....
+FSx-Dest::> snapmirror policy add-rule -vserver sql_svm_dest -policy Async_SnapCenter_SQL -snapmirror-label sql-ondemand -keep 15
+....
++
+
+NOTE: 为每个SnapMirror标签和要保留的快照数量（保留期）创建附加规则。
+
+
+
+====
+.创建目标卷
+[%collapsible%open]
+====
+要在 FSx 上创建将作为源卷快照副本接收者的目标卷，请在 FSx ONTAP上运行以下命令：
+
+....
+FSx-Dest::> volume create -vserver DestSVM -volume DestVolName -aggregate DestAggrName -size VolSize -type DP
+....
+====
+.在源卷和目标卷之间创建SnapMirror关系
+[%collapsible%open]
+====
+要在源卷和目标卷之间创建SnapMirror关系，请在 FSx ONTAP上运行以下命令：
+
+....
+FSx-Dest::> snapmirror create -source-path OnPremSourceSVM:OnPremSourceVol -destination-path DestSVM:DestVol -type XDP -policy PolicyName
+....
+====
+.初始化SnapMirror关系
+[%collapsible%open]
+====
+初始化 SnapMirror 关系。此过程启动从源卷生成的新快照并将其复制到目标卷。
+
+....
+FSx-Dest::> snapmirror initialize -destination-path DestSVM:DestVol
+....
+====
+
+
+=== 在本地部署和配置 Windows SnapCenter服务器。
+
+.在本地部署 Windows SnapCenter服务器
+[%collapsible%open]
+====
+该解决方案使用NetApp SnapCenter对 SQL Server 和 Oracle 数据库进行应用程序一致性备份。与 Veeam Backup & Replication 结合使用来备份虚拟机 VMDK，这为本地和基于云的数据中心提供了全面的灾难恢复解决方案。
+
+SnapCenter software可从NetApp支持站点获取，并可安装在域或工作组中的 Microsoft Windows 系统上。详细的规划指南和安装说明可以在 https://docs.netapp.com/us-en/snapcenter/install/requirements-to-install-snapcenter-server.html["NetApp文档中心"^]。
+
+SnapCenter software可从以下网址获取 https://mysupport.netapp.com["此链接"^]。
+
+安装完成后，您可以使用 _\https://Virtual_Cluster_IP_or_FQDN:8146_ 从 Web 浏览器访问SnapCenter控制台。
+
+登录控制台后，您必须配置SnapCenter以备份 SQL Server 和 Oracle 数据库。
+
+====
+.向SnapCenter添加存储控制器
+[%collapsible%open]
+====
+要将存储控制器添加到SnapCenter，请完成以下步骤：
+
+. 从左侧菜单中，选择“存储系统”，然后单击“新建”开始将存储控制器添加到SnapCenter的过程。
++
+image:dr-vmc-aws-018.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在添加存储系统对话框中，添加本地ONTAP集群的管理 IP 地址以及用户名和密码。然后单击“提交”开始发现存储系统。
++
+image:dr-vmc-aws-019.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 重复此过程将 FSx ONTAP系统添加到SnapCenter。在这种情况下，选择“添加存储系统”窗口底部的“更多选项”，然后单击“辅助”复选框，将 FSx 系统指定为使用SnapMirror副本或我们的主备份快照更新的辅助存储系统。
++
+image:dr-vmc-aws-020.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+有关向SnapCenter添加存储系统的更多信息，请参阅以下文档： https://docs.netapp.com/us-en/snapcenter/install/task_add_storage_systems.html["此链接"^] 。
+
+====
+.将主机添加到SnapCenter
+[%collapsible%open]
+====
+下一步是将主机应用程序服务器添加到SnapCenter。  SQL Server 和 Oracle 的过程类似。
+
+. 从左侧菜单中，选择“主机”，然后单击“添加”以开始向SnapCenter添加存储控制器的过程。
+. 在添加主机窗口中，添加主机类型、主机名和主机系统凭据。选择插件类型。对于 SQL Server，选择 Microsoft Windows 和 Microsoft SQL Server 插件。
++
+image:dr-vmc-aws-021.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 对于 Oracle，请在“添加主机”对话框中填写必填字段，并选中 Oracle 数据库插件的复选框。然后单击“提交”以开始发现过程并将主机添加到SnapCenter。
++
+image:dr-vmc-aws-022.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+====
+.创建SnapCenter策略
+[%collapsible%open]
+====
+策略制定了备份工作需要遵循的具体规则。它们包括但不限于备份计划、复制类型以及SnapCenter如何处理备份和截断事务日志。
+
+您可以在SnapCenter Web 客户端的“设置”部分访问策略。
+
+image:dr-vmc-aws-023.png["该图显示输入/输出对话框或表示书面内容"]
+
+有关创建 SQL Server 备份策略的完整信息，请参阅 https://docs.netapp.com/us-en/snapcenter/protect-scsql/task_create_backup_policies_for_sql_server_databases.html["SnapCenter文档"^]。
+
+有关创建 Oracle 备份策略的完整信息，请参阅 https://docs.netapp.com/us-en/snapcenter/protect-sco/task_create_backup_policies_for_oracle_database.html["SnapCenter文档"^]。
+
+*笔记：*
+
+* 在您完成策略创建向导的过程中，请特别注意复制部分。在本节中，您将规定在备份过程中要获取的辅助SnapMirror副本的类型。
+* “创建本地 Snapshot 副本后更新SnapMirror ”设置是指当位于同一集群上的两个存储虚拟机之间存在SnapMirror关系时更新该关系。
+* “创建本地 SnapShot 副本后更新SnapVault ”设置用于更新两个独立集群之间以及本地ONTAP系统与Cloud Volumes ONTAP或 FSx ONTAP之间存在的SnapMirror关系。
+
+
+下图显示了上述选项以及它们在备份策略向导中的外观。
+
+image:dr-vmc-aws-024.png["该图显示输入/输出对话框或表示书面内容"]
+
+====
+.创建SnapCenter资源组
+[%collapsible%open]
+====
+资源组允许您选择要包含在备份中的数据库资源以及这些资源遵循的策略。
+
+. 转到左侧菜单中的资源部分。
+. 在窗口顶部，选择要使用的资源类型（在本例中为 Microsoft SQL Server），然后单击新建资源组。
+
+
+image:dr-vmc-aws-025.png["该图显示输入/输出对话框或表示书面内容"]
+
+SnapCenter文档涵盖了为 SQL Server 和 Oracle 数据库创建资源组的分步详细信息。
+
+要备份 SQL 资源，请按照 https://docs.netapp.com/us-en/snapcenter/protect-scsql/task_back_up_sql_resources.html["此链接"^]。
+
+要备份 Oracle 资源，请按照 https://docs.netapp.com/us-en/snapcenter/protect-sco/task_back_up_oracle_resources.html["此链接"^]。
+
+====
+
+
+=== 部署和配置 Veeam 备份服务器
+
+该解决方案使用 Veeam Backup & Replication 软件来备份我们的应用程序虚拟机，并使用 Veeam 横向扩展备份存储库 (SOBR) 将备份副本存档到 Amazon S3 存储桶。在本解决方案中，Veeam 部署在 Windows 服务器上。有关部署 Veeam 的具体指导，请参阅 https://www.veeam.com/documentation-guides-datasheets.html["Veeam 帮助中心 技术文档"^]。
+
+.配置 Veeam 横向扩展备份存储库
+[%collapsible%open]
+====
+部署并获得软件许可后，您可以创建横向扩展备份存储库 (SOBR) 作为备份作业的目标存储。您还应该包含一个 S3 存储桶作为异地 VM 数据的备份，以实现灾难恢复。
+
+开始之前请参阅以下先决条件。
+
+. 在本地ONTAP系统上创建 SMB 文件共享作为备份的目标存储。
+. 创建一个 Amazon S3 存储桶以包含在 SOBR 中。这是异地备份的存储库。
+
+
+.将ONTAP存储添加到 Veeam
+[%collapsible%open]
+=====
+首先，在 Veeam 中添加ONTAP存储集群和相关的 SMB/NFS 文件系统作为存储基础架构。
+
+. 打开 Veeam 控制台并登录。导航到存储基础设施，然后选择添加存储。
++
+image:dr-vmc-aws-026.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在添加存储向导中，选择NetApp作为存储供应商，然后选择Data ONTAP。
+. 输入管理 IP 地址并选中 NAS Filer 框。单击“下一步”。
++
+image:dr-vmc-aws-027.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 添加您的凭据以访问ONTAP集群。
++
+image:dr-vmc-aws-028.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在 NAS Filer 页面上，选择要扫描的协议，然后选择下一步。
++
+image:dr-vmc-aws-029.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 完成向导的“应用”和“摘要”页面，然后单击“完成”以开始存储发现过程。扫描完成后， ONTAP集群将与 NAS 文件服务器一起添加为可用资源。
++
+image:dr-vmc-aws-030.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 使用新发现的 NAS 共享创建备份存储库。从备份基础架构中，选择备份存储库并单击添加存储库菜单项。
++
+image:dr-vmc-aws-031.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 按照新建备份存储库向导中的所有步骤来创建存储库。有关创建 Veeam Backup 存储库的详细信息，请参阅 https://www.veeam.com/documentation-guides-datasheets.html["Veeam 文档"^]。
++
+image:dr-vmc-aws-032.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+=====
+.添加 Amazon S3 存储桶作为备份存储库
+[%collapsible%open]
+=====
+下一步是添加 Amazon S3 存储作为备份存储库。
+
+. 导航到备份基础设施 > 备份存储库。单击添加存储库。
++
+image:dr-vmc-aws-033.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在添加备份存储库向导中，选择对象存储，然后选择 Amazon S3。这将启动新对象存储库向导。
++
+image:dr-vmc-aws-034.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 为您的对象存储库提供一个名称，然后单击下一步。
+. 在下一部分中，提供您的凭据。您需要一个 AWS 访问密钥和密钥。
++
+image:dr-vmc-aws-035.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 加载 Amazon 配置后，选择您的数据中心、存储桶和文件夹，然后单击“应用”。最后，单击“完成”关闭向导。
+
+
+=====
+.创建横向扩展备份存储库
+[%collapsible%open]
+=====
+现在我们已经将存储库添加到 Veeam，我们可以创建 SOBR 来自动将备份副本分层到我们的异地 Amazon S3 对象存储中，以实现灾难恢复。
+
+. 从备份基础架构中，选择扩展存储库，然后单击添加扩展存储库菜单项。
++
+image:dr-vmc-aws-037.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在新的横向扩展备份存储库中为 SOBR 提供一个名称，然后单击下一步。
+. 对于性能层，选择包含位于本地ONTAP集群上的 SMB 共享的备份存储库。
++
+image:dr-vmc-aws-038.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 对于放置策略，请根据您的要求选择数据局部性或性能。选择下一步。
+. 对于容量层，我们使用 Amazon S3 对象存储扩展 SOBR。为了实现灾难恢复，请选择“在创建备份后立即将其复制到对象存储”，以确保及时交付我们的二次备份。
++
+image:dr-vmc-aws-039.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 最后，选择“应用”和“完成”以完成 SOBR 的创建。
+
+
+=====
+.创建横向扩展备份存储库作业
+[%collapsible%open]
+=====
+配置 Veeam 的最后一步是使用新创建的 SOBR 作为备份目标来创建备份作业。创建备份作业是任何存储管理员的正常工作的一部分，我们在此不介绍详细步骤。有关在 Veeam 中创建备份作业的更多完整信息，请参阅 https://www.veeam.com/documentation-guides-datasheets.html["Veeam 帮助中心技术文档"^]。
+
+=====
+====
+
+
+=== BlueXP backup and recovery工具及配置
+
+要将应用程序虚拟机和数据库卷故障转移到在 AWS 中运行的 VMware Cloud Volume 服务，您必须安装并配置SnapCenter Server 和 Veeam Backup and Replication Server 的运行实例。故障转移完成后，您还必须配置这些工具以恢复正常的备份操作，直到计划并执行故障恢复到本地数据中心。
+
+.部署辅助 Windows SnapCenter服务器
+[#deploy-secondary-snapcenter%collapsible%open]
+====
+SnapCenter Server 部署在 VMware Cloud SDDC 中，或安装在与 VMware Cloud 环境具有网络连接的 VPC 中的 EC2 实例上。
+
+SnapCenter software可从NetApp支持站点获取，并可安装在域或工作组中的 Microsoft Windows 系统上。详细的规划指南和安装说明可以在 https://docs.netapp.com/us-en/snapcenter/install/requirements-to-install-snapcenter-server.html["NetApp文档中心"^]。
+
+您可以在以下位置找到SnapCenter software https://mysupport.netapp.com["此链接"^]。
+
+====
+.配置辅助 Windows SnapCenter服务器
+[%collapsible%open]
+====
+要执行镜像到 FSx ONTAP 的应用程序数据还原，您必须首先执行本地SnapCenter数据库的完整还原。此过程完成后，将重新建立与虚拟机的通信，并且现在可以使用 FSx ONTAP作为主存储恢复应用程序备份。
+
+为此，您必须在SnapCenter服务器上完成以下项目：
+
+. 将计算机名称配置为与原始本地SnapCenter服务器相同。
+. 配置网络以与 VMware Cloud 和 FSx ONTAP实例通信。
+. 完成恢复SnapCenter数据库的过程。
+. 确认SnapCenter处于灾难恢复模式，以确保 FSx 现在是备份的主要存储。
+. 确认已与恢复的虚拟机重新建立通信。
+
+
+====
+.部署辅助 Veeam Backup & Replication 服务器
+[#deploy-secondary-veeam%collapsible%open]
+====
+您可以在 AWS 上的 VMware Cloud 中的 Windows 服务器或 EC2 实例上安装 Veeam Backup & Replication 服务器。有关详细的实施指南，请参阅 https://www.veeam.com/documentation-guides-datasheets.html["Veeam 帮助中心技术文档"^]。
+
+====
+.配置辅助 Veeam Backup & Replication 服务器
+[%collapsible%open]
+====
+要对已备份到 Amazon S3 存储的虚拟机进行还原，必须在 Windows 服务器上安装 Veeam Server，并将其配置为与 VMware Cloud、FSx ONTAP和包含原始备份存储库的 S3 存储桶通信。它还必须在 FSx ONTAP上配置一个新的备份存储库，以便在虚拟机恢复后进行新的备份。
+
+要执行此过程，必须完成以下项目：
+
+. 配置网络以与 VMware Cloud、FSx ONTAP和包含原始备份存储库的 S3 存储桶进行通信。
+. 将 FSx ONTAP上的 SMB 共享配置为新的备份存储库。
+. 安装用作本地扩展备份存储库一部分的原始 S3 存储桶。
+. 恢复虚拟机后，建立新的备份作业来保护 SQL 和 Oracle 虚拟机。
+
+
+有关使用 Veeam 恢复虚拟机的更多信息，请参阅link:#restore-veeam-full["使用 Veeam Full Restore 恢复应用程序虚拟机"]。
+
+====
+
+
+=== SnapCenter数据库备份用于灾难恢复
+
+SnapCenter允许备份和恢复其底层 MySQL 数据库和配置数据，以便在发生灾难时恢复SnapCenter服务器。对于我们的解决方案，我们恢复了位于我们的 VPC 中的 AWS EC2 实例上的SnapCenter数据库和配置。有关SnapCenter灾难恢复的更多信息，请参阅 https://docs.netapp.com/us-en/snapcenter/index.html["此链接"^]。
+
+.SnapCenter备份前提条件
+[%collapsible%open]
+====
+SnapCenter备份需要满足以下先决条件：
+
+* 在本地ONTAP系统上创建的卷和 SMB 共享，用于定位备份数据库和配置文件。
+* 本地ONTAP系统与 AWS 账户中的 FSx 或 CVO 之间的SnapMirror关系。此关系用于传输包含备份的SnapCenter数据库和配置文件的快照。
+* 安装在云帐户中的 Windows Server，可以在 EC2 实例上，也可以在 VMware Cloud SDDC 中的 VM 上。
+* SnapCenter安装在 VMware Cloud 中的 Windows EC2 实例或 VM 上。
+
+
+====
+.SnapCenter备份和还原过程摘要
+[#snapcenter-backup-and-restore-process-summary%collapsible%open]
+====
+* 在本地ONTAP系统上创建一个卷，用于托管备份数据库和配置文件。
+* 在本地和 FSx/CVO 之间建立SnapMirror关系。
+* 挂载 SMB 共享。
+* 检索用于执行 API 任务的 Swagger 授权令牌。
+* 启动数据库恢复过程。
+* 使用 xcopy 实用程序将 db 和配置文件本地目录复制到 SMB 共享。
+* 在 FSx 上，创建ONTAP卷的克隆（通过SnapMirror从本地复制）。
+* 将 SMB 共享从 FSx 挂载到 EC2/VMware Cloud。
+* 将恢复目录从 SMB 共享复制到本地目录。
+* 从 Swagger 运行 SQL Server 还原过程。
+
+
+====
+.备份SnapCenter数据库和配置
+[%collapsible%open]
+====
+SnapCenter提供了一个用于执行 REST API 命令的 Web 客户端界面。有关通过 Swagger 访问 REST API 的信息，请参阅SnapCenter文档 https://docs.netapp.com/us-en/snapcenter/sc-automation/overview_rest_apis.html["此链接"^]。
+
+.登录Swagger并获取授权令牌
+[%collapsible%open]
+=====
+导航到 Swagger 页面后，您必须检索授权令牌才能启动数据库恢复过程。
+
+. 访问SnapCenter Swagger API 网页，地址为 _\https://< SnapCenter服务器 IP>:8146/swagger/_。
++
+image:dr-vmc-aws-040.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 展开“Auth”部分并单击“Try it Out”。
++
+image:dr-vmc-aws-041.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在 UserOperationContext 区域，填写SnapCenter凭据和角色，然后单击“执行”。
++
+image:dr-vmc-aws-042.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在下面的响应主体中，您可以看到令牌。执行备份过程时复制令牌文本以进行身份验证。
++
+image:dr-vmc-aws-043.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+=====
+.执行SnapCenter数据库备份
+[%collapsible%open]
+=====
+接下来转到 Swagger 页面上的灾难恢复区域以开始SnapCenter备份过程。
+
+. 单击“灾难恢复”区域以展开它。
++
+image:dr-vmc-aws-044.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 展开 `/4.6/disasterrecovery/server/backup`部分并单击“试用”。
++
+image:dr-vmc-aws-045.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在 SmDRBackupRequest 部分中，添加正确的本地目标路径并选择执行以启动SnapCenter数据库和配置的备份。
++
+
+NOTE: 备份过程不允许直接备份到 NFS 或 CIFS 文件共享。
+
++
+image:dr-vmc-aws-046.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+=====
+.从SnapCenter监控备份作业
+[%collapsible%open]
+=====
+在启动数据库还原过程时登录SnapCenter查看日志文件。在“监视”部分下，您可以查看SnapCenter服务器灾难恢复备份的详细信息。
+
+image:dr-vmc-aws-047.png["该图显示输入/输出对话框或表示书面内容"]
+
+=====
+.使用 XCOPY 实用程序将数据库备份文件复制到 SMB 共享
+[%collapsible%open]
+=====
+接下来，您必须将备份从SnapCenter服务器上的本地驱动器移动到 CIFS 共享，该共享用于将数据通过SnapMirror复制到位于 AWS 中 FSx 实例上的辅助位置。使用带有特定选项的 xcopy 来保留文件的权限。
+
+以管理员身份打开命令提示符。在命令提示符下，输入以下命令：
+
+....
+xcopy  <Source_Path>  \\<Destination_Server_IP>\<Folder_Path> /O /X /E /H /K
+xcopy c:\SC_Backups\SnapCenter_DR \\10.61.181.185\snapcenter_dr /O /X /E /H /K
+....
+=====
+====
+
+
+=== 故障转移
+
+.主站点发生灾难
+[%collapsible%open]
+====
+对于发生在主本地数据中心的灾难，我们的场景包括使用 VMware Cloud on AWS 将故障转移到位于 Amazon Web Services 基础架构上的辅助站点。我们假设虚拟机和我们的内部ONTAP集群不再可访问。此外， SnapCenter和 Veeam 虚拟机都不再可访问，必须在我们的辅助站点上重建。
+
+本节讨论将我们的基础设施故障转移到云端，并涵盖以下主题：
+
+* SnapCenter数据库还原。建立新的SnapCenter服务器后，恢复 MySQL 数据库和配置文件，并将数据库切换到灾难恢复模式，以允许辅助 FSx 存储成为主存储设备。
+* 使用 Veeam Backup & Replication 恢复应用程序虚拟机。连接包含 VM 备份的 S3 存储，导入备份，然后将其还原到 VMware Cloud on AWS。
+* 使用SnapCenter还原 SQL Server 应用程序数据。
+* 使用SnapCenter恢复 Oracle 应用程序数据。
+
+
+====
+.SnapCenter数据库还原过程
+[%collapsible%open]
+====
+SnapCenter通过允许备份和恢复其 MySQL 数据库和配置文件来支持灾难恢复场景。这允许管理员在本地数据中心维护SnapCenter数据库的定期备份，然后将该数据库还原到辅助SnapCenter数据库。
+
+要访问远程SnapCenter服务器上的SnapCenter备份文件，请完成以下步骤：
+
+. 断开与 FSx 集群的SnapMirror关系，这使得卷可读/写。
+. 创建 CIFS 服务器（如有必要）并创建指向克隆卷连接路径的 CIFS 共享。
+. 使用 xcopy 将备份文件复制到辅助SnapCenter系统上的本地目录。
+. 安装SnapCenter v4.6。
+. 确保SnapCenter服务器与原始服务器具有相同的 FQDN。这是数据库恢复成功所必需的。
+
+
+要开始恢复过程，请完成以下步骤：
+
+. 导航到辅助SnapCenter服务器的 Swagger API 网页，并按照前面的说明获取授权令牌。
+. 导航到 Swagger 页面的灾难恢复部分，选择 `/4.6/disasterrecovery/server/restore`，然后单击“试用”。
++
+image:dr-vmc-aws-048.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 粘贴您的授权令牌，并在 SmDRResterRequest 部分粘贴备份的名称和辅助SnapCenter服务器上的本地目录。
++
+image:dr-vmc-aws-049.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 选择“执行”按钮开始恢复过程。
+. 从SnapCenter导航到“监视”部分以查看还原作业的进度。
++
+image:dr-vmc-aws-050.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+image:dr-vmc-aws-051.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 要从二级存储启用 SQL Server 还原，必须将SnapCenter数据库切换到灾难恢复模式。这是作为单独的操作执行的，并在 Swagger API 网页上启动。
++
+.. 导航至灾难恢复部分并单击 `/4.6/disasterrecovery/storage`。
+.. 粘贴用户授权令牌。
+.. 在 SmSetDisasterRecoverySettingsRequest 部分中，更改 `EnableDisasterRecover`到 `true`。
+.. 单击“执行”以启用 SQL Server 的灾难恢复模式。
++
+image:dr-vmc-aws-052.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+
+NOTE: 请参阅有关附加程序的评论。
+
+
+
+
+
+====
+
+
+=== 使用 Veeam 完整恢复功能恢复应用程序虚拟机
+
+.创建备份存储库并从 S3 导入备份
+[%collapsible%open]
+====
+从辅助 Veeam 服务器，从 S3 存储导入备份并将 SQL Server 和 Oracle VM 还原到您的 VMware Cloud 集群。
+
+要从属于本地扩展备份存储库的 S3 对象导入备份，请完成以下步骤：
+
+. 转到备份存储库并单击顶部菜单中的添加存储库以启动添加备份存储库向导。在向导的第一页上，选择对象存储作为备份存储库类型。
++
+image:dr-vmc-aws-053.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 选择 Amazon S3 作为对象存储类型。
++
+image:dr-vmc-aws-054.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 从 Amazon 云存储服务列表中，选择 Amazon S3。
++
+image:dr-vmc-aws-055.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 从下拉列表中选择您预先输入的凭据或添加用于访问云存储资源的新凭据。单击“下一步”继续。
++
+image:dr-vmc-aws-056.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在 Bucket 页面上，输入数据中心、bucket、文件夹和任何所需选项。单击“应用”。
++
+image:dr-vmc-aws-057.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 最后，选择“完成”以完成该过程并添加存储库。
+
+
+====
+.从 S3 对象存储导入备份
+[%collapsible%open]
+====
+要从上一节中添加的 S3 存储库导入备份，请完成以下步骤。
+
+. 从 S3 备份存储库中，选择导入备份以启动导入备份向导。
++
+image:dr-vmc-aws-058.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 创建导入的数据库记录后，选择下一步，然后在摘要屏幕上选择完成以开始导入过程。
++
+image:dr-vmc-aws-059.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 导入完成后，您可以将虚拟机恢复到 VMware Cloud 集群中。
++
+image:dr-vmc-aws-060.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+====
+.使用 Veeam 完整还原将应用程序虚拟机还原到 VMware Cloud
+[%collapsible%open]
+====
+要将 SQL 和 Oracle 虚拟机还原到 VMware Cloud on AWS 工作负载域/集群，请完成以下步骤。
+
+. 从 Veeam 主页中，选择包含导入备份的对象存储，选择要恢复的虚拟机，然后右键单击并选择“恢复整个虚拟机”。
++
+image:dr-vmc-aws-061.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在完整虚拟机还原向导的第一页上，根据需要修改要备份的虚拟机，然后选择下一步。
++
+image:dr-vmc-aws-062.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在“恢复模式”页面上，选择“恢复到新位置”或“使用不同的设置”。
++
+image:dr-vmc-aws-063.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在主机页面上，选择要将虚拟机还原到的目标 ESXi 主机或群集。
++
+image:dr-vmc-aws-064.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在数据存储页面上，选择配置文件和硬盘的目标数据存储位置。
++
+image:dr-vmc-aws-065.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在网络页面，将虚拟机上原有的网络映射到新目标位置的网络。
++
+image:dr-vmc-aws-066.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+image:dr-vmc-aws-067.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 选择是否扫描已恢复的虚拟机中的恶意软件，查看摘要页面，然后单击“完成”以开始恢复。
+
+
+====
+
+
+=== 还原 SQL Server 应用程序数据
+
+以下过程提供了有关在发生导致本地站点无法运行的灾难时如何在 AWS 中的 VMware Cloud Services 中恢复 SQL Server 的说明。
+
+为了继续执行恢复步骤，假定以下先决条件已完成：
+
+. Windows Server VM 已使用 Veeam Full Restore 恢复到 VMware Cloud SDDC。
+. 已建立辅助SnapCenter服务器，并已使用本节中概述的步骤完成SnapCenter数据库还原和配置link:#snapcenter-backup-and-restore-process-summary["SnapCenter备份和恢复过程摘要。"]
+
+
+.VM：SQL Server VM 的恢复后配置
+[%collapsible%open]
+====
+虚拟机还原完成后，您必须配置网络和其他项目，以准备在SnapCenter中重新发现主机虚拟机。
+
+. 为管理和 iSCSI 或 NFS 分配新的 IP 地址。
+. 将主机加入 Windows 域。
+. 将主机名添加到 DNS 或SnapCenter服务器上的 hosts 文件。
+
+
+
+NOTE: 如果使用与当前域不同的域凭据部署SnapCenter插件，则必须更改 SQL Server VM 上 Windows 服务插件的登录帐户。更改登录帐户后，重新启动SnapCenter SMCore、Windows 插件和 SQL Server 插件服务。
+
+
+NOTE: 要自动重新发现SnapCenter中还原的虚拟机，FQDN 必须与最初添加到本地SnapCenter 的虚拟机相同。
+
+====
+.配置 FSx 存储以进行 SQL Server 还原
+[%collapsible%open]
+====
+要完成 SQL Server VM 的灾难恢复过程，您必须中断与 FSx 集群的现有SnapMirror关系并授予对该卷的访问权限。为此，请完成以下步骤。
+
+. 要中断 SQL Server 数据库和日志卷的现有SnapMirror关系，请从 FSx CLI 运行以下命令：
++
+....
+FSx-Dest::> snapmirror break -destination-path DestSVM:DestVolName
+....
+. 通过创建包含 SQL Server Windows VM 的 iSCSI IQN 的启动器组来授予对 LUN 的访问权限：
++
+....
+FSx-Dest::> igroup create -vserver DestSVM -igroup igroupName -protocol iSCSI -ostype windows -initiator IQN
+....
+. 最后，将 LUN 映射到刚刚创建的启动器组：
++
+....
+FSx-Dest::> lun mapping create -vserver DestSVM -path LUNPath igroup igroupName
+....
+. 要查找路径名，请运行 `lun show`命令。
+
+
+====
+.设置 Windows VM 以进行 iSCSI 访问并发现文件系统
+[%collapsible%open]
+====
+. 从 SQL Server VM 中，设置您的 iSCSI 网络适配器，以便在已建立与 FSx 实例上的 iSCSI 目标接口连接的 VMware 端口组上进行通信。
+. 打开 iSCSI 启动器属性实用程序并清除“发现”、“收藏目标”和“目标”选项卡上的旧连接设置。
+. 找到用于访问 FSx 实例/集群上的 iSCSI 逻辑接口的 IP 地址。这可以在 AWS 控制台的Amazon FSx > ONTAP > Storage Virtual Machines 下找到。
++
+image:dr-vmc-aws-068.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在“发现”选项卡中，单击“发现门户”并输入 FSx iSCSI 目标的 IP 地址。
++
+image:dr-vmc-aws-069.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+image:dr-vmc-aws-070.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在目标选项卡上，单击连接，如果适合您的配置，请选择启用多路径，然后单击确定以连接到目标。
++
+image:dr-vmc-aws-071.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 打开计算机管理实用程序并使磁盘联机。验证它们是否保留了先前的相同驱动器号。
++
+image:dr-vmc-aws-072.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+====
+.附加 SQL Server 数据库
+[%collapsible%open]
+====
+. 从 SQL Server VM 中，打开 Microsoft SQL Server Management Studio 并选择“附加”以开始连接数据库的过程。
++
+image:dr-vmc-aws-073.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 单击“添加”并导航到包含 SQL Server 主数据库文件的文件夹，选择它，然后单击“确定”。
++
+image:dr-vmc-aws-074.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 如果事务日志位于单独的驱动器上，请选择包含事务日志的文件夹。
+. 完成后，单击“确定”以附加数据库。
++
+image:dr-vmc-aws-075.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+====
+.确认SnapCenter与 SQL Server 插件的通信
+[%collapsible%open]
+====
+当SnapCenter数据库恢复到以前的状态时，它会自动重新发现 SQL Server 主机。为了使其正常工作，请记住以下先决条件：
+
+* SnapCenter必须处于灾难恢复模式。这可以通过 Swagger API 或在灾难恢复下的全局设置中完成。
+* SQL Server 的 FQDN 必须与在本地数据中心运行的实例相同。
+* 必须破坏原始的SnapMirror关系。
+* 必须将包含数据库的 LUN 安装到 SQL Server 实例并附加数据库。
+
+
+要确认SnapCenter处于灾难恢复模式，请从SnapCenter Web 客户端导航到“设置”。转到“全局设置”选项卡，然后单击“灾难恢复”。确保启用灾难恢复复选框已启用。
+
+image:dr-vmc-aws-076.png["该图显示输入/输出对话框或表示书面内容"]
+
+====
+
+
+=== 恢复 Oracle 应用程序数据
+
+以下流程提供了有关在发生导致本地站点无法运行的灾难时如何在 AWS 中的 VMware Cloud Services 中恢复 Oracle 应用程序数据的说明。
+
+完成以下先决条件以继续执行恢复步骤：
+
+. Oracle Linux 服务器 VM 已使用 Veeam Full Restore 恢复到 VMware Cloud SDDC。
+. 已建立辅助SnapCenter服务器，并已使用本节概述的步骤恢复SnapCenter数据库和配置文件link:#snapcenter-backup-and-restore-process-summary["SnapCenter备份和恢复过程摘要。"]
+
+
+.配置 FSx for Oracle 还原 – 中断SnapMirror关系
+[%collapsible%open]
+====
+要使 Oracle 服务器可以访问 FSx ONTAP实例上托管的二级存储卷，您必须首先中断现有的SnapMirror关系。
+
+. 登录 FSx CLI 后，运行以下命令查看按正确名称过滤的卷。
++
+....
+FSx-Dest::> volume show -volume VolumeName*
+....
++
+image:dr-vmc-aws-077.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 运行以下命令来中断现有的SnapMirror关系。
++
+....
+FSx-Dest::> snapmirror break -destination-path DestSVM:DestVolName
+....
++
+image:dr-vmc-aws-078.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 更新Amazon FSx Web 客户端中的连接路径：
++
+image:dr-vmc-aws-079.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 添加连接路径名称并单击更新。从 Oracle 服务器挂载 NFS 卷时指定此连接路径。
++
+image:dr-vmc-aws-080.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+====
+.在 Oracle 服务器上挂载 NFS 卷
+[%collapsible%open]
+====
+在 Cloud Manager 中，您可以获取具有正确 NFS LIF IP 地址的挂载命令，以挂载包含 Oracle 数据库文件和日志的 NFS 卷。
+
+. 在云管理器中，访问 FSx 集群的卷列表。
++
+image:dr-vmc-aws-081.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 从操作菜单中，选择“挂载命令”以查看和复制要在我们的 Oracle Linux 服务器上使用的挂载命令。
++
+image:dr-vmc-aws-082.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+image:dr-vmc-aws-083.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 将 NFS 文件系统挂载到 Oracle Linux 服务器。用于挂载 NFS 共享的目录已存在于 Oracle Linux 主机上。
+. 从 Oracle Linux 服务器，使用 mount 命令挂载 NFS 卷。
++
+....
+FSx-Dest::> mount -t oracle_server_ip:/junction-path
+....
++
+对与 Oracle 数据库关联的每个卷重复此步骤。
+
++
+
+NOTE: 要使 NFS 挂载在重启后持久化，请编辑 `/etc/fstab`文件以包含挂载命令。
+
+. 重新启动 Oracle 服务器。  Oracle 数据库应该正常启动并可供使用。
+
+
+====
+
+
+=== 故障回复
+
+成功完成此解决方案中概述的故障转移过程后， SnapCenter和 Veeam 将恢复在 AWS 中运行的备份功能，并且 FSx ONTAP现在被指定为主存储，与原始内部部署数据中心不存在现有的SnapMirror关系。在本地恢复正常功能后，您可以使用与本文档中概述的流程相同的流程将数据镜像回本地ONTAP存储系统。
+
+正如本文档中概述的，您可以配置SnapCenter将应用程序数据卷从 FSx ONTAP镜像到位于本地的ONTAP存储系统。类似地，您可以配置 Veeam 使用横向扩展备份存储库将备份副本复制到 Amazon S3，以便位于本地数据中心的 Veeam 备份服务器可以访问这些备份。
+
+故障回复超出了本文档的范围，但故障回复与此处概述的详细过程略有不同。
+
+
+
+== 结束语
+
+本文档中介绍的用例重点关注经过验证的灾难恢复技术，突出了NetApp和 VMware 之间的集成。  NetApp ONTAP存储系统提供成熟的数据镜像技术，使组织能够设计涵盖本地和领先云提供商所采用的ONTAP技术的灾难恢复解决方案。
+
+AWS 上的 FSx ONTAP就是这样一种解决方案，它允许与SnapCenter和SyncMirror无缝集成，以将应用程序数据复制到云端。  Veeam Backup & Replication 是另一项知名技术，它与NetApp ONTAP存储系统很好地集成，并可以为 vSphere 原生存储提供故障转移。
+
+该解决方案提供了一种灾难恢复解决方案，使用托管 SQL Server 和 Oracle 应用程序数据的ONTAP系统的客户连接存储。带有SnapMirror的SnapCenter提供了一种易于管理的解决方案，用于保护ONTAP系统上的应用程序卷并将其复制到驻留在云中的 FSx 或 CVO。  SnapCenter是一种支持 DR 的解决方案，可将所有应用程序数据故障转移到 AWS 上的 VMware Cloud。

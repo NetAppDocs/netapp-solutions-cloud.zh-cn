@@ -1,0 +1,33 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-solutions-resources.html 
+keywords: NetApp Solutions, hybrid cloud, container workloads, containers, Red Hat OpenShift, RedHat OpenShift, VMware, ROSA, ACC, Trident Protect, Advanced Cluster Management, ACM, Hub Cluster 
+summary:  
+---
+= 其他文档
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+以下是一些可供参考的附加文档：
+
+. link:https://docs.vmware.com/en/VMware-vSphere/index.html["VMware vSphere"]
+. link:https://access.redhat.com/documentation/en-us/openshift_container_platform/4.12["OpenShift Container 平台产品文档"]
+. link:https://docs.openshift.com/container-platform/4.17/installing/overview/index.html["安装 OpenShift 容器平台集群"]
+. link:https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.4["高级集群管理产品文档"]
+. link:https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.4/html/clusters/managing-your-clusters#creating-a-cluster["使用 ACM 创建集群"]
+. link:https://access.redhat.com/documentation/en-us/red_hat_quay/2.9/html-single/deploy_red_hat_quay_on_openshift/index["在 OpenShift 上部署 Red Hat Quay"]
+. link:https://docs.netapp.com/us-en/trident/["Trident"]
+. link:https://docs.netapp.com/us-en/ontap/["ONTAP 9"]
+. link:https://github.com/NetApp/Verda["NetApp Verda"]- Verda（开源）拥有一系列适用于流行的云原生数据密集型应用程序的参考执行钩子
+. link:https://docs.netapp.com/us-en/cloud-manager-family/["NetApp BlueXP"]
+. link:https://docs.openshift.com/rosa/welcome/index.html["AWS 上的 Red Hat OpenShift 服务"]
+. link:https://docs.netapp.com/us-en/cloud-manager-fsx-ontap/["Amazon FSx ONTAP"]
+. link:https://docs.openshift.com/container-platform/4.13/installing/installing_gcp/preparing-to-install-on-gcp.html["在 GCP 上安装 OpenShift 集群"]
+. link:https://docs.openshift.com/container-platform/4.13/installing/installing_azure/preparing-to-install-on-azure.html["在 Azure 上安装 OpenShift 集群"]
+

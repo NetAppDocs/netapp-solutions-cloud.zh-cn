@@ -1,0 +1,33 @@
+---
+sidebar: sidebar 
+permalink: vmware/vmw-hybrid-support-configs.html 
+keywords: NetApp Solutions, ehc, enterprise hybrid cloud, hyperscalers, vmware, supported config, config, configuration 
+summary:  
+---
+= NetApp混合多云与 VMware 支持的配置
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+了解主要超大规模企业对NetApp存储支持的组合。
+
+[cols="10%, 45%, 45%"]
+|===
+
+
+|  | *访客已连接* | *补充 NFS 数据存储* 
+
+
+| *AWS* | CVO FSx ONTAPlink:vmw-aws-vmc-guest-storage.html["详细信息"] | FSx ONTAPlink:vmw-aws-vmc-nfs-ds-overview.html["详细信息"] 
+
+
+| *蔚蓝* | CVO ANFlink:vmw-azure-avs-guest-storage.html["详细信息"] | 心钠素link:vmw-azure-avs-nfs-ds-overview.html["详细信息"] 
+
+
+| *GCP* | CVO NetApp卷link:vmw-gcp-gcve-guest-storage.html["详细信息"] | NetApp卷link:vmw-gcp-gcve-nfs-ds-overview.html["详细信息"] 
+|===

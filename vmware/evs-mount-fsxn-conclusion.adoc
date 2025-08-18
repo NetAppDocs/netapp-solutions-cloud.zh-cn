@@ -1,0 +1,21 @@
+---
+sidebar: sidebar 
+permalink: vmware/evs-mount-fsxn-conclusion.html 
+keywords: Amazon, AWS, EVS, Elastic VMware Service, ONTAP, FSx 
+summary: 本文提供了有关如何将 FSx for ONTAP设置为 Amazon EVS 的外部存储以便与 NFS 和 iSCSI 协议一起使用的说明。 
+---
+= 结束语
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+本文档提供了有关如何将 FSx for ONTAP设置为 Amazon EVS 的外部存储以便与 NFS 和 iSCSI 协议一起使用的说明。
+
+使用 FSx for ONTAP作为 Amazon EVS 的外部存储可提供明确的运营和业务价值。它通过ONTAP技术提供更好的数据弹性、保护、复制和成本效率，并通过解耦 VMware 超融合架构保持 TCO 优化。借助 FSx for ONTAP，Amazon EVS 用户无需添加计算资源即可扩展存储，也不会增加成本。这充分发挥了 AWS 云的弹性和规模潜力。
+
+要了解更多信息，请阅读亚马逊新品公告：link:https://aws.amazon.com/about-aws/whats-new/2025/06/amazon-elastic-vmware-service-fsx-netapp-ontap/["Amazon EVS 现已与 FSx for ONTAP集成"]以及NetApp博客：link:https://www.netapp.com/blog/amazon-elastic-vmware-service-fsx-ontap/["Amazon EVS 宣布支持 FSx for ONTAP"] 。

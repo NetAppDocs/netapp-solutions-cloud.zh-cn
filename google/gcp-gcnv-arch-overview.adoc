@@ -1,0 +1,33 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-arch-overview.html 
+keywords: architecture overview, control plane, data plane 
+summary: 信任云解决方案的一部分是了解其架构及其安全方式。本节介绍了 Google 中Google Cloud NetApp Volumes架构的不同方面，以帮助缓解有关数据安全方式的潜在担忧，并指出可能需要额外配置步骤才能获得最安全部署的区域。 
+---
+= 概述
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+信任云解决方案的一部分是了解其架构及其安全方式。本节介绍了 Google 中Google Cloud NetApp Volumes架构的不同方面，以帮助缓解有关数据安全方式的潜在担忧，并指出可能需要额外配置步骤才能获得最安全部署的区域。
+
+Google Cloud NetApp Volumes的总体架构可以分为两个主要组件：控制平面和数据平面。
+
+
+
+== 控制平面
+
+Google Cloud NetApp Volumes中的控制平面是由Google Cloud NetApp Volumes管理员和NetApp原生自动化软件管理的后端基础架构。该平面对最终用户完全透明，包括网络、存储硬件、软件更新等，以帮助为Google Cloud NetApp Volumes等云驻留解决方案提供价值。
+
+
+
+== 数据平面
+
+Google Cloud NetApp Volumes中的数据平面包括实际数据卷和整体Google Cloud NetApp Volumes配置（例如访问控制、Kerberos 身份验证等）。数据平面完全由Google Cloud NetApp Volumes平台的最终用户和消费者控制。
+
+每架飞机的安全和管理方式都有明显差异。以下部分将介绍这些差异，首先介绍Google Cloud NetApp Volumes架构概述。

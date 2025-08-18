@@ -1,0 +1,47 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-overview.html 
+keywords: 4918, tr4918, overview, introduction, scope, audience, abbreviation, definition 
+summary: 安全性，特别是在云中，因为基础设施不受存储管理员的控制，对于将您的数据信任给云提供商提供的服务产品至关重要。本文档概述了Google Cloud NetApp Volumes在 Google Cloud 中提供的安全产品。 
+---
+= TR-4918：安全概览 - Google Cloud 中的Google Cloud NetApp Volumes
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+Oliver Krause、Justin Parisi、 NetApp
+
+[role="lead"]
+安全性，特别是在云中，因为基础设施不受存储管理员的控制，对于将您的数据信任给云提供商提供的服务产品至关重要。本文档概述了 https://cloud.netapp.com/cloud-volumes-service-for-gcp["Google Cloud NetApp Volumes在 Google Cloud 中提供"^]。
+
+
+
+== 目标受众
+
+本文档的目标受众包括但不限于以下角色：
+
+* 云提供商
+* 存储管理员
+* 存储架构师
+* 现场资源
+* 商业决策者
+
+
+如果您对本技术报告的内容有任何疑问，请参阅link:../vmware/gcp-gcnv-additional-info.html#contact-us["联系我们。"]
+
+|===
+| 缩写 | 定义 
+
+
+| NetApp卷-SW | Google Cloud NetApp Volumes，服务类型NetApp Volumes 
+
+
+| NetApp卷性能 | 云卷服务，服务类型NetApp卷 - 性能 
+
+
+| 变压吸附 |  
+|===

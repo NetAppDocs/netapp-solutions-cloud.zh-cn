@@ -1,0 +1,710 @@
+---
+sidebar: sidebar 
+permalink: vmware/vmw-aws-vmc-dr-prereqs.html 
+keywords: overview, dr, snapcenter, data replication, snapmirror 
+summary: 在此解决方案中， SnapCenter为 SQL Server 和 Oracle 应用程序数据提供应用程序一致的快照。此配置与SnapMirror技术相结合，可在我们的内部AFF和 FSx ONTAP集群之间提供高速数据复制。此外，Veeam Backup & Replication 为我们的虚拟机提供备份和恢复功能。 
+---
+= DR 解决方案要求、先决条件和规划
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+在此解决方案中， SnapCenter为 SQL Server 和 Oracle 应用程序数据提供应用程序一致的快照。此配置与SnapMirror技术相结合，可在我们的内部AFF和 FSx ONTAP集群之间提供高速数据复制。此外，Veeam Backup & Replication 为我们的虚拟机提供备份和恢复功能。
+
+
+
+== 技术
+
+该解决方案包含来自NetApp、VMware、Amazon Web Services (AWS) 和 Veeam 的创新技术。
+
+
+
+=== VMware
+
+.VMware 云基础
+[%collapsible%open]
+====
+VMware Cloud Foundation 平台集成了多种产品，使管理员能够在异构环境中配置逻辑基础架构。这些基础设施（称为域）在私有云和公共云之间提供一致的操作。随 Cloud Foundation 软件附带一份物料清单，其中标明了经过预先验证和合格的组件，以降低客户风险并简化部署。
+
+Cloud Foundation BoM 的组件包括以下内容：
+
+* 云构建器
+* SDDC 经理
+* VMware vCenter Server Appliance
+* VMware ESXi
+* VMware NSX
+* vRealize 自动化
+* vRealize Suite 生命周期管理器
+* vRealize Log Insight
+
+
+有关 VMware Cloud Foundation 的更多信息，请参阅 https://docs.vmware.com/en/VMware-Cloud-Foundation/index.html["VMware Cloud Foundation 文档"^]。
+
+====
+.VMware vSphere
+[%collapsible%open]
+====
+VMware vSphere 是一个虚拟化平台，它将物理资源转换为计算、网络和存储池，可用于满足客户的工作负载和应用程序需求。  VMware vSphere 的主要组件包括：
+
+* ESXi。*该 VMware 虚拟机管理程序可以抽象计算处理器、内存、网络和其他资源，并使其可用于虚拟机和容器工作负载。
+* vCenter。*  VMware vCenter 创建了集中管理体验，用于与作为虚拟基础架构一部分的计算资源、网络和存储进行交互。
+
+
+客户通过使用具有深度产品集成、强大支持以及强大功能和存储效率的NetApp ONTAP来创建强大的混合多云，从而充分发挥其 vSphere 环境的潜力。
+
+有关 VMware vSphere 的更多信息，请关注 https://docs.vmware.com/en/VMware-vSphere/index.html["此链接"^]。
+
+====
+.VMware NSX
+[%collapsible%open]
+====
+VMware NSX 通常被称为网络虚拟机管理程序，它采用软件定义模型来连接虚拟化工作负载。  VMware NSX 在本地和 AWS 上的 VMware Cloud 中无处不在，它为客户应用程序和工作负载提供网络虚拟化和安全支持。
+
+有关 VMware NSX 的更多信息，请关注 https://docs.vmware.com/en/VMware-NSX-T-Data-Center/index.html["此链接"^]。
+
+====
+
+
+=== NetApp
+
+.NetApp ONTAP
+[%collapsible%open]
+====
+近二十年来， NetApp ONTAP软件一直是 VMware vSphere 环境的领先存储解决方案，并不断添加创新功能以简化管理并降低成本。ONTAP与 vSphere 结合使用是一种很好的组合，可以让您减少主机硬件和 VMware 软件的费用。您还可以利用本机存储效率，以较低的成本和一致的高性能保护您的数据。
+
+有关NetApp ONTAP的更多信息，请关注 https://docs.vmware.com/en/VMware-Cloud-on-AWS/index.html["此链接"^]。
+
+====
+.适用于 VMware 的NetApp ONTAP工具
+[%collapsible%open]
+====
+适用于 VMware 的ONTAP工具将多个插件组合成一个虚拟设备，为使用NetApp存储系统的 VMware 环境中的虚拟机提供端到端生命周期管理。适用于 VMware 的ONTAP工具包括以下内容：
+
+* 虚拟存储控制台 (VSC)。使用NetApp存储对虚拟机和数据存储区执行全面的管理任务。
+* *适用于ONTAP的 VASA 提供程序。*通过 VMware 虚拟卷 (vVols) 和NetApp存储实现基于存储策略的管理 (SPBM)。
+* *存储复制适配器 (SRA)*。与 VMware Site Recovery Manager (SRM) 结合使用，在发生故障时恢复 vCenter 数据存储和虚拟机。
+
+
+VMware 的ONTAP工具不仅允许用户管理外部存储，还可以与vVols以及 VMware Site Recovery Manager 集成。这使得在 vCenter 环境中部署和操作NetApp存储变得更加容易。
+
+有关适用于 VMware 的NetApp ONTAP工具的更多信息，请关注 https://docs.netapp.com/us-en/ontap-tools-vmware-vsphere/index.html["此链接"^]。
+
+====
+.NetApp SnapCenter
+[%collapsible%open]
+====
+NetApp SnapCenter software是一个易于使用的企业平台，可以安全地协调和管理跨应用程序、数据库和文件系统的数据保护。SnapCenter通过将备份、恢复和克隆生命周期管理任务转移给应用程序所有者来简化这些任务，同时又不牺牲监督和管理存储系统活动的能力。通过利用基于存储的数据管理， SnapCenter提高了性能和可用性，并减少了测试和开发时间。
+
+SnapCenter Plug-in for VMware vSphere支持虚拟机 (VM)、数据存储库和虚拟机磁盘 (VMDK) 的崩溃一致性和 VM 一致性备份和还原操作。它还支持SnapCenter应用程序特定插件，以保护虚拟化数据库和文件系统的应用程序一致的备份和恢复操作。
+
+有关NetApp SnapCenter的更多信息，请关注 https://docs.netapp.com/us-en/snapcenter/["此链接"^]。
+
+====
+
+
+=== 第三方数据保护
+
+.Veeam备份与复制
+[%collapsible%open]
+====
+Veeam Backup & Replication 是针对云、虚拟和物理工作负载的备份、恢复和数据管理解决方案。  Veeam Backup & Replication 与NetApp Snapshot 技术进行了专门集成，可进一步保护 vSphere 环境。
+
+有关 Veeam Backup & Replication 的更多信息，请关注 https://www.veeam.com/vm-backup-recovery-replication-software.html["此链接"^]。
+
+====
+
+
+=== 公共云
+
+.AWS 身份和访问管理
+[%collapsible%open]
+====
+AWS 环境包含各种各样的产品，包括计算、存储、数据库、网络、分析等，以帮助解决业务挑战。企业必须能够定义谁有权访问这些产品、服务和资源。确定在什么条件下允许用户操作、更改或添加配置也同样重要。
+
+AWS 身份和访问管理 (AIM) 提供了一个安全的控制平面来管理对 AWS 服务和产品的访问。正确配置的用户、访问密钥和权限允许在 AWS 和Amazon FSx上部署 VMware Cloud。
+
+有关 AIM 的更多信息，请关注 https://docs.aws.amazon.com/iam/index.html["此链接"^]。
+
+====
+.AWS 上的 VMware Cloud
+[%collapsible%open]
+====
+VMware Cloud on AWS 将 VMware 的企业级 SDDC 软件引入 AWS 云，并优化了对原生 AWS 服务的访问。  VMware Cloud on AWS 由 VMware Cloud Foundation 提供支持，集成了 VMware 的计算、存储和网络虚拟化产品（VMware vSphere、VMware vSAN 和 VMware NSX）以及经过优化可在专用、弹性、裸机 AWS 基础架构上运行的 VMware vCenter Server 管理。
+
+有关 VMware Cloud on AWS 的更多信息，请关注 https://docs.vmware.com/en/VMware-Cloud-on-AWS/index.html["此链接"^]。
+
+====
+.Amazon FSx ONTAP
+[%collapsible%open]
+====
+Amazon FSx ONTAP是一款功能齐全、完全托管的ONTAP系统，可作为原生 AWS 服务使用。它基于NetApp ONTAP构建，提供熟悉的功能，同时提供完全托管云服务的简单性。
+
+Amazon FSx ONTAP为多种计算类型提供多协议支持，包括公共云或本地的 VMware。  Amazon FSx ONTAP现已可用于客户连接用例和技术预览版中的 NFS 数据存储，它允许企业利用其本地环境和云中的熟悉功能。
+
+有关Amazon FSx ONTAP的更多信息，请关注 https://aws.amazon.com/fsx/netapp-ontap/["此链接"]。
+
+====
+
+
+== 概述 - AWS 客户连接存储灾难恢复
+
+本节提供的说明可帮助用户验证、配置和确认其内部部署和云环境是否可与NetApp和 VMware 一起使用。具体来说，该解决方案专注于 VMware 客户机连接用例，其中在本地使用ONTAP AFF ，在云端使用 VMware Cloud 和 AWS FSx ONTAP 。该解决方案通过两个应用程序进行演示：灾难恢复场景中的 Oracle 和 MS SQL。
+
+.技能和知识
+[%collapsible%open]
+====
+访问Google Cloud NetApp Volumes for AWS 需要以下技能和信息：
+
+* 访问并了解您的 VMware 和ONTAP本地环境。
+* 访问并了解 VMware Cloud 和 AWS。
+* 访问并了解 AWS 和Amazon FSx ONTAP。
+* 了解您的 SDDC 和 AWS 资源。
+* 了解本地资源和云资源之间的网络连接。
+* 了解灾难恢复场景的工作知识。
+* 了解在 VMware 上部署的应用程序的工作知识。
+
+
+====
+.管理
+[%collapsible%open]
+====
+无论是与本地资源还是云中的资源进行交互，用户和管理员都必须具有根据其权利在需要的时间和地点配置这些资源的能力和权利。您的内部部署系统（包括ONTAP和 VMware）以及云资源（包括 VMware Cloud 和 AWS）的角色和权限之间的交互对于成功部署混合云至关重要。
+
+必须执行以下管理任务才能使用 VMware 和ONTAP内部部署以及 VMware Cloud on AWS 和 FSx ONTAP构建 DR 解决方案。
+
+* 角色和帐户可提供以下内容：
++
+** ONTAP存储资源
+** VMware 虚拟机、数据存储区等
+** AWS VPC 和安全组
+
+
+* 配置本地 VMware 环境和ONTAP
+* VMware 云环境
+* Amazon for FSx ONTAP文件系统
+* 您的本地环境与 AWS 之间的连接
+* 您的 AWS VPC 的连接
+
+
+====
+.本地
+[%collapsible%open]
+====
+VMware 虚拟环境包括 ESXi 主机、VMware vCenter Server、NSX 网络和其他组件的许可，如下图所示。所有组件的许可方式均不同，因此了解底层组件如何消耗可用的许可容量非常重要。
+
+image:dr-vmc-aws-002.png["该图显示输入/输出对话框或表示书面内容"]
+
+.ESXi 主机
+[%collapsible%open]
+=====
+VMware 环境中的计算主机使用 ESXi 部署。当使用 vSphere 以各种容量层级进行许可时，虚拟机可以利用每个主机上的物理 CPU 和适用的授权功能。
+
+=====
+.VMware vCenter
+[%collapsible%open]
+=====
+管理 ESXi 主机和存储是 vCenter Server 为 VMware 管理员提供的众多功能之一。从 VMware vCenter 7.0 开始，VMware vCenter 有三个版本可用，具体取决于许可证：
+
+* vCenter Server 基本功能
+* vCenter Server 基础
+* vCenter Server 标准版
+
+
+=====
+.VMware NSX
+[%collapsible%open]
+=====
+VMware NSX 为管理员提供了启用高级功能所需的灵活性。根据获得许可的 NSX-T 版本的版本启用不同的功能：
+
+* 专业的
+* 高级
+* 企业升级版
+* 远程办公室/分支机构
+
+
+=====
+.NetApp ONTAP
+[%collapsible%open]
+=====
+NetApp ONTAP许可是指管理员如何访问NetApp存储中的各种功能和特性。许可证是一个或多个软件权利的记录。安装许可证密钥（也称为许可证代码）使您能够在存储系统上使用某些功能或服务。例如， ONTAP通过许可支持所有主要的行业标准客户端协议（NFS、SMB、FC、FCoE、iSCSI 和 NVMe/FC）。
+
+Data ONTAP功能许可证以包的形式发放，每个包包含多个功能或单个功能。软件包需要许可证密钥，安装该密钥后，您便可以访问软件包中的所有功能。
+
+许可证类型如下：
+
+* *节点锁定许可证。*安装节点锁定许可证可使节点获得许可的功能。为了使集群能够使用许可的功能，必须至少有一个节点获得该功能的许可。
+* *主/站点许可证。*主许可证或站点许可证不与特定系统序列号绑定。当您安装站点许可证时，集群中的所有节点都有权使用许可的功能。
+* *演示/临时许可证。*演示或临时许可证将在一定时间后过期。该许可证使您无需购买授权即可尝试某些软件功能。
+* *容量许可证（仅限ONTAP Select和FabricPool ）。* ONTAP Select实例根据用户想要管理的数据量进行许可。从ONTAP 9.4 开始， FabricPool需要容量许可证才能与第三方存储层（例如 AWS）一起使用。
+
+
+=====
+.NetApp SnapCenter
+[%collapsible%open]
+=====
+SnapCenter需要多个许可证才能启用数据保护操作。您安装的SnapCenter许可证类型取决于您的存储环境和您想要使用的功能。 SnapCenter标准许可证可保护应用程序、数据库、文件系统和虚拟机。在将存储系统添加到SnapCenter之前，必须安装一个或多个SnapCenter许可证。
+
+要启用对应用程序、数据库、文件系统和虚拟机的保护，您必须在FAS或AFF存储系统上安装基于标准控制器的许可证，或者在ONTAP Select和Cloud Volumes ONTAP平台上安装基于标准容量的许可证。
+
+请参阅此解决方案的以下SnapCenter备份先决条件：
+
+* 在本地ONTAP系统上创建的卷和 SMB 共享，用于定位备份数据库和配置文件。
+* 本地ONTAP系统与 AWS 账户中的 FSx 或 CVO 之间的SnapMirror关系。用于传输包含备份的SnapCenter数据库和配置文件的快照。
+* 安装在云帐户中的 Windows Server，可以在 EC2 实例上，也可以在 VMware Cloud SDDC 中的 VM 上。
+* SnapCenter安装在 VMware Cloud 中的 Windows EC2 实例或 VM 上。
+
+
+=====
+.MS SQL
+[%collapsible%open]
+=====
+作为此解决方案验证的一部分，我们使用 MS SQL 来演示灾难恢复。
+
+有关 MS SQL 和NetApp ONTAP最佳实践的更多信息，请关注 https://www.netapp.com/media/8585-tr4590.pdf["此链接"^]。
+
+=====
+.Oracle
+[%collapsible%open]
+=====
+作为此解决方案验证的一部分，我们使用 ORACLE 来演示灾难恢复。有关 ORACLE 和NetApp ONTAP最佳实践的更多信息，请关注 https://docs.netapp.com/us-en/ontap-apps-dbs/oracle/oracle-overview.html["此链接"^]。
+
+=====
+.Veeam
+[%collapsible%open]
+=====
+作为此解决方案验证的一部分，我们使用 Veeam 来演示灾难恢复。有关 Veeam 和NetApp ONTAP最佳实践的更多信息，请关注 https://www.veeam.com/wp-netapp-configuration-best-practices-guide.html["此链接"^]。
+
+=====
+====
+.云
+[%collapsible%open]
+====
+.AWS
+[%collapsible%open]
+=====
+您必须能够执行以下任务：
+
+* 部署和配置域服务。
+* 根据给定 VPC 中的应用程序要求部署 FSx ONTAP 。
+* 在 AWS Compute 网关上配置 VMware Cloud 以允许来自 FSx ONTAP的流量。
+* 配置 AWS 安全组以允许 VMware Cloud on AWS 子网与部署 FSx ONTAP服务的 AWS VPC 子网之间进行通信。
+
+
+=====
+.VMware 云
+[%collapsible%open]
+=====
+您必须能够执行以下任务：
+
+* 配置 VMware Cloud on AWS SDDC。
+
+
+=====
+.Cloud Manager 帐户验证
+[%collapsible%open]
+=====
+您必须能够使用NetApp Cloud Manager 部署资源。为了验证您是否可以，请完成以下任务：
+
+* https://docs.netapp.com/us-en/bluexp-setup-admin/concept-modes.html["注册 Cloud Central"^]如果你还没有这样做的话。
+* https://docs.netapp.com/us-en/cloud-manager-setup-admin/task-logging-in.html["登录云管理器"^] 。
+* https://docs.netapp.com/us-en/cloud-manager-setup-admin/task-setting-up-netapp-accounts.html["设置工作区和用户"^] 。
+* https://docs.netapp.com/us-en/cloud-manager-setup-admin/concept-connectors.html["创建连接器"^] 。
+
+
+=====
+.Amazon FSx ONTAP
+[%collapsible%open]
+=====
+拥有 AWS 账户后，您必须能够执行以下任务：
+
+* 创建一个能够为NetApp ONTAP文件系统配置Amazon FSx 的IAM 管理用户。
+
+
+=====
+====
+.配置前提条件
+[%collapsible%open]
+====
+鉴于客户拥有的不同拓扑结构，本节重点介绍实现从本地到云资源的通信所需的端口。
+
+.所需端口和防火墙注意事项
+[%collapsible%open]
+=====
+下表描述了整个基础架构中必须启用的端口。
+
+有关 Veeam Backup & Replication 软件所需端口的更全面列表，请关注 https://helpcenter.veeam.com/docs/backup/vsphere/used_ports.html?zoom_highlight=port+requirements&ver=110["此链接"^]。
+
+有关SnapCenter端口要求的更全面列表，请关注 https://docs.netapp.com/ocsc-41/index.jsp?topic=%2Fcom.netapp.doc.ocsc-isg%2FGUID-6B5E4464-FE9A-4D2A-B526-E6F4298C9550.html["此链接"^]。
+
+下表列出了 Microsoft Windows Server 的 Veeam 端口要求。
+
+|===
+| 自 | 至 | 协议 | 端口 | 笔记 
+
+
+| 备份服务器 | 微软Windows服务器 | TCP | 445 | 部署 Veeam Backup & Replication 组件所需的端口。 
+
+
+| 备份代理 |  | TCP | 6160 | Veeam 安装程序服务使用的默认端口。 
+
+
+| 备份存储库 |  | TCP | 2500 至 3500 | 用作数据传输通道和收集日志文件的默认端口范围。 
+
+
+| 挂载服务器 |  | TCP | 6162 | Veeam Data Mover 使用的默认端口。 
+|===
+
+NOTE: 对于作业使用的每个 TCP 连接，都会分配该范围内的一个端口。
+
+下表列出了 Linux 服务器的 Veeam 端口要求。
+
+|===
+| 自 | 至 | 协议 | 端口 | 笔记 
+
+
+| 备份服务器 | Linux 服务器 | TCP | 22 | 用作从控制台到目标 Linux 主机的控制通道的端口。 
+
+
+|  |  | TCP | 6162 | Veeam Data Mover 使用的默认端口。 
+
+
+|  |  | TCP | 2500 至 3500 | 用作数据传输通道和收集日志文件的默认端口范围。 
+|===
+
+NOTE: 对于作业使用的每个 TCP 连接，都会分配该范围内的一个端口。
+
+下表列出了 Veeam Backup Server 端口要求。
+
+|===
+| 自 | 至 | 协议 | 端口 | 笔记 
+
+
+| 备份服务器 | vCenter Server | HTTPS、TCP | 443 | 用于连接到 vCenter Server 的默认端口。用作从控制台到目标 Linux 主机的控制通道的端口。 
+
+
+|  | 托管 Veeam Backup & Replication 配置数据库的 Microsoft SQL Server | TCP | 1443 | 用于与部署 Veeam Backup & Replication 配置数据库的 Microsoft SQL Server 通信的端口（如果您使用 Microsoft SQL Server 默认实例）。 
+
+
+|  | 具有所有备份服务器名称解析功能的 DNS 服务器 | TCP | 3389 | 用于与 DNS 服务器通信的端口 
+|===
+
+NOTE: 如果您使用 vCloud Director，请确保在底层 vCenter Server 上打开端口 443。
+
+下表列出了 Veeam Backup Proxy 端口要求。
+
+|===
+| 自 | 至 | 协议 | 端口 | 笔记 
+
+
+| 备份服务器 | 备份代理 | TCP | 6210 | Veeam Backup VSS 集成服务在 SMB 文件共享备份期间用于获取 VSS 快照的默认端口。 
+
+
+| 备份代理 | vCenter Server | TCP | 1443 | 可以在 vCenter 设置中自定义的默认 VMware Web 服务端口。 
+|===
+下表列出了SnapCenter端口要求。
+
+|===
+| 端口类型 | 协议 | 端口 | 笔记 
+
+
+| SnapCenter管理端口 | HTTPS | 8146 | 此端口用于SnapCenter客户端（ SnapCenter用户）和SnapCenter服务器之间的通信。也用于从插件主机到SnapCenter服务器的通信。 
+
+
+| SnapCenter SMCore 通信端口 | HTTPS | 8043 | 此端口用于SnapCenter服务器与安装了SnapCenter插件的主机之间的通信。 
+
+
+| Windows 插件主机，安装 | TCP | 135，445 | 这些端口用于SnapCenter服务器和安装插件的主机之间的通信。安装后可以关闭端口。此外，Windows Instrumentation Services 会搜索端口 49152 至 65535，这些端口必须处于打开状态。 
+
+
+| Linux 插件主机，安装 | SSH | 22 | 这些端口用于SnapCenter服务器和安装插件的主机之间的通信。  SnapCenter使用这些端口将插件包二进制文件复制到 Linux 插件主机。 
+
+
+| 适用于 Windows/Linux 的SnapCenter插件包 | HTTPS | 8145 | 此端口用于 SMCore 与安装了SnapCenter插件的主机之间的通信。 
+
+
+| VMware vSphere vCenter Server 端口 | HTTPS | 443 | 此端口用于 Vmware vSphere 的SnapCenter插件和 vCenter 服务器之间的通信。 
+
+
+| 适用于 VMware vSphere 端口的SnapCenter插件 | HTTPS | 8144 | 此端口用于来自 vCenter vSphere Web 客户端和SnapCenter服务器的通信。 
+|===
+=====
+====
+
+
+== 网络连接
+
+此解决方案需要从本地ONTAP集群到 AWS FSx ONTAP互连集群网络地址成功通信才能执行NetApp SyncMirror操作。此外，Veeam 备份服务器必须能够访问 AWS S3 存储桶。除了使用互联网传输之外，还可以使用现有的 VPN 或 Direct Connect 链接作为 S3 存储桶的私有链接。
+
+.现场
+[%collapsible%open]
+====
+ONTAP支持用于虚拟化的所有主要存储协议，包括 iSCSI、光纤通道 (FC)、以太网光纤通道 (FCoE) 或用于 SAN 环境的光纤通道非易失性内存快速协议 (NVMe/FC)。 ONTAP还支持 NFS（v3 和 v4.1）以及 SMB 或 S3 用于客户机连接。您可以自由选择最适合您环境的协议，并且可以根据需要在单个系统上组合协议。例如，您可以使用一些 iSCSI LUN 或来宾共享来增强 NFS 数据存储的一般用途。
+
+该解决方案利用 NFS 数据存储作为来宾 VMDK 的本地数据存储，并利用 iSCSI 和 NFS 作为来宾应用程序数据的数据存储。
+
+.客户端网络
+[%collapsible%open]
+=====
+VMkernel 网络端口和软件定义网络为 ESXi 主机提供连接，使它们能够与 VMware 环境之外的元素进行通信。连接取决于所使用的 VMkernel 接口的类型。
+
+对于此解决方案，配置了以下 VMkernel 接口：
+
+* 管理
+* vMotion
+* NFS
+* iSCSI
+
+
+=====
+.已配置的存储网络
+[%collapsible%open]
+=====
+LIF（逻辑接口）代表集群中节点的网络接入点。这允许与存储客户端访问的数据的存储虚拟机进行通信。您可以在集群通过网络发送和接收通信的端口上配置 LIF。
+
+对于此解决方案，LIF 配置为以下存储协议：
+
+* NFS
+* iSCSI
+
+
+=====
+====
+.云连接选项
+[%collapsible%open]
+====
+客户在将其本地环境连接到云资源时有很多选择，包括部署 VPN 或 Direct Connect 拓扑。
+
+.虚拟专用网络（VPN）
+[%collapsible%open]
+=====
+VPN（虚拟专用网络）通常用于创建基于互联网或私有 MPLS 网络的安全 IPSec 隧道。 VPN 易于设置，但缺乏可靠性（如果基于互联网）和速度。端点可以在 AWS VPC 或 VMware Cloud SDDC 处终止。对于此灾难恢复解决方案，我们从本地网络创建了到 AWS FSx ONTAP的连接。因此，它可以在 FSx ONTAP连接的 AWS VPC（虚拟专用网关或传输网关）处终止。
+
+VPN 设置可以基于路由或基于策略。通过基于路由的设置，端点会自动交换路由，并且设置会学习到新创建的子网的路由。使用基于策略的设置，您必须定义本地和远程子网，并且当添加新子网并允许其在 IPSec 隧道中通信时，您必须更新路由。
+
+
+NOTE: 如果未在默认网关上创建 IPSec VPN 隧道，则必须通过本地 VPN 隧道端点在路由表中定义远程网络路由。
+
+下图描述了典型的 VPN 连接选项。
+
+image:dr-vmc-aws-003.png["该图显示输入/输出对话框或表示书面内容"]
+
+=====
+.Direct Connect
+[%collapsible%open]
+=====
+Direct Connect 提供到 AWS 网络的专用链接。专用连接使用 1Gbps、10Gbps 或 100Gbps 以太网端口创建到 AWS 的链接。 AWS Direct Connect 合作伙伴使用他们自己与 AWS 之间预先建立的网络链接提供托管连接，速度从 50Mbps 到 10Gbps。默认情况下，流量未加密。但是，可以选择使用 MACsec 或 IPsec 来保护流量。  MACsec 提供第 2 层加密，而 IPsec 提供第 3 层加密。  MACsec 通过隐藏正在通信的设备来提供更好的安全性。
+
+客户必须将其路由器设备放置在 AWS Direct Connect 位置。要进行此项设置，您可以与 AWS 合作伙伴网络 (APN) 合作。该路由器和 AWS 路由器之间建立了物理连接。要在 VPC 上启用对 FSx ONTAP 的访问，您必须拥有私有虚拟接口或从 Direct Connect 到 VPC 的中转虚拟接口。使用私有虚拟接口，Direct Connect 到 VPC 连接的可扩展性受到限制。
+
+下图描述了直接连接接口选项。
+
+image:dr-vmc-aws-004.png["该图显示输入/输出对话框或表示书面内容"]
+
+=====
+.中转网关
+[%collapsible%open]
+=====
+传输网关是一种区域级构造，可以提高区域内 Direct Connect 到 VPC 连接的可扩展性。如果需要跨区域连接，则中转网关必须是对等的。欲了解更多信息，请查看 https://docs.aws.amazon.com/directconnect/latest/UserGuide/Welcome.html["AWS Direct Connect 文档"^]。
+
+=====
+====
+.云网络注意事项
+[%collapsible%open]
+====
+在云中，底层网络基础设施由云服务提供商管理，而客户必须管理 AWS 中的 VPC 网络、子网、路由表等。他们还必须管理计算边缘的 NSX 网络段。  SDDC 将外部 VPC 和 Transit Connect 的路由分组。
+
+当在连接到 VMware Cloud 的 VPC 上部署具有多可用区可用性的 FSx ONTAP时，iSCSI 流量会收到必要的路由表更新以实现通信。默认情况下，对于多可用区部署，没有从 VMware Cloud 到所连接 VPC 上的 FSx ONTAP NFS/SMB 子网的可用路由。为了定义该路由，我们使用了 VMware Cloud SDDC 组（它是 VMware 管理的传输网关），以允许同一区域内的 VMware Cloud SDDC 以及外部 VPC 和其他传输网关之间进行通信。
+
+
+NOTE: 使用传输网关会产生数据传输成本。有关特定区域的费用详情，请参阅 https://aws.amazon.com/transit-gateway/pricing/["此链接"^]。
+
+VMware Cloud SDDC 可以部署在单个可用区中，就像拥有单个数据中心一样。还提供延伸集群选项，类似于NetApp MetroCluster解决方案，可以在可用区域发生故障时提供更高的可用性并减少停机时间。
+
+为了最大限度地降低数据传输成本，请将 VMware Cloud SDDC 和 AWS 实例或服务保留在同一可用区域。最好与可用区域 ID 匹配而不是与名称匹配，因为 AWS 提供了特定于账户的 AZ 顺序列表，以将负载分散到可用区域之间。例如，一个账户（US-East-1a）可能指向 AZ ID 1，而另一个账户（US-East-1c）可能指向 AZ ID 1。可用区域 ID 可以通过多种方式检索。在以下示例中，我们从 VPC 子网中检索了 AZ ID。
+
+image:dr-vmc-aws-005.png["该图显示输入/输出对话框或表示书面内容"]
+
+在 VMware Cloud SDDC 中，网络由 NSX 管理，处理南北流量上行链路端口的边缘网关（Tier-0 路由器）连接到 AWS VPC。计算网关和管理网关（Tier-1 路由器）处理东西向流量。如果边缘的上行链路端口使用率过高，您可以创建流量组以与特定主机 IP 或子网关联。创建流量组会创建额外的边缘节点来分离流量。检查 https://docs.vmware.com/en/VMware-Cloud-on-AWS/services/com.vmware.vmc-aws-networking-security/GUID-306D3EDC-F94E-4216-B306-413905A4A784.html["VMware 文档"^]使用多边缘设置所需的最少 vSphere 主机数量。
+
+.客户端网络
+[%collapsible%open]
+=====
+当您配置 VMware Cloud SDDC 时，VMKernel 端口已配置完毕并可供使用。  VMware 管理这些端口，无需进行任何更新。
+
+下图描述了主机 VMKernel 信息示例。
+
+image:dr-vmc-aws-006.png["该图显示输入/输出对话框或表示书面内容"]
+
+=====
+.已配置的存储网络（iSCSI、NFS）
+[%collapsible%open]
+=====
+对于 VM 客户存储网络，我们通常创建端口组。使用 NSX，我们创建在 vCenter 上作为端口组使用的段。由于存储网络位于可路由子网中，因此即使不创建单独的网络段，您也可以使用默认 NIC 访问 LUN 或挂载 NFS 导出。为了分离存储流量，您可以创建额外的段、定义规则并控制这些段上的 MTU 大小。为了提供容错能力，最好至少有两个专用于存储网络的段。正如我们之前提到的，如果上行链路带宽成为问题，您可以创建流量组并分配 IP 前缀和网关来执行基于源的路由。
+
+我们建议将 DR SDDC 中的段与源环境进行匹配，以防止在故障转移期间猜测映射网络段。
+
+=====
+.安全组
+[%collapsible%open]
+=====
+许多安全选项可在 AWS VPC 和 VMware Cloud SDDC 网络上提供安全通信。在 VMware Cloud SDDC 网络中，您可以使用 NSX 跟踪流来识别路径，包括所使用的规则。然后，您可以使用 VPC 网络上的网络分析器来识别流过程中消耗的路径，包括路由表、安全组和网络访问控制列表。
+
+=====
+====
+
+
+== 存储
+
+NetApp AFF A 系列系统提供高性能存储基础架构和灵活的数据管理选项，这些选项支持云，可满足各种企业场景的需求。在此解决方案中，我们使用ONTAP AFF A300作为主要的内部部署存储系统。
+
+该解决方案采用了NetApp ONTAP以及ONTAP Tools for VMware 和SnapCenter ，以提供与 VMware vSphere 紧密集成的全面管理和应用程序备份功能。
+
+.本地
+[%collapsible%open]
+====
+我们使用ONTAP存储作为托管虚拟机及其 VMDK 文件的 VMware 数据存储。 VMware 支持多种用于连接数据存储的存储协议，并且在此解决方案中，我们使用 NFS 卷作为 ESXi 主机上的数据存储。但是， ONTAP存储系统支持 VMware 支持的所有协议。
+
+下图描述了 VMware 存储选项。
+
+image:dr-vmc-aws-007.png["该图显示输入/输出对话框或表示书面内容"]
+
+ONTAP卷用于我们的应用程序虚拟机的 iSCSI 和 NFS 客户连接存储。我们对应用程序数据使用了以下存储协议：
+
+* 用于来宾连接的 Oracle 数据库文件的 NFS 卷。
+* 用于连接 Microsoft SQL Server 数据库和事务日志的来宾的 iSCSI LUN。
+
+
+|===
+| 操作系统 | 数据库类型 | 存储协议 | 卷描述 
+
+
+| Windows Server 2019 | SQL 服务器 2019 | iSCSI | 数据库文件 
+
+
+|  |  | iSCSI | 日志文件 
+
+
+| Oracle Linux 8.5 | Oracle 19c | NFS | Oracle 二进制文件 
+
+
+|  |  | NFS | Oracle 数据 
+
+
+|  |  | NFS | Oracle 恢复文件 
+|===
+我们还使用ONTAP存储作为主 Veeam 备份存储库以及SnapCenter数据库备份的备份目标。
+
+* Veeam 备份存储库的 SMB 共享。
+* SMB 共享作为SnapCenter数据库备份的目标。
+
+
+====
+.云存储
+[%collapsible%open]
+====
+该解决方案包括 VMware Cloud on AWS，用于托管作为故障转移过程的一部分恢复的虚拟机。截至撰写本文时，VMware 支持托管 VM 和 VMDK 的数据存储的 vSAN 存储。
+
+FSx ONTAP用作使用SnapCenter和SyncMirror镜像的应用程序数据的二级存储。作为故障转移过程的一部分，FSx ONTAP集群转换为主存储，数据库应用程序可以恢复在 FSx 存储集群上运行的正常运行。
+
+.Amazon FSx ONTAP设置
+[%collapsible%open]
+=====
+要使用 Cloud Manager 部署 AWS FSx ONTAP ，请按照以下说明操作 https://docs.netapp.com/us-en/cloud-manager-fsx-ontap/start/task-getting-started-fsx.html["此链接"^]。
+
+部署 FSx ONTAP后，将内部ONTAP实例拖放到 FSx ONTAP中以开始卷的复制设置。
+
+下图描述了我们的 FSx ONTAP环境。
+
+image:dr-vmc-aws-008.png["该图显示输入/输出对话框或表示书面内容"]
+
+=====
+.创建网络接口
+[%collapsible%open]
+=====
+FSx ONTAP具有预先配置的网络接口，可用于 iSCSI、NFS、SMB 和集群间网络。
+
+=====
+.虚拟机数据存储区
+[%collapsible%open]
+=====
+VMware Cloud SDDC 附带两个 VSAN 数据存储，分别名为 `vsandatastore`和 `workloaddatastore`。我们使用了 `vsandatastore`托管管理虚拟机，并且访问权限仅限于 cloudadmin 凭据。对于工作负载，我们使用 `workloaddatastore`。
+
+=====
+====
+
+
+== 计算
+
+VMware vSphere 在数据中心和所有主要云提供商中提供虚拟化基础架构。该生态系统非常适合灾难恢复场景，无论虚拟化计算位于何处都能保持一致。该解决方案在数据中心位置和 AWS 上的 VMware Cloud 中使用 VMware 虚拟化计算资源。
+
+.本地
+[%collapsible%open]
+====
+该解决方案使用运行 VMware vSphere v7.0U3 的 HPE Proliant DL360 Gen 10 服务器。我们部署了六个计算实例，为我们的 SQL 服务器和 Oracle 服务器提供足够的资源。
+
+我们部署了 10 台运行 SQL Server 2019 且数据库大小各异的 Windows Server 2019 VM，以及 10 台运行 Oracle 19c 且数据库大小各异的 Oracle Linux 8.5 VM。
+
+====
+.云
+[%collapsible%open]
+====
+我们在 VMware Cloud on AWS 中部署了一个具有两台主机的 SDDC，以提供足够的资源来运行从主站点恢复的虚拟机。
+
+image:dr-vmc-aws-009.png["该图显示输入/输出对话框或表示书面内容"]
+
+====
+
+
+== BlueXP backup and recovery工具
+
+为了将我们的应用程序虚拟机和数据库卷故障转移到在 AWS 中运行的 VMware Cloud Volume 服务，必须安装和配置SnapCenter Server 和 Veeam Backup and Replication Server 的运行实例。故障转移完成后，还必须配置这些工具以恢复正常的备份操作，直到计划和执行故障恢复到内部数据中心。
+
+.部署备份工具
+[%collapsible%open]
+====
+SnapCenter服务器和 Veeam Backup & Replication 服务器可以安装在 VMware Cloud SDDC 中，也可以安装在与 VMware Cloud 环境具有网络连接的 VPC 中的 EC2 实例上。
+
+.SnapCenter 服务器
+[%collapsible%open]
+=====
+SnapCenter software可从NetApp支持站点获取，并可安装在域或工作组中的 Microsoft Windows 系统上。详细的规划指南和安装说明可以在link:https://docs.netapp.com/us-en/snapcenter/install/install_workflow.html["NetApp文档中心"^]。
+
+SnapCenter software可在以下位置找到 https://mysupport.netapp.com["此链接"^]。
+
+=====
+.Veeam备份和复制服务器
+[%collapsible%open]
+=====
+您可以在 AWS 上的 VMware Cloud 中的 Windows 服务器或 EC2 实例上安装 Veeam Backup & Replication 服务器。有关详细的实施指南，请参阅 https://www.veeam.com/documentation-guides-datasheets.html["Veeam 帮助中心技术文档"^]。
+
+=====
+====
+.备份工具和配置
+[%collapsible%open]
+====
+安装后，必须配置SnapCenter和 Veeam Backup & Replication 来执行将数据还原到 VMware Cloud on AWS 所需的任务。
+
+. SnapCenter配置
+
+
+[]
+=====
+要恢复已镜像到 FSx ONTAP 的应用程序数据，您必须首先对本地SnapCenter数据库执行完整恢复。此过程完成后，将重新建立与虚拟机的通信，并且现在可以使用 FSx ONTAP作为主存储恢复应用程序备份。
+
+有关在 AWS 中的SnapCenter服务器上完成的步骤列表，请参阅link:vmw-aws-vmc-guest-storage-dr.html#deploy-secondary-snapcenter["部署辅助 Windows SnapCenter服务器"]。
+
+=====
+.Veeam备份和复制配置
+[%collapsible%open]
+=====
+要恢复已备份到 Amazon S3 存储的虚拟机，必须在 Windows 服务器上安装 Veeam Server，并将其配置为与 VMware Cloud、FSx ONTAP和包含原始备份存储库的 S3 存储桶通信。它还必须在 FSx ONTAP上配置一个新的备份存储库，以便在虚拟机恢复后进行新的备份。
+
+有关完成应用程序虚拟机故障转移所需步骤的完整列表，请参阅link:vmw-aws-vmc-guest-storage-dr.html#deploy-secondary-veeam["部署辅助 Veeam 备份和复制服务器"]。
+
+=====
+====

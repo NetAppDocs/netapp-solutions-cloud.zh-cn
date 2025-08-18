@@ -1,0 +1,251 @@
+---
+sidebar: sidebar 
+permalink: vmware/vmw-azure-avs-guest-storage.html 
+keywords: NetApp Solutions, microsoft azure, avs, azure, vmware managed cloud, enterprise, hybrid, cloud, anf, azure netapp files, cvo, cloud volumes ontap, guest connected 
+summary:  
+---
+= 适用于 Azure 的NetApp来宾连接存储选项
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Azure 支持通过本机Azure NetApp Files(ANF) 服务或Cloud Volumes ONTAP (CVO) 连接来宾的NetApp存储。
+
+
+
+== Azure NetApp Files(ANF)
+
+Azure netApp Files 为 Azure 带来企业级数据管理和存储，以便您可以轻松管理工作负载和应用程序。将您的工作负载迁移到云端并运行它们，而不会牺牲性能。
+
+Azure netApp Files 消除了障碍，因此您可以将所有基于文件的应用程序迁移到云端。这是第一次，您不必重新构建您的应用程序，并且您可以轻松获得应用程序的持久存储。
+
+由于该服务是通过 Microsoft Azure 门户提供的，因此用户可以作为 Microsoft 企业协议的一部分体验完全托管的服务。由 Microsoft 管理的世界一流的支持让您完全放心。此单一解决方案使您能够快速轻松地添加多协议工作负载。您可以构建和部署基于 Windows 和 Linux 文件的应用程序，甚至对于传统环境也是如此。
+
+
+
+=== Azure NetApp Files(ANF) 作为来宾连接存储
+
+.使用 Azure VMware 解决方案 (AVS) 配置Azure NetApp Files
+[%collapsible%open]
+====
+可以从 Azure VMware 解决方案 SDDC 环境中创建的 VM 装载Azure NetApp Files共享。由于Azure NetApp Files支持 SMB 和 NFS 协议，因此卷也可以安装在 Linux 客户端上并映射到 Windows 客户端上。只需五个简单的步骤即可设置Azure NetApp Files卷。
+
+Azure NetApp Files和 Azure VMware 解决方案必须位于同一 Azure 区域。
+
+====
+.创建并装载Azure NetApp Files卷
+[%collapsible%open]
+====
+要创建和装载Azure NetApp Files卷，请完成以下步骤：
+
+. 登录 Azure 门户并访问Azure NetApp Files。验证对Azure NetApp Files服务的访问，并使用NetApp provider register --namespace Microsoft.NetApp –wait 命令注册Azure NetApp Files资源提供程序。注册完成后，创建一个NetApp帐户。
++
+详细步骤请参见link:https://docs.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-create-netapp-account["Azure NetApp Files共享"]。本页将指导您完成逐步的过程。
+
++
+image:azure-anf-guest-001.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 创建NetApp帐户后，设置具有所需服务级别和大小的容量池。
++
+有关更多信息，请参阅link:https://docs.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-set-up-capacity-pool["设置容量池Set up a capacity pool"] 。
+
++
+image:azure-anf-guest-002.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 为Azure NetApp Files配置委托子网，并在创建卷时指定此子网。有关创建委托子网的详细步骤，请参阅link:https://docs.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-delegate-subnet["将子网委托给Azure NetApp Files"]。
++
+image:azure-anf-guest-003.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 使用“容量池”边栏选项卡下的“卷”边栏选项卡添加 SMB 卷。确保在创建 SMB 卷之前配置了 Active Directory 连接器。
++
+image:azure-anf-guest-004.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 单击“查看 + 创建”以创建 SMB 卷。
++
+如果应用程序是 SQL Server，则启用 SMB 持续可用性。
+
++
+image:azure-anf-guest-005.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+image:azure-anf-guest-006.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+若要详细了解Azure NetApp Files卷按大小或配额的性能，请参阅link:https://docs.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-performance-considerations["Azure NetApp Files的性能注意事项"]。
+
+. 连接建立后，即可挂载该卷并将其用于应用程序数据。
++
+为此，请在 Azure 门户中单击“卷”边栏选项卡，然后选择要挂载的卷并访问挂载说明。复制路径并使用映射网络驱动器选项将卷装载到在 Azure VMware 解决方案 SDDC 上运行的 VM 上。
+
++
+image:azure-anf-guest-007.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+image:azure-anf-guest-008.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 要在 Azure VMware 解决方案 SDDC 上运行的 Linux VM 上装载 NFS 卷，请使用相同的过程。使用卷重塑或动态服务级别功能来满足工作负载需求。
++
+image:azure-anf-guest-009.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+有关更多信息，请参阅link:https://docs.microsoft.com/en-us/azure/azure-netapp-files/dynamic-change-volume-service-level["动态更改卷的服务级别"] 。
+
+
+
+====
+
+
+== Cloud Volumes ONTAP (CVO)
+
+Cloud Volumes ONTAP（或称 CVO）是基于 NetApp 的ONTAP存储软件构建的业界领先的云数据管理解决方案，可在 Amazon Web Services (AWS)、Microsoft Azure 和 Google Cloud Platform (GCP) 上原生使用。
+
+它是ONTAP的软件定义版本，使用云原生存储，允许您在云端和本地使用相同的存储软件，从而无需重新培训 IT 人员采用全新方法来管理数据。
+
+CVO 使客户能够无缝地将数据从边缘移动到数据中心、云端并返回，从而将您的混合云整合在一起 - 所有这些都通过单一窗格管理控制台NetApp Cloud Manager 进行管理。
+
+CVO 的设计旨在提供极致的性能和先进的数据管理功能，以满足您在云端最苛刻的应用程序
+
+
+
+=== Cloud Volumes ONTAP (CVO) 作为来宾连接存储
+
+.在 Azure 中部署新的Cloud Volumes ONTAP
+[%collapsible%open]
+====
+可以从在 Azure VMware 解决方案 SDDC 环境中创建的 VM 挂载Cloud Volumes ONTAP共享和 LUN。由于Cloud Volumes ONTAP支持 iSCSI、SMB 和 NFS 协议，因此卷也可以安装在 Linux 客户端和 Windows 客户端上。只需几个简单的步骤即可设置Cloud Volumes ONTAP卷。
+
+要将卷从本地环境复制到云中以用于灾难恢复或迁移目的，请使用站点到站点 VPN 或 ExpressRoute 建立与 Azure 的网络连接。将数据从本地复制到Cloud Volumes ONTAP超出了本文档的范围。要在本地和Cloud Volumes ONTAP系统之间复制数据，请参阅link:https://docs.netapp.com/us-en/occm/task_replicating_data.html#setting-up-data-replication-between-systems["设置系统之间的数据复制"]。
+
+
+NOTE: 使用link:https://cloud.netapp.com/cvo-sizer["Cloud Volumes ONTAP大小调整器"]准确确定Cloud Volumes ONTAP实例的大小。还可以监控本地性能以用作Cloud Volumes ONTAP大小调整器的输入。
+
+. 登录NetApp Cloud Central — 显示 Fabric View 屏幕。找到Cloud Volumes ONTAP选项卡并选择转到云管理器。登录后，将显示 Canvas 屏幕。
++
+image:azure-cvo-guest-001.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在云管理器主页上，单击添加工作环境，然后选择 Microsoft Azure 作为云和系统配置类型。
++
+image:azure-cvo-guest-002.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 创建第一个Cloud Volumes ONTAP工作环境时，Cloud Manager 会提示您部署连接器。
++
+image:azure-cvo-guest-003.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 创建连接器后，更新详细信息和凭据字段。
++
+image:azure-cvo-guest-004.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 提供要创建的环境的详细信息，包括环境名称和管理员凭据。添加 Azure 环境的资源组标签作为可选参数。完成后，单击“继续”。
++
+image:azure-cvo-guest-005.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 选择Cloud Volumes ONTAP部署的附加服务，包括BlueXP分类、 BlueXP backup and recovery以及Cloud Insights。选择服务，然后单击继续。
++
+image:azure-cvo-guest-006.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 配置 Azure 位置和连接。选择要使用的 Azure 区域、资源组、VNet 和子网。
++
+image:azure-cvo-guest-007.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 选择许可证选项：按使用量付费或使用现有许可证的 BYOL。在此示例中，使用了按使用量付费选项。
++
+image:azure-cvo-guest-008.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在适用于各种类型工作负载的几个预配置包中进行选择。
++
+image:azure-cvo-guest-009.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 接受有关激活支持和分配 Azure 资源的两个协议。要创建Cloud Volumes ONTAP实例，请单击“Go”。
++
+image:azure-cvo-guest-010.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 配置Cloud Volumes ONTAP后，它会列在 Canvas 页面上的工作环境中。
++
+image:azure-cvo-guest-011.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+====
+.SMB 卷的附加配置
+[%collapsible%open]
+====
+. 工作环境准备好后，请确保 CIFS 服务器配置了适当的 DNS 和 Active Directory 配置参数。在创建 SMB 卷之前，需要执行此步骤。
++
+image:azure-cvo-guest-020.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 创建 SMB 卷是一个简单的过程。选择要创建卷的 CVO 实例，然后单击“创建卷”选项。选择适当的大小，云管理器选择包含的聚合或使用高级分配机制放置在特定的聚合上。对于此演示，选择 SMB 作为协议。
++
+image:azure-cvo-guest-021.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 卷配置完成后，它将在“卷”窗格下可用。由于已配置 CIFS 共享，请授予您的用户或组对文件和文件夹的权限，并验证这些用户是否可以访问共享并创建文件。如果从本地环境复制卷，则不需要此步骤，因为文件和文件夹权限都将作为SnapMirror复制的一部分保留。
++
+image:azure-cvo-guest-022.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 创建卷后，使用 mount 命令从 Azure VMware 解决方案 SDDC 主机上运行的 VM 连接到共享。
+. 复制以下路径并使用映射网络驱动器选项将卷装载到在 Azure VMware 解决方案 SDDC 上运行的 VM 上。
++
+image:azure-cvo-guest-023.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+image:azure-cvo-guest-024.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+====
+.将 LUN 连接到主机
+[%collapsible%open]
+====
+要将 LUN 连接到主机，请完成以下步骤：
+
+. 在“画布”页面上，双击Cloud Volumes ONTAP工作环境以创建和管理卷。
+. 单击添加卷 > 新卷并选择 iSCSI，然后单击创建启动器组。单击“Continue”。
++
+image:azure-cvo-guest-030.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 配置卷后，选择该卷，然后单击目标 IQN。要复制 iSCSI 限定名称 (IQN)，请单击复制。建立从主机到 LUN 的 iSCSI 连接。
++
+要对驻留在 Azure VMware 解决方案 SDDC 上的主机完成相同操作，请执行以下操作：
+
++
+.. 通过 RDP 连接到 Azure VMware 解决方案 SDDC 上托管的 VM。
+.. 打开 iSCSI 发起程序属性对话框：服务器管理器 > 仪表板 > 工具 > iSCSI 发起程序。
+.. 在“发现”选项卡中，单击“发现门户”或“添加门户”，然后输入 iSCSI 目标端口的 IP 地址。
+.. 从“目标”选项卡中，选择发现的目标，然后单击“登录”或“连接”。
+.. 选择启用多路径，然后选择计算机启动时自动恢复此连接或将此连接添加到收藏目标列表。单击“高级”。
++
+*注意：*Windows 主机必须与集群中的每个节点建立 iSCSI 连接。本机 DSM 选择要使用的最佳路径。
+
++
+image:azure-cvo-guest-031.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+
+
+存储虚拟机 (SVM) 上的 LUN 对于 Windows 主机来说显示为磁盘。主机不会自动发现任何新添加的磁盘。通过完成以下步骤触发手动重新扫描以发现磁盘：
+
+. 打开 Windows 计算机管理实用程序：开始 > 管理工具 > 计算机管理。
+. 在导航树中展开存储节点。
+. 单击“磁盘管理”。
+. 单击操作 > 重新扫描磁盘。
+
+
+image:azure-cvo-guest-032.png["该图显示输入/输出对话框或表示书面内容"]
+
+当 Windows 主机首次访问新的 LUN 时，它没有分区或文件系统。初始化 LUN；并且（可选）通过完成以下步骤使用文件系统格式化 LUN：
+
+. 启动 Windows 磁盘管理。
+. 右键单击 LUN，然后选择所需的磁盘或分区类型。
+. 按照向导中的说明进行操作。在此示例中，已安装驱动器 E:
+
+
+image:azure-cvo-guest-033.png["该图显示输入/输出对话框或表示书面内容"]
+
+image:azure-cvo-guest-034.png["该图显示输入/输出对话框或表示书面内容"]
+
+====

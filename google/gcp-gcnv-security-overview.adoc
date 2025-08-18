@@ -1,0 +1,74 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-security-overview.html 
+keywords: secure, architecture, tenancy model, identity management, control plane, security hardening, encryption, zero trust, ransomware 
+summary: Google Cloud 中的Google Cloud NetApp Volumes提供了多种方式来原生保护您的数据。 
+---
+= Google Cloud 中的Google Cloud NetApp Volumes如何保护您的数据
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Google Cloud 中的Google Cloud NetApp Volumes提供了多种方式来原生保护您的数据。
+
+
+
+== 安全架构和租赁模型
+
+Google Cloud NetApp Volumes通过将服务管理（控制平面）和数据访问（数据平面）划分到不同的端点，从而相互之间不会产生影响，从而在 Google Cloud 中提供安全架构（请参阅link:gcp-gcnv-arch-detail.html["Google Cloud NetApp Volumes架构"]）。它使用谷歌的 https://cloud.google.com/vpc/docs/private-services-access?hl=en_US["私人服务访问"^]（PSA）框架来提供服务。该框架区分了服务生产者（由NetApp提供和运营）和服务消费者（客户项目中的虚拟私有云 (VPC)，用于托管想要访问Google Cloud NetApp Volumes文件共享的客户端）。
+
+在此架构中，租户（参见link:gcp-gcnv-arch-detail.html#tenancy-model["租赁模型"]) 被定义为除非用户明确连接，否则彼此完全隔离的 Google Cloud 项目。租户可以使用Google Cloud NetApp Volumes卷平台将数据卷、外部名称服务以及解决方案的其他重要部分与其他租户完全隔离。由于Google Cloud NetApp Volumes平台通过 VPC 对等连接，因此这种隔离也适用于它。您可以使用共享 VPC 在多个项目之间共享Google Cloud NetApp Volumes卷（请参阅link:gcp-gcnv-arch-detail.html#shared-vpcs["共享 VPC"]）。您可以对 SMB 共享和 NFS 导出应用访问控制，以限制谁或什么可以查看或修改数据集。
+
+
+
+== 控制平面的强大身份管理
+
+在进行Google Cloud NetApp Volumes配置的控制平面中，身份管理通过使用 https://cloud.google.com/iam/docs/overview["身份访问管理 (IAM)"^]。 IAM 是一项标准服务，可让您控制对 Google Cloud 项目实例的身份验证（登录）和授权（权限）。所有配置均通过使用 TLS 1.2 加密的安全 HTTPS 传输使用Google Cloud NetApp Volumes API 执行，并使用 JWT 令牌执行身份验证以增强安全性。  Google Cloud NetApp Volumes的 Google 控制台 UI 将用户输入转换为Google Cloud NetApp Volumes API 调用。
+
+
+
+== 安全强化——限制攻击面
+
+有效安全的一部分是限制服务中可用的攻击面数量。攻击面可以包括各种各样的东西，包括静态数据、动态传输数据、登录数据和数据集本身。
+
+托管服务消除了其设计中固有的一些攻击面。基础设施管理，如本节所述link:gcp-gcnv-service-operation.html["服务运营，"]由专门的团队处理并实现自动化，以减少人工实际接触配置的次数，从而有助于减少有意和无意的错误。网络被隔离，以便只有必要的服务才能相互访问。加密已融入数据存储中，只有数据平面需要Google Cloud NetApp Volumes管理员的安全关注。通过将大部分管理隐藏在 API 接口后面，可以通过限制攻击面来实现安全性。
+
+
+
+== 零信任模型
+
+从历史上看，IT 安全理念一直是信任但要验证，并表现为仅依靠外部机制（如防火墙和入侵检测系统）来减轻威胁。然而，攻击和入侵已经演化成通过网络钓鱼、社会工程、内部威胁和其他提供验证的方法来绕过环境中的验证，从而进入网络并造成破坏。
+
+零信任已成为安全领域的一种新方法，其当前的口号是“不信任任何事物，但仍然验证一切”。因此，默认情况下不允许任何内容访问。这一口号通过多种方式得到执行，包括标准防火墙和入侵检测系统 (IDS)，以及以下方法：
+
+* 强身份验证方法（例如 AES 加密的 Kerberos 或 JWT 令牌）
+* 单一强大的身份来源（例如 Windows Active Directory、轻量级目录访问协议 (LDAP) 和 Google IAM）
+* 网络分段和安全多租户（默认情况下只允许租户访问）
+* 使用最小特权访问策略进行细粒度访问控制
+* 拥有专门的、值得信赖的管理员的小型独家名单，具有数字审计和纸质记录
+
+
+在 Google Cloud 中运行的Google Cloud NetApp Volumes通过实施“不信任任何事物，验证一切”的立场来遵循零信任模型。
+
+
+
+== 加密
+
+加密静态数据（请参阅link:gcp-gcnv-data-encrypt-at-rest.html["静态数据加密"]) 通过使用 XTS-AES-256 密码与NetApp卷加密 (NVE) 以及link:gcp-gcnv-data-encrypt-in-transit.html#smb-encryption["SMB 加密"]或 NFS Kerberos 5p 支持。请放心，跨区域复制传输受到 TLS 1.2 加密的保护（请参阅部分链接：gcp-gcnv-security-considerations.html#Detection, Prevention and mitigation of ransomware, Malware, and viral#cross-region-replication["Cross-region replication"]）。此外，Google 网络还提供加密通信（请参阅link:gcp-gcnv-data-encrypt-in-transit.html["传输中的数据加密"]) 来增加一层防御攻击的保护。有关传输加密的更多信息，请参阅link:gcp-gcnv-data-encrypt-in-transit.html#google-cloud-network["Google Cloud 网络"]。
+
+
+
+== 数据保护和备份
+
+安全不仅仅意味着预防攻击。它还涉及我们如何在攻击发生时恢复。该策略包括数据保护和备份。 Google Cloud NetApp Volumes提供了在发生中断时复制到其他区域的方法（请参阅link:gcp-gcnv-security-considerations.html#cross-region-replication["跨区域复制"]）或者数据集是否受到勒索软件攻击的影响。它还可以通过以下方式将数据异步备份到Google Cloud NetApp Volumes实例之外的位置：link:gcp-gcnv-security-considerations.html#cloud-volumes-service-backup["Google Cloud NetApp Volumes备份"] 。通过定期备份，缓解安全事件可以花费更少的时间，并为管理员节省金钱和精力。
+
+
+
+== 利用行业领先的 Snapshot 副本快速缓解勒索软件
+
+除了数据保护和备份之外， Google Cloud NetApp Volumes还支持不可变的 Snapshot 副本（请参阅link:gcp-gcnv-security-considerations.html#immutable-snapshot-copies["不可变的 Snapshot 副本"]）允许从勒索软件攻击中恢复的卷（请参阅link:gcp-gcnv-service-operation.html["服务运营"]) 在发现问题后的几秒钟内就能解决问题，并且干扰最小。恢复时间和效果取决于 Snapshot 计划，但您可以创建在勒索软件攻击中提供仅一小时增量的 Snapshot 副本。快照副本对性能和容量使用的影响可以忽略不计，并且是一种保护数据集的低风险、高回报的方法。

@@ -1,0 +1,284 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-pm-aws-dp.html 
+keywords: NetApp Solutions, redhat OpenShift, red hat OpenShift, redhat openshift container platform, ocp, openshift container platform, Advanced Cluster Management, ACM, Hub Cluster, containers, container workloads, VMWare, provider managed storage, ONTAP, AWS FSx ONTAP, Astra Control Service 
+summary:  
+---
+= 数据保护
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+此页面显示使用Astra Control Service 的托管 Red Hat OpenShift on AWS (ROSA) 集群的数据保护选项。 Astra Control Service (ACS) 提供了一个易于使用的图形用户界面，您可以使用它来添加集群、定义在其上运行的应用程序以及执行应用程序感知数据管理活动。还可以使用允许工作流程自动化的 API 访问 ACS 功能。
+
+为Astra Control（ACS 或 ACC）提供支持的是NetApp Trident。  Trident集成了多种类型的 Kubernetes 集群，例如 Red Hat OpenShift、EKS、AKS、SUSE Rancher、Anthos 等，以及各种类型的NetApp ONTAP存储，例如FAS/ AFF、 ONTAP Select、CVO、Google Google Cloud NetApp Volumes、 Azure NetApp Files和Amazon FSx ONTAP。
+
+本节详细介绍了使用 ACS 的以下数据保护选项：
+
+* 展示在一个区域运行的 ROSA 应用程序的备份和恢复以及恢复到另一个区域的视频。
+* 展示 ROSA 应用程序的快照和恢复的视频。
+* 安装 ROSA 集群、 Amazon FSx ONTAP、使用NetApp Trident与存储后端集成、在 ROSA 集群上安装 postgresql 应用程序、使用 ACS 创建应用程序的快照以及从中恢复应用程序的分步详细信息。
+* 这篇博客逐步展示了使用 ACS 在带有 FSx ONTAP的 ROSA 集群上为 mysql 应用程序创建和恢复快照的过程。
+
+
+
+
+== 备份/从备份恢复
+
+以下视频展示了在一个区域运行的 ROSA 应用程序的备份以及恢复到另一个区域的过程。
+
+.AWS 上的 FSx NetApp ONTAP for Red Hat OpenShift 服务
+video::01dd455e-7f5a-421c-b501-b01200fa91fd[panopto]
+
+
+== 快照/从快照恢复
+
+以下视频展示了如何拍摄 ROSA 应用程序的快照以及如何从快照中恢复。
+
+.使用Amazon FSx ONTAP存储为 AWS (ROSA) 集群上的 Red Hat OpenShift Service 应用程序进行快照/还原
+video::36ecf505-5d1d-4e99-a6f8-b11c00341793[panopto]
+
+
+== 博客
+
+* link:https://community.netapp.com/t5/Tech-ONTAP-Blogs/Using-Astra-Control-Service-for-data-management-of-apps-on-ROSA-clusters-with/ba-p/450903["使用Astra Control Service 和Amazon FSx存储对 ROSA 集群上的应用程序进行数据管理"]
+
+
+
+
+== 创建快照并从中恢复的详细步骤
+
+
+
+=== 先决条件设置
+
+* link:https://signin.aws.amazon.com/signin?redirect_uri=https://portal.aws.amazon.com/billing/signup/resume&client_id=signup["AWS 账户"]
+* link:https://console.redhat.com/["Red Hat OpenShift 帐户"]
+* IAM 用户link:https://www.rosaworkshop.io/rosa/1-account_setup/["适当的权限"]创建并访问ROSA集群
+* link:https://aws.amazon.com/cli/["AWS CLI"]
+* link:https://console.redhat.com/openshift/downloads["ROSA CLI"]
+* link:https://console.redhat.com/openshift/downloads["OpenShift CLI"]（oc）
+* 具有子网和适当网关及路由的 VPC
+* link:https://docs.openshift.com/rosa/rosa_install_access_delete_clusters/rosa_getting_started_iam/rosa-installing-rosa.html["ROSA集群安装"]进入 VPC
+* link:https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/getting-started-step1.html["Amazon FSx ONTAP"]在同一个 VPC 中创建
+* 从以下位置访问 ROSA 集群link:https://console.redhat.com/openshift/overview["OpenShift 混合云控制台"]
+
+
+
+
+=== 后续步骤
+
+. 创建管理员用户并登录集群。
+. 为集群创建一个 kubeconfig 文件。
+. 在集群上安装Trident 。
+. 使用Trident CSI 配置器创建后端、存储类和快照类配置。
+. 在集群上部署postgresql应用程序。
+. 创建数据库并添加记录。
+. 将集群添加到 ACS。
+. 在 ACS 中定义应用程序。
+. 使用 ACS 创建快照。
+. 删除 postgresql 应用程序中的数据库。
+. 使用 ACS 从快照恢复。
+. 验证您的应用程序已从快照恢复。
+
+
+
+
+==== **1.创建管理员用户并登录集群**
+
+使用以下命令创建管理员用户来访问 ROSA 集群：（仅当您在安装时未创建管理员用户时才需要创建管理员用户）
+
+`rosa create admin --cluster=<cluster-name>`
+
+该命令将提供如下所示的输出。使用 `oc login`输出中提供的命令。
+
+image:rhhc-rosa-cluster-admin-create.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+NOTE: 您还可以使用令牌登录集群。如果您在创建集群时已经创建了管理员用户，则可以使用管理员用户凭据从 Red Hat OpenShift Hybrid Cloud 控制台登录集群。然后通过点击右上角显示登录用户的名称，您可以获取 `oc login`命令行的命令（令牌登录）。
+
+
+
+==== **2.为集群创建 kubeconfig 文件**
+
+遵循程序link:https://docs.netapp.com/us-en/astra-control-service/get-started/create-kubeconfig.html#create-a-kubeconfig-file-for-red-hat-openshift-service-on-aws-rosa-clusters["此处"]为 ROSA 集群创建 kubeconfig 文件。当您将集群添加到 ACS 时，稍后将使用此 kubeconfig 文件。
+
+
+
+==== **3.在集群上安装Trident **
+
+在 ROSA 集群上安装Trident （最新版本）。为此，您可以按照以下任一程序进行操作link:https://docs.netapp.com/us-en/trident/trident-get-started/kubernetes-deploy.html["此处"]。要从集群控制台使用 helm 安装Trident ，首先创建一个名为Trident的项目。
+
+image:rhhc-trident-project-create.png["该图显示输入/输出对话框或表示书面内容"]
+
+然后从开发人员视图创建一个 Helm 图表存储库。对于 URL 字段使用 `'https://netapp.github.io/trident-helm-chart'`。然后为Trident操作员创建一个掌舵版本。
+
+image:rhhc-helm-repo-create.png["该图显示输入/输出对话框或表示书面内容"] image:rhhc-helm-release-create.png["该图显示输入/输出对话框或表示书面内容"]
+
+通过返回控制台上的管理员视图并选择 trident 项目中的 pod，验证所有 trident pod 是否正在运行。
+
+image:rhhc-trident-installed.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+==== **4.使用Trident CSI 配置器创建后端、存储类和快照类配置**
+
+使用下面显示的 yaml 文件创建 trident 后端对象、存储类对象和 Volumesnapshot 对象。确保在后端的配置 yaml 中提供您创建的Amazon FSx ONTAP文件系统、管理 LIF 和文件系统的 vserver 名称的凭证。要获取这些详细信息，请转到Amazon FSx的 AWS 控制台并选择文件系统，导航到“管理”选项卡。另外，单击更新以设置 `fsxadmin`用户。
+
+
+NOTE: 您可以使用命令行创建对象，也可以使用混合云控制台中的 yaml 文件创建对象。
+
+image:rhhc-fsx-details.png["该图显示输入/输出对话框或表示书面内容"]
+
+** Trident后端配置**
+
+[source, yaml]
+----
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backend-tbc-ontap-nas-secret
+type: Opaque
+stringData:
+  username: fsxadmin
+  password: <password>
+---
+apiVersion: trident.netapp.io/v1
+kind: TridentBackendConfig
+metadata:
+  name: ontap-nas
+spec:
+  version: 1
+  storageDriverName: ontap-nas
+  managementLIF: <management lif>
+  backendName: ontap-nas
+  svm: fsx
+  credentials:
+    name: backend-tbc-ontap-nas-secret
+----
+**存储类别**
+
+[source, yaml]
+----
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ontap-nas
+provisioner: csi.trident.netapp.io
+parameters:
+  backendType: "ontap-nas"
+  media: "ssd"
+  provisioningType: "thin"
+  snapshots: "true"
+allowVolumeExpansion: true
+----
+**快照类**
+
+[source, yaml]
+----
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: trident-snapshotclass
+driver: csi.trident.netapp.io
+deletionPolicy: Delete
+----
+通过发出下面显示的命令来验证后端、存储类和 trident-snapshotclass 对象是否已创建。
+
+image:rhhc-tbc-sc-verify.png["该图显示输入/输出对话框或表示书面内容"]
+
+这时候你需要做的一个重要的修改就是将 ontap-nas 设置为默认存储类，而不是 gp3，这样你后面部署的 postgresql app 就可以使用默认存储类。在集群的 Openshift 控制台中，在“存储”下选择“StorageClasses”。将当前默认类的注释编辑为 false，并为 ontap-nas 存储类添加注释 storageclass.kubernetes.io/is-default-class 设置为 true。
+
+image:rhhc-change-default-sc.png["该图显示输入/输出对话框或表示书面内容"]
+
+image:rhhc-default-sc.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+==== **5.在集群上部署 postgresql 应用程序**
+
+您可以从命令行部署应用程序，如下所示：
+
+`helm install postgresql bitnami/postgresql -n postgresql --create-namespace`
+
+image:rhhc-postgres-install.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+NOTE: 如果您没有看到应用程序 pod 正在运行，那么可能是由于安全上下文约束导致的错误。image:rhhc-scc-error.png["该图显示输入/输出对话框或表示书面内容"]通过编辑 `runAsUser`和 `fsGroup`中的字段 `statefuleset.apps/postgresql`具有输出中的 uid 的对象 `oc get project`命令如下所示。image:rhhc-scc-fix.png["该图显示输入/输出对话框或表示书面内容"]
+
+postgresql 应用程序应该正在运行并使用由Amazon FSx ONTAP存储支持的持久卷。
+
+image:rhhc-postgres-running.png["该图显示输入/输出对话框或表示书面内容"]
+
+image:rhhc-postgres-pvc.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+==== **6.创建数据库并添加记录**
+
+image:rhhc-postgres-db-create.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+==== **7.将集群添加到 ACS**
+
+登录 ACS。选择集群并单击添加。选择其他并上传或粘贴 kubeconfig 文件。
+
+image:rhhc-acs-add-001.png["该图显示输入/输出对话框或表示书面内容"]
+
+单击“*下一步*”并选择 ontap-nas 作为 ACS 的默认存储类。单击“*下一步*”，查看详细信息并“*添加*”集群。
+
+image:rhhc-acs-add-002.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+==== **8.在 ACS** 中定义应用程序
+
+在 ACS 中定义 postgresql 应用程序。从登陆页面，选择*应用程序*、*定义*并填写适当的详细信息。单击“下一步”几次，查看详细信息，然后单击“定义”。应用程序被添加到 ACS。
+
+image:rhhc-acs-add-002.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+==== **9.使用 ACS** 创建快照
+
+在 ACS 中创建快照的方法有很多种。您可以从显示应用程序详细信息的页面中选择应用程序并创建快照。您可以点击创建快照来创建按需快照或配置保护策略。
+
+只需单击“*创建快照*”，提供名称，查看详细信息，然后单击“*快照*”即可创建按需快照。操作完成后，快照状态变为“健康”。
+
+image:rhhc-snapshot-create.png["该图显示输入/输出对话框或表示书面内容"]
+
+image:rhhc-snapshot-on-demand.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+==== **10.删除 postgresql 应用程序中的数据库**
+
+重新登录 postgresql，列出可用的数据库，删除之前创建的数据库，然后再次列出以确保该数据库已被删除。
+
+image:rhhc-postgres-db-delete.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+==== **11.使用 ACS** 从快照还原
+
+要从快照恢复应用程序，请转到 ACS UI 登录页面，选择应用程序并选择恢复。您需要选择一个快照或备份来从中恢复。 （通常，您会根据已配置的策略创建多个）。在接下来的几个屏幕中做出适当的选择，然后单击“*恢复*”。从快照恢复后，应用程序状态从“正在恢复”变为“可用”。
+
+image:rhhc-app-restore-001.png["该图显示输入/输出对话框或表示书面内容"]
+
+image:rhhc-app-restore-002.png["该图显示输入/输出对话框或表示书面内容"]
+
+image:rhhc-app-restore-003.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+==== **12.验证您的应用已从快照恢复**
+
+登录到 postgresql 客户端，您现在应该看到您之前拥有的表和表中的记录。就是这样。只需单击一个按钮，您的应用程序就会恢复到以前的状态。这就是我们利用Astra Control 为客户提供的便利。
+
+image:rhhc-app-restore-verify.png["该图显示输入/输出对话框或表示书面内容"]

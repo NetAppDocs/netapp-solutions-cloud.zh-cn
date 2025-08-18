@@ -1,0 +1,31 @@
+---
+indexpage:
+  title: 观看有关NetApp混合多云解决方案的视频和演示
+  lead: 探索 NetApp 的混合多云解决方案视频库，其中包括 AWS、Azure 和 Red Hat OpenShift。每个集合都突出显示关键用例、集成场景和工作流程。
+  tiles:
+  - title: AWS 混合多云视频
+    links:
+    - title: 来宾连接存储
+      url: hmc-aws-videos.html#guest-connected-storage
+    - title: TCO 和补充数据存储
+      url: hmc-aws-videos.html#tco-and-supplemental-datastores
+    - title: 迁移工作流程 (HCX)
+      url: hmc-aws-videos.html#migration-workflows-hcx
+  - title: Azure 混合多云视频
+    links:
+    - title: 补充数据存储
+      url: hmc-azure-videos.html#supplemental-datastores
+    - title: 灾难恢复
+      url: hmc-azure-videos.html#disaster-recovery
+    - title: 迁移工作流程 (HCX)
+      url: hmc-azure-videos.html#migration-workflows-hcx
+  - title: OpenShift 混合多云视频
+    links:
+    - title: 快照和恢复
+      url: hmc-openshift-videos.html#snapshots-and-restore
+    - title: 存储集成
+      url: hmc-openshift-videos.html#storage-integration
+    - title: 故障转移和故障恢复
+      url: hmc-openshift-videos.html#failover-and-fail-back
+    - title: 解决方案自动化
+      url: hmc-openshift-videos.html#solution-automation

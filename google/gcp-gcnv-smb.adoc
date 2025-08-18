@@ -1,0 +1,338 @@
+---
+sidebar: sidebar 
+permalink: google/gcp-gcnv-smb.html 
+keywords: smb, access control, name aliases, authentication dialects, NTFS, mmc, 
+summary: SMB 是 Microsoft 开发的一种网络文件共享协议，它通过以太网网络为多个 SMB 客户端提供集中式用户/组身份验证、权限、锁定和文件共享。 
+---
+= SMB
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/hh831795(v=ws.11)["SMB"^]是 Microsoft 开发的一种网络文件共享协议，可通过以太网网络为多个 SMB 客户端提供集中式用户/组身份验证、权限、锁定和文件共享。文件和文件夹通过共享的方式呈现给客户端，可以配置各种共享属性，并通过共享级权限提供访问控制。  SMB 可以呈现给任何支持该协议的客户端，包括 Windows、Apple 和 Linux 客户端。
+
+Google Cloud NetApp Volumes为该协议的 SMB 2.1 和 3.x 版本提供支持。
+
+
+
+== 访问控制/SMB 共享
+
+* 当 Windows 用户名请求访问Google Cloud NetApp Volumes卷时， Google Cloud NetApp Volumes会使用Google Cloud NetApp Volumes管理员配置的方法查找 UNIX 用户名。
+* 如果配置了外部 UNIX 身份提供程序 (LDAP) 并且 Windows/UNIX 用户名相同，则 Windows 用户名将 1:1 映射到 UNIX 用户名，而无需任何其他配置。启用 LDAP 后，Active Directory 用于托管用户和组对象的 UNIX 属性。
+* 如果 Windows 名称和 UNIX 名称不完全匹配，则必须配置 LDAP 以允许Google Cloud NetApp Volumes使用 LDAP 名称映射配置（请参阅link:gcp-gcnv-nas-dependencies.html#using-ldap-for-asymmetric-name-mapping["使用 LDAP 进行非对称名称映射"]）。
+* 如果未使用 LDAP，则 Windows SMB 用户将映射到名为 `pcuser`在Google Cloud NetApp Volumes中。这意味着用户在 Windows 中编写的文件映射到 `pcuser`将 UNIX 所有权显示为 `pcuser`在多协议 NAS 环境中。 `pcuser`这实际上是 `nobody`Linux 环境中的用户（UID 65534）。
+
+
+在仅使用 SMB 的部署中， `pcuser`映射仍然会发生，但这并不重要，因为 Windows 用户和组所有权已正确显示，并且不允许 NFS 访问仅 SMB 卷。此外，仅 SMB 卷在创建后不支持转换为 NFS 或双协议卷。
+
+Windows 利用 Kerberos 与 Active Directory 域控制器进行用户名身份验证，这需要与 AD DC 交换用户名/密码，而 AD DC 位于Google Cloud NetApp Volumes实例外部。当 `\\SERVERNAME`SMB 客户端使用 UNC 路径，并且以下情况属实：
+
+* SERVERNAME 存在 DNS A/AAAA 条目
+* SERVERNAME 存在用于 SMB/CIFS 访问的有效 SPN
+
+
+创建Google Cloud NetApp Volumes SMB 卷时，将按照本节中的定义创建机器帐户名称link:gcp-gcnv-ad-connections.html#how-cloud-volumes-service-shows-up-in-active-directory["Google Cloud NetApp Volumes如何在 Active Directory 中显示。"]该机器帐户名称也成为 SMB 共享访问路径，因为Google Cloud NetApp Volumes利用动态 DNS (DDNS) 在 DNS 中创建必要的 A/AAAA 和 PTR 条目，并在机器帐户主体上创建必要的 SPN 条目。
+
+
+NOTE: 要创建 PTR 条目，DNS 服务器上必须存在Google Cloud NetApp Volumes实例 IP 地址的反向查找区域。
+
+例如，此Google Cloud NetApp Volumes卷使用以下 UNC 共享路径： `\\cvs-east- 433d.cvsdemo.local` 。
+
+在 Active Directory 中，这些是Google Cloud NetApp Volumes生成的 SPN 条目：
+
+image:ncvs-gc-006.png["该图显示输入/输出对话框或表示书面内容"]
+
+这是 DNS 正向/反向查找结果：
+
+....
+PS C:\> nslookup NetApp Volumes-EAST-433D
+Server:  activedirectory. region. lab. internal
+Address:  10. xx.0. xx
+Name:    NetApp Volumes-EAST-433D.cvsdemo.local
+Address:  10. xxx.0. x
+PS C:\> nslookup 10. xxx.0. x
+Server:  activedirectory.region.lab.internal
+Address:  10.xx.0.xx
+Name:    NetApp Volumes-EAST-433D.CVSDEMO.LOCAL
+Address:  10. xxx.0. x
+....
+或者，可以通过在Google Cloud NetApp Volumes中启用/要求 SMB 共享的 SMB 加密来应用更多访问控制。如果其中一个端点不支持 SMB 加密，则不允许访问。
+
+
+
+=== 使用 SMB 名称别名
+
+在某些情况下，让最终用户知道Google Cloud NetApp Volumes使用的机器帐户名称可能会带来安全隐患。在其他情况下，您可能只是想为最终用户提供更简单的访问路径。在这些情况下，您可以创建 SMB 别名。
+
+如果您想为 SMB 共享路径创建别名，您可以利用 DNS 中所谓的 CNAME 记录。例如，如果你想使用名称 `\\CIFS`访问共享而不是 `\\cvs-east- 433d.cvsdemo.local`，但您仍然想使用 Kerberos 身份验证，DNS 中指向现有 A/AAAA 记录的 CNAME 和添加到现有机器帐户的附加 SPN 可提供 Kerberos 访问。
+
+image:ncvs-gc-007.png["该图显示输入/输出对话框或表示书面内容"]
+
+这是添加 CNAME 之后的 DNS 正向查找结果：
+
+....
+PS C:\> nslookup cifs
+Server:  ok-activedirectory.us-east4-a.c.cv-solution-architect-lab.internal
+Address:  10. xx.0. xx
+Name:    NetApp Volumes-EAST-433D.cvsdemo.local
+Address:  10. xxx.0. x
+Aliases:  cifs.cvsdemo.local
+....
+这是添加新 SPN 后生成的 SPN 查询：
+
+image:ncvs-gc-008.png["该图显示输入/输出对话框或表示书面内容"]
+
+在数据包捕获中，我们可以看到使用与 CNAME 绑定的 SPN 的会话设置请求。
+
+image:ncvs-gc-009.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+=== SMB 身份验证方言
+
+Google Cloud NetApp Volumes支持以下 https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-smb2/8df1a501-ce4e-4287-8848-5f1d4733e280["方言"^]对于 SMB 身份验证：
+
+* LM
+* ntlm
+* NTLMv2
+* Kerberos
+
+
+SMB 共享访问的 Kerberos 身份验证是您可以使用的最安全的身份验证级别。启用AES和SMB加密后，安全级别进一步提高。
+
+Google Cloud NetApp Volumes还支持 LM 和 NTLM 身份验证的向后兼容性。当 Kerberos 配置错误时（例如创建 SMB 别名时），共享访问将回退到较弱的身份验证方法（例如 NTLMv2）。由于这些机制不太安全，因此在某些 Active Directory 环境中它们被禁用。如果禁用较弱的身份验证方法并且未正确配置 Kerberos，则共享访问将失败，因为没有有效的身份验证方法可以回退。
+
+有关在 Active Directory 中配置/查看支持的身份验证级别的信息，请参阅 https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/network-security-lan-manager-authentication-level["网络安全: LAN Manager 身份验证级别"^]。
+
+
+
+== 权限模型
+
+
+
+=== NTFS/文件权限
+
+NTFS 权限是遵循 NTFS 逻辑对文件系统中的文件和文件夹应用的权限。您可以在 `Basic`或者 `Advanced`并可设置为 `Allow`或者 `Deny`用于访问控制。
+
+基本权限包括以下内容：
+
+* 完全控制
+* 修改
+* 读取并执行
+* 读取
+* 写入
+
+
+当您为用户或组设置权限（称为 ACE）时，它位于 ACL 中。  NTFS 权限使用与 UNIX 模式位相同的读/写/执行基础，但它们还可以扩展到更细粒度和扩展的访问控制（也称为特殊权限），例如取得所有权、创建文件夹/附加数据、写入属性等。
+
+标准 UNIX 模式位不提供与 NTFS 权限相同级别的粒度（例如，能够在 ACL 中为单个用户和组对象设置权限或设置扩展属性）。但是，NFSv4.1 ACL 确实提供了与 NTFS ACL 相同的功能。
+
+NTFS 权限比共享权限更具体，可以与共享权限结合使用。对于 NTFS 权限结构，适用最严格的限制。因此，在定义访问权限时，对用户或组的明确拒绝甚至会覆盖完全控制。
+
+NTFS 权限由 Windows SMB 客户端控制。
+
+
+
+=== 共享权限
+
+共享权限比 NTFS 权限（仅读取/更改/完全控制）更通用，并控制进入 SMB 共享的初始条目 - 类似于 NFS 导出策略规则的工作方式。
+
+尽管 NFS 导出策略规则通过基于主机的信息（例如 IP 地址或主机名）控制访问，但 SMB 共享权限可以通过使用共享 ACL 中的用户和组 ACE 来控制访问。您可以从 Windows 客户端或Google Cloud NetApp Volumes管理 UI 设置共享 ACL。
+
+默认情况下，共享 ACL 和初始卷 ACL 包括具有完全控制权的所有人。应该更改文件 ACL，但共享权限被共享中对象的文件权限所取代。
+
+例如，如果用户仅被允许对Google Cloud NetApp Volumes卷文件 ACL 进行读取访问，则即使共享 ACL 设置为“具有完全控制权的所有人”，他们也将被拒绝创建文件和文件夹，如下图所示。
+
+image:ncvs-gc-010.png["该图显示输入/输出对话框或表示书面内容"]
+
+image:ncvs-gc-011.png["该图显示输入/输出对话框或表示书面内容"]
+
+为了获得最佳安全效果，请执行以下操作：
+
+* 从共享和文件 ACL 中删除所有人，并为用户或组设置共享访问权限。
+* 使用组而不是单个用户进行访问控制，以便于管理，并可以通过组管理更快地删除/添加用户以共享 ACL。
+* 允许对共享权限的 ACE 进行限制较少、更通用的共享访问，并锁定具有文件权限的用户和组的访问，以实现更精细的访问控制。
+* 避免普遍使用显式拒绝 ACL，因为它们会覆盖允许 ACL。对于需要快速限制访问文件系统的用户或组，限制使用显式拒绝 ACL。
+* 确保你注意到 https://www.varonis.com/blog/permission-propagation/["ACL 继承"^]修改权限时的设置；在具有大量文件数的目录或卷的顶层设置继承标志意味着该目录或卷下的每个文件都添加了继承的权限，这可能会产生不必要的行为，例如意外的访问/拒绝以及在调整每个文件时长时间修改权限。
+
+
+
+
+== SMB 共享安全功能
+
+当您首次在Google Cloud NetApp Volumes中创建具有 SMB 访问权限的卷时，系统会向您提供一系列用于保护该卷的选择。
+
+其中一些选择取决于Google Cloud NetApp Volumes级别（性能或软件），选择包括：
+
+* *使快照目录可见（适用于NetApp Volumes-Performance 和NetApp Volumes-SW）。*此选项控制 SMB 客户端是否可以访问 SMB 共享中的快照目录(`\\server\share\~snapshot`和/或“先前版本”选项卡）。默认设置为“未选中”，这意味着卷默认隐藏并禁止访问 `~snapshot`目录，并且卷的“先前版本”选项卡中不会显示任何 Snapshot 副本。
+
+
+image:ncvs-gc-012.png["该图显示输入/输出对话框或表示书面内容"]
+
+出于安全原因、性能原因（隐藏这些文件夹以防 AV 扫描）或偏好，可能需要对最终用户隐藏 Snapshot 副本。 Google Cloud NetApp Volumes快照是只读的，因此即使这些快照可见，最终用户也无法删除或修改快照目录中的文件。拍摄 Snapshot 副本时的文件或文件夹的文件权限适用。如果文件或文件夹的权限在 Snapshot 副本之间发生变化，则这些更改也会应用于 Snapshot 目录中的文件或文件夹。用户和组可以根据权限访问这些文件或文件夹。虽然无法删除或修改快照目录中的文件，但可以将文件或文件夹复制出快照目录。
+
+* *启用 SMB 加密（适用于NetApp Volumes-Performance 和NetApp Volumes-SW）。*默认情况下，SMB 加密在 SMB 共享上是禁用的（未选中）。选中该框可启用 SMB 加密，这意味着 SMB 客户端和服务器之间的流量在传输过程中进行加密，并使用协商的最高支持加密级别。 Google Cloud NetApp Volumes支持对 SMB 进行高达 AES-256 的加密。启用 SMB 加密确实会带来性能损失，您的 SMB 客户端可能会或可能不会注意到这一点 - 大约在 10-20% 的范围内。  NetApp强烈建议进行测试，以了解性能损失是否可以接受。
+* *隐藏 SMB 共享（适用于NetApp Volumes-Performance 和NetApp Volumes-SW）。*设置此选项会隐藏正常浏览中的 SMB 共享路径。这意味着不知道共享路径的客户端在访问默认 UNC 路径（例如 `\\NetApp Volumes-SMB`）。选中该复选框后，只有明确知道 SMB 共享路径或具有由组策略对象定义的共享路径的客户端才能访问它（通过混淆实现安全性）。
+* *启用基于访问的枚举 (ABE)（仅限NetApp Volumes-SW）。*这类似于隐藏 SMB 共享，不同之处在于共享或文件仅对没有权限访问对象的用户或组隐藏。例如，如果 Windows 用户 `joe`不允许至少通过权限读取访问权限，那么 Windows 用户 `joe`根本看不到 SMB 共享或文件。默认情况下，此功能是禁用的，您可以通过选中复选框来启用它。有关 ABE 的更多信息，请参阅NetApp知识库文章 https://kb.netapp.com/Advice_and_Troubleshooting/Data_Storage_Software/ONTAP_OS/How_does_Access_Based_Enumeration_(ABE)_work["基于访问的枚举（ABE）如何工作？"^]
+* *启用持续可用 (CA) 共享支持（仅限NetApp Volumes-Performance）。* https://kb.netapp.com/Advice_and_Troubleshooting/Data_Storage_Software/ONTAP_OS/What_are_SMB_Continuously_Available_(CA)_Shares["持续可用的 SMB 共享"^]通过在Google Cloud NetApp Volumes后端系统中的节点之间复制锁定状态，提供一种在故障转移事件期间最大限度地减少应用程序中断的方法。这不是一个安全功能，但它确实提供了更好的整体弹性。目前，只有 SQL Server 和 FSLogix 应用程序支持此功能。
+
+
+
+
+== 默认隐藏共享
+
+在Google Cloud NetApp Volumes中创建 SMB 服务器时， https://library.netapp.com/ecmdocs/ECMP1366834/html/GUID-5B56B12D-219C-4E23-B3F8-1CB1C4F619CE.html["隐藏的管理共享"^] （使用 $ 命名约定）除了数据卷 SMB 共享之外创建的。这些包括 C$（命名空间访问）和 IPC$（共享命名管道以用于程序之间的通信，例如用于 Microsoft 管理控制台 (MMC) 访问的远程过程调用 (RPC)）。
+
+IPC$ 共享不包含共享 ACL，并且无法修改 - 它严格用于 RPC 调用和 https://docs.microsoft.com/en-us/troubleshoot/windows-server/networking/inter-process-communication-share-null-session["Windows 默认不允许匿名访问这些共享"^]。
+
+C$ 共享默认允许 BUILTIN/Administrators 访问，但Google Cloud NetApp Volumes自动化会删除共享 ACL 并且不允许任何人访问，因为访问 C$ 共享可以查看Google Cloud NetApp Volumes文件系统中所有已安装的卷。因此，尝试导航至 `\\SERVER\C$`失败。
+
+
+
+== 具有本地/内置管理员/备份权限的帐户
+
+Google Cloud NetApp Volumes SMB 服务器保持与常规 Windows SMB 服务器类似的功能，即存在将访问权限应用于选定域用户和组的本地组（例如 BUILTIN\Administrators）。
+
+当您指定要添加到备份用户中的用户时，该用户将被添加到使用该 Active Directory 连接的Google Cloud NetApp Volumes实例中的 BUILTIN\Backup Operators 组中，然后该实例将获取 https://docs.microsoft.com/en-us/windows-hardware/drivers/ifs/privileges["SeBackupPrivilege 和 SeRestorePrivilege"^]。
+
+当您将用户添加到“安全权限用户”时，该用户将被赋予 SeSecurityPrivilege，这在某些应用程序用例中很有用，例如 https://docs.netapp.com/us-en/ontap/smb-hyper-v-sql/add-sesecurityprivilege-user-account-task.html["SMB 共享上的 SQL Server"^]。
+
+image:ncvs-gc-013.png["该图显示输入/输出对话框或表示书面内容"]
+
+您可以通过 MMC 以适当的权限查看Google Cloud NetApp Volumes本地组成员资格。下图显示了使用Google Cloud NetApp Volumes控制台添加的用户。
+
+image:ncvs-gc-014.png["该图显示输入/输出对话框或表示书面内容"]
+
+下表显示了默认的 BUILTIN 组的列表以及默认添加的用户/组。
+
+|===
+| 本地/内置组 | 默认成员 
+
+
+| 内置管理员* | 域\域管理员 
+
+
+| 内置\备份操作员* | 无 
+
+
+| 内置\来宾 | 域\域来宾 
+
+
+| 内置\高级用户 | 无 
+
+
+| BUILTIN\域用户 | 域\域用户 
+|===
+* Google Cloud NetApp Volumes Active Directory 连接配置中控制的组成员资格。
+
+您可以在 MMC 窗口中查看本地用户和组（以及组成员），但不能从此控制台添加或删除对象或更改组成员身份。默认情况下，只有域管理员组和管理员会添加到Google Cloud NetApp Volumes中的 BUILTIN\Administrators 组。目前，您无法修改此设置。
+
+image:ncvs-gc-015.png["该图显示输入/输出对话框或表示书面内容"]
+
+image:ncvs-gc-016.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+== MMC/计算机管理访问
+
+Google Cloud NetApp Volumes中的 SMB 访问提供与计算机管理 MMC 的连接，使您能够查看共享、管理共享 ACL 以及查看/管理 SMB 会话和打开文件。
+
+要使用 MMC 查看Google Cloud NetApp Volumes中的 SMB 共享和会话，当前登录的用户必须是域管理员。其他用户可以从 MMC 访问以查看或管理 SMB 服务器，并在尝试查看Google Cloud NetApp Volumes SMB 实例上的共享或会话时收到“您没有权限”对话框。
+
+要连接到 SMB 服务器，请打开“计算机管理”，右键单击“计算机管理”，然后选择“连接到另一台计算机”。这将打开“选择计算机”对话框，您可以在其中输入 SMB 服务器名称（可在Google Cloud NetApp Volumes卷信息中找到）。
+
+当您查看具有适当权限的 SMB 共享时，您会看到Google Cloud NetApp Volumes实例中共享 Active Directory 连接的所有可用共享。要控制此行为，请在Google Cloud NetApp Volumes卷实例上设置隐藏 SMB 共享选项。
+
+请记住，每个区域只允许一个 Active Directory 连接。
+
+image:ncvs-gc-017.png["该图显示输入/输出对话框或表示书面内容"]
+
+image:ncvs-gc-018.png["该图显示输入/输出对话框或表示书面内容"]
+
+下表显示了 MMC 支持/不支持的功能列表。
+
+|===
+| 支持的功能 | 不支持的功能 
+
+
+ a| 
+* 查看分享
+* 查看活动的 SMB 会话
+* 查看打开的文件
+* 查看本地用户和组
+* 查看本地群组成员资格
+* 枚举系统中的会话、文件和树连接列表
+* 关闭系统中打开的文件
+* 关闭开放会议
+* 创建/管理共享
+
+ a| 
+* 创建新的本地用户/组
+* 管理/查看现有的本地用户/组
+* 查看事件或性能日志
+* 管理存储
+* 管理服务和应用程序
+
+
+|===
+
+
+== SMB 服务器安全信息
+
+Google Cloud NetApp Volumes中的 SMB 服务器使用一系列选项来定义 SMB 连接的安全策略，包括 Kerberos 时钟偏差、票证年龄、加密等。
+
+下表包含这些选项的列表、它们的作用、默认配置以及是否可以使用Google Cloud NetApp Volumes进行修改。某些选项不适用于Google Cloud NetApp Volumes。
+
+|===
+| 安全选项 | 它的作用 | 默认值 | 可以改嗎？ 
+
+
+| 最大 Kerberos 时钟偏差（分钟） | Google Cloud NetApp Volumes与域控制器之间的最大时间偏差。如果时间偏差超过 5 分钟，Kerberos 身份验证将失败。这被设置为 Active Directory 默认值。 | 5 | 否 
+
+
+| Kerberos 票证有效期（小时） | Kerberos 票证在需要续订之前保持有效的最长时间。如果 10 小时之前没有续订，则必须获取新票。  Google Cloud NetApp Volumes会自动执行这些续订。  10 小时是 Active Directory 的默认值。 | 10 | 否 
+
+
+| 最大 Kerberos 票证更新时间（天） | 在需要新的授权请求之前，Kerberos 票证可以续订的最长天数。 Google Cloud NetApp Volumes会自动更新 SMB 连接的票证。七天是 Active Directory 的默认值。 | 7 | 否 
+
+
+| Kerberos KDC 连接超时（秒） | KDC 连接超时前的秒数。 | 3 | 否 
+
+
+| 要求对传入的 SMB 流量进行签名 | 设置为要求对 SMB 流量进行签名。如果设置为 true，则不支持签名的客户端将无法连接。 | False |  
+
+
+| 要求本地用户帐户的密码复杂性 | 用于本地 SMB 用户的密码。  Google Cloud NetApp Volumes不支持本地用户创建，因此此选项不适用于Google Cloud NetApp Volumes。 | True | 否 
+
+
+| 使用 start_tls 进行 Active Directory LDAP 连接 | 用于启用 Active Directory LDAP 的启动 TLS 连接。  Google Cloud NetApp Volumes目前不支持启用此功能。 | False | 否 
+
+
+| 是否启用 Kerberos 的 AES-128 和 AES-256 加密 | 这控制是否对 Active Directory 连接使用 AES 加密，并在创建/修改 Active Directory 连接时通过“为 Active Directory 身份验证启用 AES 加密”选项进行控制。 | False | 是 
+
+
+| LM 兼容级别 | Active Directory 连接支持的身份验证方言级别。请参阅“<<SMB 身份验证方言>> ”了解更多信息。 | ntlmv2-krb | 否 
+
+
+| 要求对传入的 CIFS 流量进行 SMB 加密 | 要求所有共享都采用 SMB 加密。  Google Cloud NetApp Volumes不使用此方法；而是根据每个卷设置加密（请参阅“<<SMB 共享安全功能>> ")。 | False | 否 
+
+
+| 客户端会话安全 | 为 LDAP 通信设置签名和/或密封。目前， Google Cloud NetApp Volumes中尚未设置该问题，但在未来的版本中可能需要解决。本节介绍了由于 Windows 补丁导致的 LDAP 身份验证问题的补救措施link:gcp-gcnv-nas-dependencies.html#ldap-channel-binding["LDAP 通道绑定。"]。 | 无 | 否 
+
+
+| SMB2 启用 DC 连接 | 使用 SMB2 进行 DC 连接。默认启用。 | 系统默认 | 否 
+
+
+| LDAP 推荐追踪 | 当使用多个 LDAP 服务器时，如果在第一个服务器中找不到条目，则引用追踪允许客户端引用列表中的其他 LDAP 服务器。  Google Cloud NetApp Volumes目前不支持此功能。 | False | 否 
+
+
+| 使用 LDAPS 实现安全的 Active Directory 连接 | 允许使用 LDAP over SSL。目前不受Google Cloud NetApp Volumes支持。 | False | 否 
+
+
+| 直流连接需要加密 | 需要加密才能成功连接 DC。在Google Cloud NetApp Volumes中默认禁用。 | False | 否 
+|===

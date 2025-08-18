@@ -1,0 +1,112 @@
+---
+sidebar: sidebar 
+permalink: openshift/os-op-data-protection.html 
+keywords: NetApp Solutions, redhat OpenShift, red hat OpenShift, redhat openshift container platform, ocp, openshift container platform, Advanced Cluster Management, ACM, Hub Cluster, containers, container workloads, VMware, customer managed storage, ONTAP 
+summary:  
+---
+= 使用Astra进行数据保护
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+此页面显示了使用Trident Protect (ACC) 在 VMware vSphere 上运行的基于 Red Hat OpenShift Container 的应用程序的数据保护选项。
+
+当用户使用 Red Hat OpenShift 对其应用程序进行现代化改造时，应该制定数据保护策略来保护它们免受意外删除或任何其他人为错误的影响。通常，出于监管或合规目的，还需要制定保护策略来保护其数据免受灾难。
+
+数据保护的要求多种多样，从恢复到某个时间点的副本到无需任何人工干预即可自动故障转移到不同的故障域。许多客户选择ONTAP作为其 Kubernetes 应用程序的首选存储平台，因为它具有丰富的功能，例如多租户、多协议、高性能和容量产品、多站点位置的复制和缓存、安全性和灵活性。
+
+ONTAP中的数据保护可以通过临时或策略控制来实现 - **快照** - **备份和恢复**
+
+Snapshot 副本和备份均可保护以下类型的数据： - **代表应用程序状态的应用程序元数据** - **与应用程序关联的任何持久数据卷** - **属于应用程序的任何资源工件**
+
+
+
+== 使用 ACC 拍摄快照
+
+可以使用带有 ACC 的快照捕获数据的时间点副本。保护策略定义要保留的 Snapshot 副本的数量。可用的最小计划选项是每小时。可以随时手动、按需进行 Snapshot 副本，并且间隔比计划的 Snapshot 副本更短。快照副本与应用程序存储在相同的配置卷上。
+
+
+
+=== 使用 ACC 配置快照
+
+image:rhhc-onprem-dp-snap.png["Trident Protect 快照视图"]
+
+
+
+== 使用 ACC 备份和恢复
+
+备份基于快照。 Trident Protect 可以使用 CSI 获取 Snapshot 副本，并使用时间点 Snapshot 副本执行备份。备份存储在外部对象存储中（任何与 S3 兼容的存储，包括位于不同位置的ONTAP S3）。可以为计划备份和要保留的备份版本数量配置保护策略。最小 RPO 为一小时。
+
+
+
+=== 使用 ACC 从备份还原应用程序
+
+ACC 从存储备份的 S3 存储桶恢复应用程序。
+
+image:rhhc-onprem-dp-br.png["Trident Protect 恢复选项"]
+
+
+
+== 应用程序特定的执行钩子
+
+此外，可以配置执行挂钩以与托管应用程序的数据保护操作一起运行。即使存储阵列级数据保护功能可用，通常仍需要采取额外步骤来确保备份和恢复以及应用程序的一致性。特定于应用程序的附加步骤可以是： - 在创建 Snapshot 副本之前或之后。  - 在创建备份之前或之后。  - 从 Snapshot 副本或备份恢复后。
+
+Astra Control 可以执行这些特定于应用程序的步骤，这些步骤被编码为称为执行挂钩的自定义脚本。
+
+https://github.com/NetApp/Verda["NetApp Verda GitHub 项目"]为流行的云原生应用程序提供执行挂钩，使保护应用程序变得简单、强大且易于协调。如果您拥有存储库中没有的应用程序的足够信息，请随意为该项目做出贡献。
+
+
+
+== Redis 应用程序预快照的示例执行挂钩。
+
+image:rhhc-onprem-dp-br-hook.png["Trident Protect 执行钩子"]
+
+
+
+== 使用 ACC 进行复制
+
+对于区域保护或低 RPO 和 RTO 解决方案，可以将应用程序复制到在不同站点（最好是在另一个区域）运行的另一个 Kubernetes 实例。 Trident Protect 利用ONTAP异步SnapMirror ，RPO 低至 5 分钟。复制是通过复制到ONTAP来完成的，然后故障转移会在目标集群中创建 Kubernetes 资源。
+
+
+NOTE: 请注意，复制不同于备份和恢复，备份和恢复是将备份转移到 S3，然后从 S3 执行恢复。请参阅链接： https://docs.netapp.com/us-en/astra-control-center/concepts/data-protection.html#replication-to-a-remote-cluster ://docs.netapp.com/us-en/astra-control-center/concepts/data-protection.html#replication-to-a-remote-cluster [此处] 以获取有关两种数据保护类型的差异的更多详细信息。
+
+参考link:https://docs.netapp.com/us-en/astra-control-center/use/replicate_snapmirror.html["此处"]有关SnapMirror设置说明。
+
+
+
+=== 带有 ACC 的SnapMirror
+
+image:rhhc-onprem-dp-rep.png["Trident Protect 复制"]
+
+
+NOTE: san-economy 和 nas-economy 存储驱动程序不支持复制功能。参考link:https://docs.netapp.com/us-en/astra-control-center/get-started/requirements.html#astra-trident-requirements["此处"]了解更多详细信息。
+
+
+
+=== 演示视频：
+
+link:https://www.netapp.tv/details/29504?mcid=35609780286441704190790628065560989458["Trident Protect 灾难恢复演示视频"]
+
+.使用Trident Protect 进行数据保护
+video::0cec0c90-4c6f-4018-9e4f-b09700eefb3a[panopto,width=360]
+
+
+== 利用MetroCluster实现业务连续性
+
+我们的大多数ONTAP硬件平台都具有高可用性功能，可以防止设备故障，避免执行灾难恢复。但为了防止火灾或任何其他灾难，并以零 RPO 和低 RTO 继续开展业务，通常会使用MetroCluster解决方案。
+
+当前拥有ONTAP系统的客户可以通过在距离限制内添加支持的ONTAP系统来扩展到MetroCluster ，以提供区域级灾难恢复。 Trident，CSI（容器存储接口）支持NetApp ONTAP，ONTAPMetroCluster配置以及其他选项，如Cloud Volumes ONTAP、 Azure NetApp Files、AWS FSx ONTAP等。Trident 为Trident提供了五种存储驱动程序选项，并且所有选项都支持MetroCluster配置。参考link:https://docs.netapp.com/us-en/trident/trident-use/backends.html["此处"]有关Trident支持的ONTAP存储驱动程序的更多详细信息。
+
+MetroCluster解决方案需要第 2 层网络扩展或从两个故障域访问相同网络地址的能力。一旦MetroCluster配置到位，该解决方案对于应用程序所有者来说是透明的，因为MetroCluster svm 中的所有卷都受到保护并获得SyncMirror （零 RPO）的好处。
+
+image:rhhc-onprem-dp-bc.png["采用MetroCluster 的业务连续性解决方案"]
+
+
+TIP: 对于Trident后端配置 (TBC)，使用MetroCluster配置时请勿指定 dataLIF 和 SVM。为 managementLIF 指定 SVM 管理 IP 并使用 vsadmin 角色凭据。
+
+有关Trident Protect 数据保护功能的详细信息link:https://docs.netapp.com/us-en/astra-control-center/concepts/data-protection.html["此处"]

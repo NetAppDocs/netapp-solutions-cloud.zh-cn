@@ -1,0 +1,354 @@
+---
+sidebar: sidebar 
+permalink: vmware/vmw-aws-vmc-migrate-hcx.html 
+keywords: aws, vmc, hybrid multicloud, migrate, vmware hcx, hcx 
+summary:  
+---
+= TR 4942：使用 VMware HCX 将工作负载迁移到 FSx ONTAP数据存储区
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+Amazon Web Services (AWS) 上的 VMware Cloud (VMC) 及其在Amazon FSx ONTAP上的补充 NFS 数据存储的一个常见用例是迁移 VMware 工作负载。  VMware HCX 是一种首选方案，它提供了各种迁移方法，将在任何 VMware 支持的数据存储上运行的本地虚拟机 (VM) 及其数据移动到 VMC 数据存储，其中包括 FSx ONTAP上的补充 NFS 数据存储。
+
+
+
+== 概述：使用 VMware HCX、FSx ONTAP补充数据存储区和 VMware Cloud 迁移虚拟机
+
+VMware HCX 主要是一个移动平台，旨在简化跨云的工作负载迁移、工作负载重新平衡和业务连续性。它是 AWS 上 VMware Cloud 的一部分，提供多种迁移工作负载的方法，并可用于灾难恢复 (DR) 操作。
+
+本文档提供了在本地和云数据中心端部署和配置 VMware HCX（包括其所有主要组件）的分步指导，从而实现各种 VM 迁移机制。
+
+有关详细信息，请参阅 https://techdocs.broadcom.com/us/en/vmware-cis/hcx/vmware-hcx/4-10/vmware-hcx-user-guide-4-10.html["VMware HCX 用户指南"^]和 https://techdocs.broadcom.com/us/en/vmware-cis/hcx/vmware-hcx/4-10/getting-started-with-vmware-hcx-4-10/install-checklist-b-hcx-with-a-vmc-sddc-instance.html["安装清单 B - 使用 VMware Cloud on AWS SDDC 目标环境的 HCX"^]。
+
+.概要步骤
+[%collapsible%open]
+====
+此列表提供了安装和配置 VMware HCX 的高级步骤：
+
+. 通过 VMware Cloud Services Console 为 VMC 软件定义数据中心 (SDDC) 激活 HCX。
+. 在本地 vCenter Server 中下载并部署 HCX Connector OVA 安装程序。
+. 使用许可证密钥激活 HCX。
+. 将本地 VMware HCX Connector 与 VMC HCX Cloud Manager 配对。
+. 配置网络配置文件、计算配置文件和服务网格。
+. （可选）执行网络扩展以扩展网络并避免重新 IP。
+. 验证设备状态并确保可以迁移。
+. 迁移虚拟机工作负载。
+
+
+====
+.前提条件
+[%collapsible%open]
+====
+开始之前，请确保满足以下先决条件。有关更多信息，请参阅 https://techdocs.broadcom.com/us/en/vmware-cis/hcx/vmware-hcx/4-10/vmware-hcx-user-guide-4-10/preparing-for-hcx-installations.html["准备安装"^] 。在满足先决条件（包括连接性）后，通过从 VMC 的 VMware HCX 控制台生成许可证密钥来配置和激活 HCX。  HCX 激活后，vCenter 插件即被部署，可以通过 vCenter 控制台进行访问管理。
+
+在继续 HCX 激活和部署之前，必须完成以下安装步骤：
+
+. 使用现有的 VMC SDDC 或按照此步骤创建新的 SDDClink:vmw-aws-vmc-setup.html["NetApp链接"^]或者这个 https://docs.vmware.com/en/VMware-Cloud-on-AWS/services/com.vmware.vmc-aws.getting-started/GUID-EF198D55-03E3-44D1-AC48-6E2ABA31FF02.html["VMware 链接"^]。
+. 从本地 vCenter 环境到 VMC SDDC 的网络路径必须支持使用 vMotion 迁移虚拟机。
+. 确保所需的 https://techdocs.broadcom.com/us/en/vmware-cis/hcx/vmware-hcx/4-10/vmware-hcx-user-guide-4-10/preparing-for-hcx-installations/network-port-and-protocol-requirements.html["防火墙规则和端口"^]允许在本地 vCenter Server 和 SDDC vCenter 之间进行 vMotion 流量。
+. FSx ONTAP NFS 卷应作为补充数据存储安装在 VMC SDDC 中。要将 NFS 数据存储附加到适当的集群，请按照本link:vmw-aws-vmc-nfs-ds-overview.html["NetApp链接"^]或者这个 https://docs.vmware.com/en/VMware-Cloud-on-AWS/services/com.vmware.vmc-aws-operations/GUID-D55294A3-7C40-4AD8-80AA-B33A25769CCA.html["VMware 链接"^]。
+
+
+====
+.高级架构
+[%collapsible%open]
+====
+为了测试目的，用于此验证的本地实验室环境通过站点到站点 VPN 连接到 AWS VPC，从而允许通过外部传输网关在本地连接到 AWS 和 VMware 云 SDDC。 HCX 迁移和网络扩展流量通过互联网在本地和 VMware 云目标 SDDC 之间流动。可以修改此架构以使用 Direct Connect 私有虚拟接口。
+
+下图描述了高级架构。
+
+image:fsx-hcx-001.png["该图显示输入/输出对话框或表示书面内容"]
+
+====
+
+
+== 解决方案部署
+
+按照一系列步骤完成此解决方案的部署：
+
+.步骤 1：使用附加组件选项通过 VMC SDDC 激活 HCX
+[%collapsible%open]
+====
+要执行安装，请完成以下步骤：
+
+. 登录到 VMC 控制台 https://vmc.vmware.com/home["vmc.vmware.com"^]并访问库存。
+. 要选择适当的 SDDC 并访问附加组件，请单击 SDDC 上的“查看详细信息”，然后选择“附加组件”选项卡。
+. 单击“激活 VMware HCX”。
++
+
+NOTE: 此步骤最多需要 25 分钟才能完成。
+
++
+image:fsx-hcx-002.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 部署完成后，通过确认 HCX Manager 及其相关插件在 vCenter 控制台中可用来验证部署。
+. 创建适当的管理网关防火墙以打开访问 HCX 云管理器所需的端口。HCX 云管理器现在已准备好进行 HCX 操作。
+
+
+====
+.步骤 2：在本地 vCenter Server 中部署安装程序 OVA
+[%collapsible%open]
+====
+为了使本地连接器能够与 VMC 中的 HCX 管理器通信，请确保在本地环境中打开了相应的防火墙端口。
+
+. 从 VMC 控制台导航到 HCX 仪表板，转到管理，然后选择系统更新选项卡。单击“请求下载链接”以获取 HCX 连接器 OVA 图像。
+. 下载 HCX 连接器后，在本地 vCenter Server 中部署 OVA。右键单击 vSphere 集群并选择部署 OVF 模板选项。
++
+image:fsx-hcx-005.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在部署 OVF 模板向导中输入所需信息，单击下一步，然后单击完成以部署 VMware HCX 连接器 OVA。
+. 手动启动虚拟设备。有关分步说明，请转至 https://docs.vmware.com/en/VMware-HCX/services/user-guide/GUID-BFD7E194-CFE5-4259-B74B-991B26A51758.html["VMware HCX 用户指南"^]。
+
+
+====
+.步骤 3：使用许可证密钥激活 HCX Connector
+[%collapsible%open]
+====
+在本地部署 VMware HCX Connector OVA 并启动设备后，请完成以下步骤以激活 HCX Connector。从 VMC 的 VMware HCX 控制台生成许可证密钥，并在 VMware HCX 连接器设置期间输入许可证。
+
+. 从 VMware Cloud Console 中，转到“清单”，选择 SDDC，然后单击“查看详细信息”。在“附加组件”选项卡的 VMware HCX 磁贴中，单击“打开 HCX”。
+. 在“激活密钥”选项卡中，单击“创建激活密钥”。选择系统类型为HCX连接器，然后单击确认以生成密钥。复制激活密钥。
++
+image:fsx-hcx-007.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+
+NOTE: 每个在本地部署的 HCX 连接器都需要单独的密钥。
+
+. 登录到本地 VMware HCX 连接器，网址为 `"https://hcxconnectorIP:9443"`使用管理员凭据。
++
+
+NOTE: 使用 OVA 部署期间定义的密码。
+
+. 在许可部分，输入从步骤 2 复制的激活密钥，然后单击激活。
++
+
+NOTE: 本地 HCX 连接器必须具有 Internet 访问权限才能成功完成激活。
+
+. 在数据中心位置下，提供在本地安装 VMware HCX 管理器所需的位置。单击“Continue”。
+. 在系统名称下，更新名称并单击继续。
+. 选择“是”，然后“继续”。
+. 在“连接您的 vCenter”下，提供 vCenter Server 的 IP 地址或完全限定域名 (FQDN) 和凭据，然后单击“继续”。
++
+
+NOTE: 使用 FQDN 以避免以后出现通信问题。
+
+. 在配置 SSO/PSC 下，提供平台服务控制器的 FQDN 或 IP 地址，然后单击继续。
++
+
+NOTE: 输入 vCenter Server 的 IP 地址或 FQDN。
+
+. 验证信息输入是否正确，然后单击“重新启动”。
+. 完成后，vCenter Server 显示为绿色。  vCenter Server 和 SSO 都必须具有正确的配置参数，这些参数应与上一页相同。
++
+
+NOTE: 此过程大约需要 10 到 20 分钟，以便将插件添加到 vCenter Server。
+
+
+
+image:fsx-hcx-008.png["该图显示输入/输出对话框或表示书面内容"]
+
+====
+.步骤 4：将本地 VMware HCX Connector 与 VMC HCX Cloud Manager 配对
+[%collapsible%open]
+====
+. 要在本地 vCenter Server 和 VMC SDDC 之间创建站点对，请登录到本地 vCenter Server 并访问 HCX vSphere Web Client 插件。
++
+image:fsx-hcx-009.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在基础设施下，单击添加站点配对。要对远程站点进行身份验证，请输入 VMC HCX Cloud Manager URL 或 IP 地址以及 CloudAdmin 角色的凭据。
++
+image:fsx-hcx-010.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+
+NOTE: 可以从 SDDC 设置页面检索 HCX 信息。
+
++
+image:fsx-hcx-011.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+image:fsx-hcx-012.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 要启动站点配对，请单击“连接”。
++
+
+NOTE: VMware HCX Connector 必须能够通过端口 443 与 HCX Cloud Manager IP 通信。
+
+. 创建配对后，新配置的站点配对可在 HCX 仪表板上获得。
+
+
+====
+.步骤 5：配置网络配置文件、计算配置文件和服务网格
+[%collapsible%open]
+====
+VMware HCX Interconnect (HCX-IX) 设备通过互联网提供安全隧道功能以及与目标站点的专用连接，从而实现复制和基于 vMotion 的功能。互连提供加密、流量工程和 SD-WAN。要创建 HCI-IX 互连设备，请完成以下步骤：
+
+. 在“基础设施”下，选择“互连”>“多站点服务网格”>“计算配置文件”>“创建计算配置文件”。
++
+
+NOTE: 计算配置文件包含部署互连虚拟设备所需的计算、存储和网络部署参数。他们还指定 VMware 数据中心的哪些部分可供 HCX 服务访问。
+
++
+有关详细说明，请参阅 https://techdocs.broadcom.com/us/en/vmware-cis/hcx/vmware-hcx/4-10/vmware-hcx-user-guide-4-10/configuring-and-managing-the-hcx-interconnect/configuring-the-hcx-service-mesh/create-a-compute-profile.html["创建计算配置文件"^]。
+
++
+image:fsx-hcx-013.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 创建计算配置文件后，通过选择多站点服务网格 > 网络配置文件 > 创建网络配置文件来创建网络配置文件。
+. 网络配置文件定义了 HCX 将用于其虚拟设备的一系列 IP 地址和网络。
++
+
+NOTE: 这将需要两个或更多 IP 地址。这些 IP 地址将从管理网络分配给虚拟设备。
+
++
+image:fsx-hcx-014.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+有关详细说明，请参阅 https://techdocs.broadcom.com/us/en/vmware-cis/hcx/vmware-hcx/4-10/vmware-hcx-user-guide-4-10/configuring-and-managing-the-hcx-interconnect/configuring-the-hcx-service-mesh/create-a-network-profile.html["创建网络配置文件"^]。
+
++
+
+NOTE: 如果您通过互联网连接 SD-WAN，则必须在“网络和安全”部分下保留公共 IP。
+
+. 要创建服务网格，请选择“互连”选项中的“服务网格”选项卡，然后选择本地和 VMC SDDC 站点。
++
+服务网格建立本地和远程计算和网络配置文件对。
+
++
+image:fsx-hcx-015.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+
+NOTE: 此过程的一部分涉及部署将在源站点和目标站点上自动配置的 HCX 设备，从而创建安全的传输结构。
+
+. 选择源和远程计算配置文件，然后单击继续。
++
+image:fsx-hcx-016.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 选择需要激活的服务并单击继续。
++
+image:fsx-hcx-017.png["该图显示输入/输出对话框或表示书面内容"]
+
++
+
+NOTE: 复制辅助 vMotion 迁移、SRM 集成和 OS 辅助迁移需要 HCX Enterprise 许可证。
+
+. 为服务网格创建一个名称，然后单击“完成”开始创建过程。部署大约需要 30 分钟才能完成。配置服务网格后，迁移工作负载虚拟机所需的虚拟基础架构和网络已创建。
++
+image:fsx-hcx-018.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+====
+.步骤 6：迁移工作负载
+[%collapsible%open]
+====
+HCX 在两个或多个不同的环境（例如本地和 VMC SDDC）之间提供双向迁移服务。可以使用各种迁移技术将应用程序工作负载迁移到 HCX 激活站点和从 HCX 激活站点迁移，例如 HCX 批量迁移、HCX vMotion、HCX 冷迁移、HCX 复制辅助 vMotion（HCX 企业版提供）和 HCX OS 辅助迁移（HCX 企业版提供）。
+
+要了解有关可用的 HCX 迁移技术的更多信息，请参阅 https://techdocs.broadcom.com/us/en/vmware-cis/hcx/vmware-hcx/4-10/vmware-hcx-user-guide-4-10/migrating-virtual-machines-with-vmware-hcx/vmware-hcx-migration-types.html["VMware HCX 迁移类型"^]
+
+HCX-IX 设备使用移动代理服务执行 vMotion、Cold 和复制辅助 vMotion (RAV) 迁移。
+
+
+NOTE: HCX-IX 设备将移动代理服务添加为 vCenter Server 中的主机对象。此对象上显示的处理器、内存、存储和网络资源并不代表托管 IX 设备的物理虚拟机管理程序上的实际消耗。
+
+image:fsx-hcx-019.png["该图显示输入/输出对话框或表示书面内容"]
+
+.VMware HCX vMotion
+[%collapsible%open]
+=====
+本节介绍 HCX vMotion 机制。此迁移技术使用 VMware vMotion 协议将虚拟机迁移到 VMC SDDC。 vMotion 迁移选项用于一次迁移单个 VM 的 VM 状态。此迁移方法期间不会中断服务。
+
+
+NOTE: 应该实施网络扩展（针对虚拟机所连接的端口组），以便迁移虚拟机而无需更改 IP 地址。
+
+. 从本地 vSphere 客户端，转到“清单”，右键单击要迁移的虚拟机，然后选择“HCX 操作”>“迁移到 HCX 目标站点”。
++
+image:fsx-hcx-020.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 在迁移虚拟机向导中，选择远程站点连接（目标 VMC SDDC）。
++
+image:fsx-hcx-021.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 添加组名，并在传输和放置下更新必填字段（集群、存储和目标网络），单击验证。
++
+image:fsx-hcx-022.png["该图显示输入/输出对话框或表示书面内容"]
+
+. 验证检查完成后，单击“Go”开始迁移。
++
+
+NOTE: vMotion 传输捕获 VM 活动内存、其执行状态、其 IP 地址和其 MAC 地址。有关 HCX vMotion 的要求和限制的更多信息，请参阅 https://techdocs.broadcom.com/us/en/vmware-cis/hcx/vmware-hcx/4-10/vmware-hcx-user-guide-4-10/migrating-virtual-machines-with-vmware-hcx/understanding-vmware-hcx-vmotion-and-cold-migration.html#GUID-517866F6-AF06-4EFC-8FAE-DA067418D584-en["了解 VMware HCX vMotion 和冷迁移"^]。
+
+. 您可以从 HCX > 迁移仪表板监控 vMotion 的进度和完成情况。
++
+image:fsx-hcx-023.png["该图显示输入/输出对话框或表示书面内容"]
+
+
+
+=====
+.VMware 复制辅助 vMotion
+[%collapsible%open]
+=====
+您可能从 VMware 文档中注意到，VMware HCX 复制辅助 vMotion (RAV) 结合了批量迁移和 vMotion 的优势。批量迁移使用 vSphere Replication 并行迁移多个虚拟机 - 虚拟机在切换期间重新启动。  HCX vMotion 迁移无需停机，但它是在复制组中一次一个虚拟机地连续执行的。 RAV 并行复制虚拟机并保持同步，直到切换窗口。在切换过程中，它一次迁移一个虚拟机，且虚拟机不会停机。
+
+以下屏幕截图显示了作为复制辅助 vMotion 的迁移配置文件。
+
+image:fsx-hcx-024.png["该图显示输入/输出对话框或表示书面内容"]
+
+与少量虚拟机的 vMotion 相比，复制的持续时间可能会更长。使用 RAV，仅同步增量并包含内存内容。以下是迁移状态的屏幕截图 - 它显示了迁移的开始时间相同，而每个虚拟机的结束时间不同。
+
+image:fsx-hcx-025.png["该图显示输入/输出对话框或表示书面内容"]
+
+=====
+有关 HCX 迁移选项以及如何使用 HCX 将工作负载从本地迁移到 VMware Cloud on AWS 的更多信息，请参阅 https://techdocs.broadcom.com/us/en/vmware-cis/hcx/vmware-hcx/4-10/vmware-hcx-user-guide-4-10/migrating-virtual-machines-with-vmware-hcx.html["VMware HCX 用户指南"^]。
+
+
+NOTE: VMware HCX vMotion 需要 100Mbps 或更高的吞吐量能力。
+
+
+NOTE: 目标 VMC FSx ONTAP数据存储必须具有足够的空间来容纳迁移。
+
+====
+
+
+== 结束语
+
+无论您的目标是全云还是混合云，以及驻留在本地任何类型/供应商存储上的数据， Amazon FSx ONTAP和 HCX 都提供了部署和迁移工作负载的绝佳选择，同时通过使数据要求无缝连接到应用程序层来降低 TCO。无论用例如何，选择 VMC 和 FSx ONTAP数据存储都可以快速实现云优势、跨本地和多个云的一致基础架构和操作、工作负载的双向可移植性以及企业级容量和性能。使用 VMware vSphere 复制、VMware vMotion 甚至 NFC 复制来连接存储和迁移虚拟机所采用的流程和程序相同。
+
+
+
+== 总结
+
+该文件的要点包括：
+
+* 您现在可以将Amazon FSx ONTAP用作 VMC SDDC 的数据存储。
+* 您可以轻松地将数据从任何本地数据中心迁移到使用 FSx ONTAP数据存储运行的 VMC
+* 您可以轻松扩大或缩小 FSx ONTAP数据存储以满足迁移活动期间的容量和性能要求。
+
+
+
+
+== 在哪里可以找到更多信息
+
+要了解有关本文档中描述的信息的更多信息，请参阅以下网站链接：
+
+* VMware Cloud 文档
++
+https://docs.vmware.com/en/VMware-Cloud-on-AWS/["https://docs.vmware.com/en/VMware-Cloud-on-AWS/"^]
+
+* Amazon FSx ONTAP文档
++
+https://docs.aws.amazon.com/fsx/latest/ONTAPGuide["https://docs.aws.amazon.com/fsx/latest/ONTAPGuide"^]
+
++
+VMware HCX 用户指南
+
+* https://techdocs.broadcom.com/us/en/vmware-cis/hcx/vmware-hcx/4-10/vmware-hcx-user-guide-4-10.html["https://techdocs.broadcom.com/us/en/vmware-cis/hcx/vmware-hcx/4-10/vmware-hcx-user-guide-4-10.html"^]
+
