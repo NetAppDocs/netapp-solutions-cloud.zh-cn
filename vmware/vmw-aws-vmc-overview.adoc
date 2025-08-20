@@ -57,7 +57,7 @@ AWS 支持以下配置的NetApp存储：
 * FSx ONTAP作为补充 NFS 数据存储
 
 
-查看详细信息link:aws-guest.html["VMC 的客户机连接存储选项"]。查看详细信息link:aws-native-nfs-datastore-option.html["VMC 的补充 NFS 数据存储选项"]。
+查看详细信息link:../vmware/vmw-aws-vmc-guest-storage.html["VMC 的客户机连接存储选项"]。查看详细信息link:../vmware/vmw-aws-vmc-nfs-ds-config.html["VMC 的补充 NFS 数据存储选项"]。
 
 
 

@@ -13,9 +13,9 @@ AWS 支持以下配置的NetApp存储：
 * FSx ONTAP作为补充 NFS 数据存储
 
 
-查看详细信息link:aws-guest.html["VMC 的客户机连接存储选项"]。查看详细信息link:aws-native-nfs-datastore-option.html["VMC 的补充 NFS 数据存储选项"]。
+查看详细信息link:../vmware/vmw-aws-vmc-guest-storage.html["VMC 的客户机连接存储选项"]。查看详细信息link:../vmware/vmw-aws-vmc-nfs-ds-config.html["VMC 的补充 NFS 数据存储选项"]。
 
-查看详细信息link:aws-guest.html["VMC 的客户机连接存储选项"]。查看详细信息link:aws-native-nfs-datastore-option.html["VMC 的补充 NFS 数据存储选项"]。
+查看详细信息link:../vmware/vmw-aws-vmc-guest-storage.html["VMC 的客户机连接存储选项"]。查看详细信息link:../vmware/vmw-aws-vmc-nfs-ds-config.html["VMC 的补充 NFS 数据存储选项"]。
 
 --
 .Azure/AVS
@@ -27,9 +27,9 @@ Azure 支持以下配置的NetApp存储：
 * Azure NetApp Files(ANF) 作为补充 NFS 数据存储
 
 
-查看详细信息link:azure-guest.html["AVS 的来宾连接存储选项"]。查看详细信息link:azure-native-nfs-datastore-option.html["AVS 的补充 NFS 数据存储选项"]。
+查看详细信息link:../vmware/vmw-azure-avs-guest-storage.html["AVS 的来宾连接存储选项"]。查看详细信息link:../vmware/vmw-azure-avs-nfs-ds-config.html["AVS 的补充 NFS 数据存储选项"]。
 
-查看详细信息link:azure-guest.html["AVS 的来宾连接存储选项"]。查看详细信息link:azure-native-nfs-datastore-option.html["AVS 的补充 NFS 数据存储选项"]。
+查看详细信息link:../vmware/vmw-azure-avs-guest-storage.html["AVS 的来宾连接存储选项"]。查看详细信息link:../vmware/vmw-azure-avs-nfs-ds-config.html["AVS 的补充 NFS 数据存储选项"]。
 
 --
 .良好操作规范/良好行为规范
@@ -41,9 +41,9 @@ Google Cloud 支持以下配置的NetApp存储：
 * Google Cloud NetApp Volumes （NetApp Volumes）作为补充 NFS 数据存储
 
 
-查看详细信息link:gcp-guest.html["GCVE 的来宾连接存储选项"]。查看详细信息link:gcp-ncvs-datastore.html["GCVE 的补充 NFS 数据存储选项"]。
+查看详细信息link:../vmware/vmw-gcp-gcve-guest-storage.html["GCVE 的来宾连接存储选项"]。查看详细信息link:../vmware/vmw-gcp-gcve-nfs-ds-overview.html["GCVE 的补充 NFS 数据存储选项"]。
 
-查看详细信息link:gcp-guest.html["GCVE 的来宾连接存储选项"]。查看详细信息link:gcp-ncvs-datastore.html["GCVE 的补充 NFS 数据存储选项"]。
+查看详细信息link:../vmware/vmw-gcp-gcve-guest-storage.html["GCVE 的来宾连接存储选项"]。查看详细信息link:../vmware/vmw-gcp-gcve-nfs-ds-overview.html["GCVE 的补充 NFS 数据存储选项"]。
 
 阅读更多link:https://www.netapp.com/blog/cloud-volumes-service-google-cloud-vmware-engine/["Google Cloud NetApp Volumes数据存储区支持 Google Cloud VMware Engine（NetApp博客）"^]或者link:https://cloud.google.com/blog/products/compute/how-to-use-netapp-cvs-as-datastores-with-vmware-engine["如何将Google Cloud NetApp Volumes用作 Google Cloud VMware Engine 的数据存储区（Google 博客）"^]
 

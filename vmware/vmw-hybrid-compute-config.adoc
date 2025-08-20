@@ -48,7 +48,7 @@ NOTE: 来宾内存储是将Cloud Volumes ONTAP连接到 Azure VMware 解决方�
 * 验证网络连接并访问私有云
 
 
-查看详细信息link:azure-setup.html["AVS配置步骤"]。
+查看详细信息link:../vmware/vmw-azure-avs-setup.html["AVS配置步骤"]。
 
 --
 .良好操作规范/良好行为规范
@@ -64,7 +64,7 @@ NOTE: 客户机内存储是将Cloud Volumes ONTAP和Google Cloud NetApp Volumes�
 * 启用对 GCVE 的私人访问
 
 
-查看详细信息link:gcp-setup.html["GCVE 的配置步骤"]。
+查看详细信息link:../vmware/vmw-gcp-gcve-setup.html["GCVE 的配置步骤"]。
 
 --
 ====
