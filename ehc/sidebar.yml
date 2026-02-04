@@ -99,6 +99,22 @@ entries:
       url: "/vmware/evs-mount-fsxn-iscsi.html"
     - title: 结束语
       url: "/vmware/evs-mount-fsxn-conclusion.html"
+  - title: 保护 EVS 的 FSx ONTAP 数据存储
+    entries:
+    - title: 简介
+      url: "/vmware/evs-protect-fsxn-intro.html"
+    - title: 设置适用于 VMware 的 SnapCenter 插件
+      url: "/vmware/evs-protect-fsxn-setup-sc.html"
+    - title: 配置适用于 VMware 的 SnapCenter 插件
+      url: "/vmware/evs-protect-fsxn-configure.html"
+    - title: 从备份还原虚拟机
+      url: "/vmware/evs-protect-fsxn-restore-vm.html"
+    - title: 从 VMDK 还原来宾文件和文件夹
+      url: "/vmware/evs-protect-fsxn-restore-guest-files.html"
+    - title: 保护 VMDK 上的数据库
+      url: "/vmware/evs-protect-fsxn-db.html"
+    - title: 结束语
+      url: "/vmware/evs-protect-fsxn-conclusion.html"
 - title: NetApp适用于 Azure/AVS
   entries:
   - title: NetApp for Azure 概述
@@ -125,7 +141,7 @@ entries:
       url: "/vmware/vmw-azure-avs-migrate-hcx.html"
 - title: NetApp适用于 GCP/GCVE
   entries:
-  - title: Netapp 适用于 Google Cloud 概述
+  - title: NetApp 适用于 Google Cloud 概述
     pdf-filename: Netapp 适用于 Google Cloud 的概述
     url: "/vmware/vmw-gcp-gcve-overview.html"
   - title: 保护 GCP/GCVE 上的工作负载

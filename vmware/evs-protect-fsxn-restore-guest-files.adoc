@@ -1,0 +1,55 @@
+---
+sidebar: sidebar 
+permalink: vmware/evs-protect-fsxn-restore-guest-files.html 
+keywords: Amazon, AWS, EVS, Elastic VMware Service, ONTAP, FSx, iscsi 
+summary: 本节介绍使用 SnapCenter Plug-in for VMware 保护的来宾文件和文件夹的还原步骤。 
+---
+= 受适用于 VMware 的 SnapCenter 插件保护的来宾文件和文件夹的还原过程
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+以下部分演示如何从 VMDK 还原来宾文件和文件夹。
+
+
+NOTE: SnapCenter 仅在来宾操作系统为 Windows 时才支持从 VMDK 还原文件和文件夹。
+
+使用 SCV 还原访客文件和文件夹的注意事项：
+
+* VMware 工具必须在 VM 上运行。
+* 默认情况下，附加的 VMDK 可访问 24 小时。
+* 一次只能在虚拟机上执行一个还原或附加操作。
+* 可以还原系统、隐藏和加密文件，但不会保留其原始属性。
+* 避免将加密文件还原到加密文件夹或覆盖系统文件。
+
+
+还原来宾文件和文件夹的步骤：
+
+. 右键单击目标虚拟机并选择"NetApp SnapCenter > Guest File Restore"。
++
+image:evs-protect-fsxn-022.png["该图表示上述步骤的对话框"]
+
+. 选择包含所需 VMDK 的备份。指定 VMDK 及其位置（主要或次要）。
++
+image:evs-protect-fsxn-023.png["该图表示上述步骤的对话框"]
+
+. 选择"磁盘连接方法"。
++
+image:evs-protect-fsxn-024.png["该图表示上述步骤的对话框"]
+
++
+** 来宾 VM 选项：将磁盘连接到原始 VM（需要预配置的凭据）。这是本演示中使用的选项。
+** 代理 VM 选项：将磁盘连接到指定的代理 VM（必须预先配置）。
+
+
+. 等待附加操作完成，然后浏览和还原文件。操作完成后，SnapCenter 会自动创建来宾文件还原会话。image:evs-protect-fsxn-025.png["该图表示上述步骤的对话框"]
++
+image:evs-protect-fsxn-026.png["该图表示上述步骤的对话框"]
+
+. 在来宾文件还原会话中浏览到 VMDK，选择所需的文件或文件夹，并将其还原到指定位置。
+

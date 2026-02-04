@@ -1,0 +1,60 @@
+---
+sidebar: sidebar 
+permalink: vmware/evs-protect-fsxn-intro.html 
+keywords: Amazon, AWS, EVS, Elastic VMware Service, ONTAP, FSx 
+summary: '本指南将演示使用 NetApp SnapCenter® Plug-in for VMware vSphere (SCV) 备份和恢复解决方案保护 FSx for ONTAP Network File System (NFS) 和 iSCSI Amazon EVS 数据存储区及相关 VM 的简单部署方法。' 
+---
+= 如何使用 Amazon Elastic VMware Service 和 NetApp SnapCenter Plug-in for VMware 保护 Amazon FSx for NetApp ONTAP 数据存储
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+本指南将演示使用 NetApp SnapCenter® Plug-in for VMware vSphere (SCV) 备份和恢复解决方案保护 FSx for ONTAP Network File System (NFS) 和 iSCSI Amazon EVS 数据存储区及相关 VM 的简单部署方法。
+
+
+
+== 简介
+
+基于 Amazon FSx for NetApp ONTAP（FSx for ONTAP）的 Amazon Elastic VMware Service (Amazon EVS) 补充数据存储区为运行性能要求苛刻的工作负载（例如利用 nConnect、Amazon Virtual Private Cloud (Amazon VPC) 对等以及每个数据存储区挂载使用多个网络连接）和存储密集型工作负载提供了出色的解决方案。
+
+此功能使客户能够克服虚拟存储区域网络 (vSAN) 提供的本地实例存储的局限性，独立于计算扩展存储，并降低总体拥有成本。除了总拥有成本 (TCO) 优势之外，FSx for ONTAP 提供 Amazon EVS 以及本地部署 ONTAP® 客户熟悉的企业级功能，帮助优化和简化部署。使用 FSx for ONTAP 可以访问 NetApp® Snapshot™、SnapMirror® 和 SnapVault® 技术，这些技术支持虚拟机 (VM)、数据存储区和虚拟机磁盘 (VMDK) 的备份和恢复操作。一个关键功能是基于 Snapshot 的保护。
+
+
+
+== 概述
+
+随着组织扩展和整合环境，保护这些工作负载和底层存储的需求变得越来越重要。SCV 可用于直接从 Amazon EVS vSphere 客户端备份数据存储区和虚拟机。
+
+
+
+== 本指南的目的
+
+本指南提供有关如何使用 SCV 保护适用于 Amazon EVS 的 FSx for ONTAP 数据存储的说明。还提供了保护 VM 和数据库以及还原的示例场景。
+
+
+
+== 受众
+
+本教程适用于熟悉 VMware vSphere、Amazon EVS、AWS 控制台和 FSx for ONTAP 的云架构师和云管理员。
+
+
+
+== 部署和配置的高级步骤
+
+以下是部署和配置 SCV 以保护 Amazon EVS 上的虚拟机和数据存储的高级步骤：
+
+. 下载 SCV Open Virtual Appliance (OVA)。
+. 使用 vSphere Client 凭据登录到 Amazon EVS。
+. 部署开放虚拟化格式 (OVF) 模板以启动 VMware 部署向导。
+. 要访问插件，请从菜单中选择 SnapCenter Plug-in for VMware。
+. 添加存储。
+. 创建备份策略。
+. 创建资源组。
+. 备份资源组。
+. 还原整个虚拟机或特定的虚拟磁盘或来宾文件。
+

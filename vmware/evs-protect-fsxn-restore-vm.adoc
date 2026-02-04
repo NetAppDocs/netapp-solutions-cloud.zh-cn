@@ -1,0 +1,97 @@
+---
+sidebar: sidebar 
+permalink: vmware/evs-protect-fsxn-restore-vm.html 
+keywords: Amazon, AWS, EVS, Elastic VMware Service, ONTAP, FSx, iscsi 
+summary: 本节将介绍从备份还原 VM 的步骤。 
+---
+= 受 SnapCenter Plug-in for VMware 保护的虚拟机的还原过程
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+本节介绍从备份中恢复虚拟机的步骤。SCV 可用于恢复 vCenter 中的虚拟机，允许它们恢复到原始 ESXi 主机上的原始数据存储区（覆盖现有内容），从备份副本中恢复已删除或重命名的虚拟机，恢复到原始 ESXi 主机上的不同数据存储区，恢复到由同一 vCenter 管理的不同 ESXi 主机上的原始数据存储区，或恢复到同一 vCenter 环境中的另一台 ESXi 主机上的不同数据存储区。
+
+
+
+== 执行还原操作的步骤
+
+要执行还原操作，请执行以下步骤：
+
+. 在 EVS vSphere Web 客户端 GUI 中，转到"Inventory > Datastores"并选择所需的数据存储区。然后导航到"SnapCenter Plug-in for VMware vSphere"部分下的"Configure > Backups"。
++
+image:evs-protect-fsxn-009.png["该图表示上述步骤的对话框"]
+
+. 双击备份以查看该备份中包含的所有虚拟机。在列表中找到要还原的虚拟机，然后选择"还原"。
++
+image:evs-protect-fsxn-010.png["该图表示上述步骤的对话框"]
+
+. 在"Select Scope page"页面，在"Restore scope"字段中选择"Entire Virtual Machine"，然后选择"Restore location"，并输入应挂载备份的目标 ESXi 信息。
+. 如果还原操作后需要打开虚拟机，请启用"Restart VM"复选框。
+. 在"Select Location page"页面上，选择一个主要位置。
++
+image:evs-protect-fsxn-011.png["该图表示上述步骤的对话框"]
+
+. 查看"摘要"页面，然后选择"完成"。
++
+image:evs-protect-fsxn-012.png["该图表示上述步骤的对话框"]
+
+. 通过选择屏幕底部的"最近任务"来监控操作进度。
++
+image:evs-protect-fsxn-013.png["该图表示上述步骤的对话框"]
+
+
+
+
+NOTE: 虽然 VM 已还原，但它们不会自动添加到以前的资源组中。如果要保护这些 VM，请将其手动添加到相应的资源组。
+
+
+NOTE: 还原操作也可以从单个 VM 级别触发。
+
+
+
+== 恢复已删除虚拟机的步骤
+
+使用 SCV 还原已删除的虚拟机是一个简单的过程。
+
+可从数据存储级别执行已删除 VM 的恢复操作。
+
+. 转到相应的 Datastore > Configure > Backups。在那里，选择已删除的虚拟机，然后选择"Restore"。
++
+image:evs-protect-fsxn-014.png["该图表示上述步骤的对话框"]
+
++
+image:evs-protect-fsxn-015.png["该图表示上述步骤的对话框"]
+
+. 下面的屏幕截图流程涵盖了将虚拟机恢复到备用 ESXi 主机和不同数据存储库的过程。
++
+image:evs-protect-fsxn-016.png["该图表示上述步骤的对话框"]
+
++
+image:evs-protect-fsxn-017.png["该图表示上述步骤的对话框"]
+
++
+image:evs-protect-fsxn-018.png["该图表示上述步骤的对话框"]
+
++
+image:evs-protect-fsxn-019.png["该图表示上述步骤的对话框"]
+
++
+image:evs-protect-fsxn-020.png["该图表示上述步骤的对话框"]
+
+
+
+
+NOTE: 目标数据存储区必须具有足够的可用空间，并且在"还原到备用位置"字段中指定的 vCenter 必须是 DNS 可解析的。
+
+
+NOTE: 为提高 NFS 环境中的还原效率，请启用 VMware vStorage API for Array Integration (VAAI)。
+
+
+NOTE: 还原也可以从辅助位置（如 SnapMirror 目标）执行。
+
++ image:evs-protect-fsxn-021.png["该图表示上述步骤的对话框"]

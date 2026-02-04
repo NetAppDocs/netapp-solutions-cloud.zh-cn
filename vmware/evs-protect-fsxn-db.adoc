@@ -1,0 +1,143 @@
+---
+sidebar: sidebar 
+permalink: vmware/evs-protect-fsxn-db.html 
+keywords: Amazon, AWS, EVS, Elastic VMware Service, ONTAP, FSx, iscsi 
+summary: '本节将介绍使用 SnapCenter for SQL (SCSQL) 保护在 VMware VMDK 上运行的数据库的步骤。' 
+---
+= 使用 SnapCenter for SQL (SCSQL) 在 VMware VMDK 上运行的数据库的保护过程
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+以下部分展示了如何使用 SnapCenter for SQL (SCSQL) 保护在 VMware VMDK 上运行的数据库。
+
+
+
+== 设置 SCSQL
+
+使用 SCSQL 保护 VMDK 上的数据库的设置如下：
+
+. link:https://docs.netapp.com/us-en/snapcenter/install/task_install_the_snapcenter_server_using_the_install_wizard.html["安装和配置"] SnapCenter 服务器。
+. 登录到 SnapCenter。
+. 配置 SnapCenter 环境：
++
+** link:https://docs.netapp.com/us-en/snapcenter/install/task_add_storage_systems.html["添加或分配"] 存储系统连接。
+** link:https://docs.netapp.com/us-en/snapcenter/install/concept_svm_connections_and_credentials.html["创建"] 凭据。
+
+
+. 对于 VMware VMDK 上的 Microsoft SQL Server 数据库：
++
+** link:https://docs.netapp.com/us-en/snapcenter/install/concept_svm_connections_and_credentials.html["部署 SCV"] （已在设置部分中介绍）。
+** 向 SnapCenter 注册插件。
+
+
+. 添加 link:https://docs.netapp.com/us-en/snapcenter/protect-scsql/task_add_hosts_and_install_snapcenter_plug_ins_package_for_windows.html["SQL Server 主机和安装插件"]：
++
+** link:https://docs.netapp.com/us-en/snapcenter/protect-scsql/task_add_hosts_and_install_snapcenter_plug_ins_package_for_windows.html["配置 SQL 插件"]。
+** link:https://docs.netapp.com/us-en/snapcenter/protect-scsql/task_create_backup_policies_for_sql_server_databases.html["配置数据库和日志的保护计划和调度"]。
++
+image:evs-protect-fsxn-027.png["该图表示上述步骤的对话框"]
+
+
+
+
+
+
+
+== 设置备份策略
+
+以下步骤将演示如何设置备份策略。
+
+. 从资源选项卡中选择数据库，然后从右上角选择"保护"。
++
+
+NOTE: 对来宾虚拟机上运行的 SQL Server 数据库执行验证。
+
++
+image:evs-protect-fsxn-028.png["该图表示上述步骤的对话框"]
+
+. 单击加号图标以配置 SQL Server 备份策略。
++
+image:evs-protect-fsxn-029.png["该图表示上述步骤的对话框"]
+
+. 在此演示中，选择"完全备份"。选择"下一步"以继续。
++
+image:evs-protect-fsxn-030.png["该图表示上述步骤的对话框"]
+
+. 在摘要页面上，选择 "Finish"。
++
+image:evs-protect-fsxn-031.png["该图表示上述步骤的对话框"]
+
+. 继续执行"完成"。
++
+image:evs-protect-fsxn-032.png["该图表示上述步骤的对话框"]
+
+
+
+
+
+== 监控备份
+
+设置备份策略后，您可以在备份操作发生时对其进行监控。您可以通过单击"立即备份"以触发按需备份操作或等待计划备份策略启动来执行此操作。
+
+. 使用"监控 > 作业"监控作业进度。
+. 选择备份作业，然后单击"详细信息"以查看作业详细信息，如下所示。
++
+image:evs-protect-fsxn-033.png["该图表示上述步骤的对话框"]
+
+
+
+
+
+== 还原驻留在 VMDK 上的数据库
+
+VMDK 上的数据库可以还原到特定时间点。
+
+我们可以通过删除数据库中的一些表来模拟其重要性，然后通过执行时间点还原来更正这些表。
+
+下面您可以看到，第一个屏幕截图中显示的数据库中的几个表在第二个屏幕截图中已被删除：
+
+image:evs-protect-fsxn-034.png["该图表示上述步骤的对话框"]
+
+image:evs-protect-fsxn-035.png["该图表示上述步骤的对话框"]
+
+以下步骤演示如何执行还原以恢复这些已删除的表：
+
+. 从资源组中选择数据库。
++
+image:evs-protect-fsxn-036.png["该图表示上述步骤的对话框"]
+
+. 在还原页面中，选择"将数据库还原到创建备份的同一主机"选项。
++
+image:evs-protect-fsxn-037.png["该图表示上述步骤的对话框"]
+
+. 选择使用日志备份到某个时间点的选项。
++
+image:evs-protect-fsxn-038.png["该图表示上述步骤的对话框"]
+
+. 选择 "Overwrite database with same name during restore, Create transaction log backup before restore"，然后选择 "Next"。
++
+image:evs-protect-fsxn-039.png["该图表示上述步骤的对话框"]
+
+. 从列表选项中选择您希望数据库假设的还原后状态，然后选择"下一步"。
++
+image:evs-protect-fsxn-040.png["该图表示上述步骤的对话框"]
+
+. 在摘要页面上，选择"完成"。
++
+image:evs-protect-fsxn-041.png["该图表示上述步骤的对话框"]
+
+. 监控作业直至完成。
++
+image:evs-protect-fsxn-042.png["该图表示上述步骤的对话框"]
+
+. 验证已删除的表是否已成功还原。
++
+image:evs-protect-fsxn-043.png["该图表示上述步骤的对话框"]
+
+
