@@ -1,7 +1,7 @@
 ---
 sidebar: sidebar 
 permalink: openshift/os-solutions-storage-options.html 
-keywords: NetApp Solutions, hybrid cloud, container workloads, containers, Red Hat OpenShift, RedHat OpenShift, VMware, ROSA, ACC, Trident Protect, Advanced Cluster Management, ACM, Hub Cluster, VMware CSI, nconnect, session trunking, SMBC 
+keywords: NetApp Solutions, hybrid cloud, container workloads, containers, Red Hat OpenShift, RedHat OpenShift, VMware, ROSA, Trident Protect, Advanced Cluster Management, ACM, Hub Cluster, VMware CSI, nconnect, session trunking, SMBC 
 summary:  
 ---
 = 支持NetApp Storage 与 Red Hat OpenShift Containers 的集成
@@ -18,7 +18,7 @@ summary:
 
 下图描述了可使用NetApp Trident与 OpenShift 集群集成的各种后端NetApp存储。
 
-image:a-w-n-astra-trident.png["该图显示输入/输出对话框或表示书面内容"]
+image:a-w-n-trident.png["该图显示输入/输出对话框或表示书面内容"]
 
 ONTAP存储虚拟机 (SVM) 提供安全的多租户。单个 OpenShift 集群可以连接到单个 SVM 或多个 SVM，甚至多个ONTAP集群。存储类根据参数或标签过滤后端存储。存储管理员使用 trident 后端配置定义连接到存储系统的参数。成功建立连接后，它会创建 trident 后端并填充存储类可以过滤的信息。
 

@@ -2,7 +2,7 @@
 sidebar: sidebar 
 permalink: openshift/os-dp-tp-solution.html 
 keywords: OpenShift, OCP, Trident, Trident-protect, NetApp ONTAP, Red Hat OpenShift, app data protection, Containers 
-summary: Red Hat OpenShift 容器应用程序数据保护使用Trident和NetApp ONTAP进行保护 
+summary: 使用 Trident Protect 结合 NetApp ONTAP 实现 Red Hat OpenShift 容器应用数据保护 
 ---
 = 使用Trident Protect 为 OpenShift 容器平台中的容器应用提供数据保护
 :hardbreaks:
