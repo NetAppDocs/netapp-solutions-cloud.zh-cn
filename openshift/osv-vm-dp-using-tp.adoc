@@ -1,10 +1,10 @@
 ---
 sidebar: sidebar 
 permalink: openshift/osv-vm-dp-using-tp.html 
-keywords: OpenShift, OCP, Trident, Trident protect, NetApp ONTAP, Red Hat OpenShift, OpenShift Virtualization, CNV, Container Native Virtualization, Red Hat OpenShift Virtualization,Data Protection, Data Management for VMs, VM protection 
+keywords: OpenShift, OCP, Trident, Trident Protect, NetApp ONTAP, Red Hat OpenShift, OpenShift Virtualization, CNV, Container Native Virtualization, Red Hat OpenShift Virtualization, Data Protection, Data Management for VMs, VM protection 
 summary: Red Hat OpenShift 虚拟化数据保护与NetApp ONTAP 
 ---
-= 使用Trident Protect 保护 Red Hat OpenShift 虚拟化中的虚拟机
+= 使用 Trident Protect 保护 Red Hat OpenShift Virtualization 中的虚拟机
 :hardbreaks:
 :allow-uri-read: 
 :nofooter: 
@@ -14,37 +14,37 @@ summary: Red Hat OpenShift 虚拟化数据保护与NetApp ONTAP
 
 
 [role="lead"]
-使用快照和备份保护 OpenShift 虚拟化中的虚拟机。此过程包括使用ONTAP S3 对象存储创建 AppVault、配置Trident Protect 以捕获 VM 数据（包括 Kubernetes 资源对象、持久卷和内部图像），并在必要时恢复数据。
+使用快照和备份在 OpenShift Virtualization 中保护虚拟机。此过程包括使用 ONTAP S3 对象存储创建 AppVault，配置 Trident Protect 以捕获虚拟机数据，包括 Kubernetes 资源对象、持久卷和内部映像，并在必要时恢复数据。
 
 OpenShift 虚拟化环境中的虚拟机是在 OpenShift 容器平台的工作节点中运行的容器化应用程序。保护虚拟机元数据以及虚拟机的持久磁盘非常重要，以便在它们丢失或损坏时可以恢复它们。
 
-OpenShift 虚拟化虚拟机的持久磁盘可由集成到 OpenShift 集群的ONTAP存储支持，使用link:https://docs.netapp.com/us-en/trident/["Trident犯罪现场调查"]。在本节中我们使用link:https://docs.netapp.com/us-en/trident/trident-protect/learn-about-trident-protect.html["Trident保护"]创建虚拟机（包括其数据卷）的快照和备份到ONTAP对象存储。
+OpenShift Virtualization VM 的持久磁盘可以由使用 link:https://docs.netapp.com/us-en/trident/["Trident犯罪现场调查"] 集成到 OpenShift 集群的 ONTAP 存储提供支持。在本节中，我们使用 link:https://docs.netapp.com/us-en/trident/trident-protect/learn-about-trident-protect.html["Trident Protect"] 创建 VM 的快照和备份，包括其数据卷到 ONTAP 对象存储。
 
 然后，我们在需要时从快照或备份中恢复。
 
-Trident Protect 支持 OpenShift 集群上的应用程序和虚拟机的快照、备份、恢复和灾难恢复。对于 OpenShift 虚拟化虚拟机，可以使用Trident Protect 保护的数据包括与虚拟机关联的 Kubernetes 资源对象、持久卷和内部图像。
+Trident Protect 支持 OpenShift 集群上的应用程序和 VM 的快照、备份、恢复和灾难恢复。对于 OpenShift Virtualization VM，可以使用 Trident Protect 保护的数据包括与 VM 关联的 Kubernetes 资源对象、持久卷和内部映像。
 
 **以下是本节示例使用的各个组件的版本**
 
 * link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/installing_on_bare_metal/index["OpenShift 集群 4.17"]
 * link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/virtualization/getting-started#tours-quick-starts_virt-getting-started["通过 Red Hat 提供的 OpenShift Virtualization Operator 安装 OpenShift Virtualization"]
 * link:https://docs.netapp.com/us-en/trident/trident-get-started/kubernetes-deploy.html["Trident25.02"]
-* link:https://docs.netapp.com/us-en/trident/trident-protect/trident-protect-installation.html["Trident保护 25.02"]
+* link:https://docs.netapp.com/us-en/trident/trident-protect/trident-protect-installation.html["Trident Protect 25.02"]
 * link:https://docs.netapp.com/us-en/ontap/["ONTAP 9.16"]
 
 
 
 
-== 为对象存储创建 App Vault
+== 为对象存储创建 AppVault
 
 .创建 AppVault
 [%collapsible%open]
 ====
-在为应用程序或虚拟机创建快照和备份之前，必须在Trident Protect 中配置对象存储来存储快照和备份。这是使用存储桶 CR 完成的。只有管理员可以创建存储桶 CR 并对其进行配置。在Trident Protect 中，存储桶 CR 被称为 AppVault。  AppVault 对象是存储桶的声明性 Kubernetes 工作流表示。  AppVault CR 包含存储桶在保护操作（例如备份、快照、恢复操作和SnapMirror复制）中使用的必要配置。
+在为应用程序或 VM 创建快照和备份之前，必须在 Trident Protect 中配置对象存储以存储快照和备份。这是使用 bucket CR 完成的。只有管理员可以创建 bucket CR 并对其进行配置。bucket CR 在 Trident Protect 中称为 AppVault。AppVault 对象是存储桶的声明性 Kubernetes 工作流表示。AppVault CR 包含在保护操作中使用存储桶所需的配置，例如备份、快照、还原操作和 SnapMirror 复制。
 
-在此示例中，我们将展示如何使用ONTAP S3 作为对象存储。以下是为ONTAP S3 创建 AppVault CR 的工作流程： 1.在ONTAP集群中的 SVM 中创建 S3 对象存储服务器。2.在对象存储服务器中创建一个存储桶。3.在 SVM 中创建 S3 用户。将访问密钥和密钥保存在安全的地方。4.在 OpenShift 中，创建一个密钥来存储ONTAP S3 凭证。5.为ONTAP S3 创建 AppVault 对象
+在本示例中，我们将演示使用 ONTAP S3 作为对象存储。以下是为 ONTAP S3 创建 AppVault CR 的工作流程：1.在 ONTAP 集群的 SVM 中创建 S3 对象存储服务器。2.在对象存储服务器中创建存储桶。3.在 SVM 中创建 S3 用户。请将访问密钥和秘密密钥存放在安全的地方。4.在 OpenShift 中，创建一个密钥来存储 ONTAP S3 凭据。5.为 ONTAP S3 创建 AppVault 对象
 
-**为ONTAP S3 配置Trident保护 AppVault**
+**为 ONTAP S3 配置 Trident Protect AppVault**
 
 [source, yaml]
 ----
@@ -137,9 +137,9 @@ image:rh-os-n-use-case-ocpv-tp-dp-007.png["已创建 vm、pod 和 pvc"]
 .创建应用程序
 [%collapsible%open]
 ====
-**为虚拟机创建一个 Trident 保护应用程序**
+**为虚拟机创建 Trident Protect 应用程序**
 
-在示例中，demo 命名空间有一个 VM，并且在创建应用程序时包含了该命名空间的所有资源。
+在示例中，demo 命名空间有一个 VM，并且在创建应用程序时包含命名空间的所有资源。
 
 [source, yaml]
 ----
