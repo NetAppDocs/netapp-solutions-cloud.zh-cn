@@ -18,6 +18,7 @@ summary: Red Hat OpenShift 容器应用程序数据保护与NetApp ONTAP
 
 
 
+[[steps-to-create-a-backup-of-an-app]]
 == 创建应用程序备份的步骤
 
 要创建应用程序的按需备份（应用程序元数据和应用程序的持久卷），请单击**备份**选项卡以创建备份自定义资源（CR）。提供了一个示例 yaml 来创建备份 CR。使用此 yaml，将备份指定命名空间中的应用程序及其持久存储。可以设置其他参数，如下所示link:https://docs.openshift.com/container-platform/4.14/backup_and_restore/application_backup_and_restore/backing_up_and_restoring/oadp-creating-backup-cr.html["文档"]。
@@ -48,6 +49,7 @@ image:redhat-openshift-oadp-backup-002.png["S3 中的备份对象"]
 
 
 
+[[creating-scheduled-backups-for-apps]]
 == 为应用程序创建计划备份
 
 要按计划创建备份，您需要创建计划 CR。该计划只是一个 Cron 表达式，允许您指定要创建备份的时间。下面显示了创建 Schedule CR 的示例 yaml。

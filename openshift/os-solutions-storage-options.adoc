@@ -34,6 +34,7 @@ image:rhhc-storage-opt-pod2vol.png["Pod 与ONTAP卷的关系"]
 
 
 
+[[container-storage-interface-csi-options]]
 == 容器存储接口 (CSI) 选项
 
 在 vSphere 环境中，客户可以选择 VMware CSI 驱动程序和/或Trident CSI 与ONTAP集成。使用 VMware CSI 时，持久卷将作为本地 SCSI 磁盘使用，而使用Trident时，它将与网络一起使用。
@@ -42,6 +43,7 @@ image:rhhc-storage-opt-pod2vol.png["Pod 与ONTAP卷的关系"]
 
 
 
+[[vmware-csi-supports]]
 === VMware CSI 支持
 
 * 基于核心块的数据存储（FC、FCoE、iSCSI、NVMeoF）
@@ -51,6 +53,7 @@ image:rhhc-storage-opt-pod2vol.png["Pod 与ONTAP卷的关系"]
 
 
 
+[[trident-has-following-drivers-to-support-ontap]]
 === Trident有以下驱动程序支持ONTAP
 
 * ontap-san（专用卷）

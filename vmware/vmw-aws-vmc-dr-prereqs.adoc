@@ -18,12 +18,14 @@ summary: 在此解决方案中， SnapCenter为 SQL Server 和 Oracle 应用程�
 
 
 
+[[technology]]
 == 技术
 
 该解决方案包含来自NetApp、VMware、Amazon Web Services (AWS) 和 Veeam 的创新技术。
 
 
 
+[[vmware]]
 === VMware
 
 .VMware 云基础
@@ -70,6 +72,7 @@ VMware NSX 通常被称为网络虚拟机管理程序，它采用软件定义模
 ====
 
 
+[[netapp]]
 === NetApp
 
 .NetApp ONTAP
@@ -107,6 +110,7 @@ SnapCenter Plug-in for VMware vSphere支持虚拟机 (VM)、数据存储库和�
 ====
 
 
+[[third-party-data-protection]]
 === 第三方数据保护
 
 .Veeam备份与复制
@@ -119,6 +123,7 @@ Veeam Backup & Replication 是针对云、虚拟和物理工作负载的备份�
 ====
 
 
+[[public-cloud]]
 === 公共云
 
 .AWS 身份和访问管理
@@ -151,6 +156,7 @@ Amazon FSx ONTAP为多种计算类型提供多协议支持，包括公共云或�
 ====
 
 
+[[overview-aws-guest-connected-storage-disaster-recovery]]
 == 概述 - AWS 客户连接存储灾难恢复
 
 本节提供的说明可帮助用户验证、配置和确认其内部部署和云环境是否可与NetApp和 VMware 一起使用。具体来说，该解决方案专注于 VMware 客户机连接用例，其中在本地使用ONTAP AFF ，在云端使用 VMware Cloud 和 AWS FSx ONTAP 。该解决方案通过两个应用程序进行演示：灾难恢复场景中的 Oracle 和 MS SQL。
@@ -436,6 +442,7 @@ NOTE: 如果您使用 vCloud Director，请确保在底层 vCenter Server 上打
 ====
 
 
+[[networking]]
 == 网络连接
 
 此解决方案需要从本地ONTAP集群到 AWS FSx ONTAP互连集群网络地址成功通信才能执行NetApp SyncMirror操作。此外，Veeam 备份服务器必须能够访问 AWS S3 存储桶。除了使用互联网传输之外，还可以使用现有的 VPN 或 Direct Connect 链接作为 S3 存储桶的私有链接。
@@ -558,6 +565,7 @@ image:dr-vmc-aws-006.png["该图显示输入/输出对话框或表示书面内�
 ====
 
 
+[[storage]]
 == 存储
 
 NetApp AFF A 系列系统提供高性能存储基础架构和灵活的数据管理选项，这些选项支持云，可满足各种企业场景的需求。在此解决方案中，我们使用ONTAP AFF A300作为主要的内部部署存储系统。
@@ -638,6 +646,7 @@ VMware Cloud SDDC 附带两个 VSAN 数据存储，分别名为 `vsandatastore`�
 ====
 
 
+[[compute]]
 == 计算
 
 VMware vSphere 在数据中心和所有主要云提供商中提供虚拟化基础架构。该生态系统非常适合灾难恢复场景，无论虚拟化计算位于何处都能保持一致。该解决方案在数据中心位置和 AWS 上的 VMware Cloud 中使用 VMware 虚拟化计算资源。
@@ -660,6 +669,7 @@ image:dr-vmc-aws-009.png["该图显示输入/输出对话框或表示书面内�
 ====
 
 
+[[bluexp-backup-and-recovery-tools]]
 == BlueXP backup and recovery工具
 
 为了将我们的应用程序虚拟机和数据库卷故障转移到在 AWS 中运行的 VMware Cloud Volume 服务，必须安装和配置SnapCenter Server 和 Veeam Backup and Replication Server 的运行实例。故障转移完成后，还必须配置这些工具以恢复正常的备份操作，直到计划和执行故障恢复到内部数据中心。

@@ -18,6 +18,7 @@ summary:
 
 
 
+[[use-cases]]
 == 使用案例
 
 尽管 Azure VMware 解决方案为客户提供了独特的混合功能，但有限的本机存储选项限制了其对于存储工作负载繁重的组织的实用性。由于存储直接与主机绑定，因此扩展存储的唯一方法是添加更多主机，这可能会使存储密集型工作负载的成本增加 35-40% 或更多。这些工作负载需要额外的存储空间，而不是额外的马力，但这意味着需要支付额外的主机费用。
@@ -37,10 +38,12 @@ NOTE: 有关使用 ANF 数据存储的更多信息，请联系您所在地区的
 
 
 
+[[vmware-cloud-options-in-azure]]
 == Azure 中的 VMware Cloud 选项
 
 
 
+[[azure-vmware-solution]]
 === Azure VMware 解决方案
 
 Azure VMware 解决方案 (AVS) 是一种混合云服务，可在 Microsoft Azure 公共云中提供功能齐全的 VMware SDDC。 AVS 是使用 Azure 基础架构、完全由 Microsoft 管理和支持并经过 VMware 验证的第一方解决方案。因此，客户可以获得用于计算虚拟化的 VMware ESXi、用于超融合存储的 vSAN 以及用于网络和安全的 NSX，同时利用 Microsoft Azure 的全球影响力、一流的数据中心设施以及与丰富的原生 Azure 服务和解决方案生态系统的接近性。  Azure VMware 解决方案 SDDC 和Azure NetApp Files的组合以最小的网络延迟提供了最佳性能。
@@ -54,12 +57,14 @@ Azure VMware 解决方案 (AVS) 是一种混合云服务，可在 Microsoft Azur
 
 
 
+[[conclusion]]
 == 结束语
 
 无论您的目标是全云还是混合云，Azure NetApp文件都提供了出色的选项来部署和管理应用程序工作负载以及文件服务，同时通过使数据需求无缝连接到应用程序层来降低 TCO。无论用例如何，选择 Azure VMware 解决方案以及Azure NetApp Files都可以快速实现云优势、跨本地和多个云的一致基础架构和操作、工作负载的双向可移植性以及企业级容量和性能。它与用于连接存储的熟悉的过程和程序相同。请记住，只是数据的位置随着新名称而发生了变化；工具和流程都保持不变， Azure NetApp Files有助于优化整体部署。
 
 
 
+[[takeaways]]
 == 总结
 
 该文件的要点包括：
@@ -73,6 +78,7 @@ Azure VMware 解决方案 (AVS) 是一种混合云服务，可在 Microsoft Azur
 
 
 
+[[where-to-find-additional-information]]
 == 在哪里可以找到更多信息
 
 要了解有关本文档中描述的信息的更多信息，请参阅以下网站链接：

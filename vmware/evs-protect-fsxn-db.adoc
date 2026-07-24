@@ -18,6 +18,7 @@ summary: '本节将介绍使用 SnapCenter for SQL (SCSQL) 保护在 VMware VMDK
 
 
 
+[[setting-up-scsql]]
 == 设置 SCSQL
 
 使用 SCSQL 保护 VMDK 上的数据库的设置如下：
@@ -49,6 +50,7 @@ image:evs-protect-fsxn-027.png["该图表示上述步骤的对话框"]
 
 
 
+[[setting-up-a-backup-policy]]
 == 设置备份策略
 
 以下步骤将演示如何设置备份策略。
@@ -81,6 +83,7 @@ image:evs-protect-fsxn-032.png["该图表示上述步骤的对话框"]
 
 
 
+[[monitoring-a-backup]]
 == 监控备份
 
 设置备份策略后，您可以在备份操作发生时对其进行监控。您可以通过单击"立即备份"以触发按需备份操作或等待计划备份策略启动来执行此操作。
@@ -94,6 +97,7 @@ image:evs-protect-fsxn-033.png["该图表示上述步骤的对话框"]
 
 
 
+[[restore-of-databases-residing-on-the-vmdks]]
 == 还原驻留在 VMDK 上的数据库
 
 VMDK 上的数据库可以还原到特定时间点。

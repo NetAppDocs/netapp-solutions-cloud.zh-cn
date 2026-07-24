@@ -25,6 +25,8 @@ summary:
 
 
 
+[[configuring-vmc-in-aws]]
+[[config]]
 == 在 AWS 中配置 VMC
 
 与本地一样，规划基于云的虚拟化环境对于成功创建虚拟机和迁移的生产就绪环境至关重要。
@@ -44,6 +46,8 @@ NOTE: 客户机内存储是将Cloud Volumes ONTAP连接到 AWS VMC 的唯一支�
 
 
 
+[[netapp-storage-options-for-vmc]]
+[[datastore]]
 == 适用于 VMC 的NetApp存储选项
 
 NetApp存储在 AWS VMC 中可以以多种方式使用 - 既可以作为猜测连接，也可以作为补充 NFS 数据存储。
@@ -61,6 +65,8 @@ AWS 支持以下配置的NetApp存储：
 
 
 
+[[solution-use-cases]]
+[[solutions]]
 == 解决方案用例
 
 借助NetApp和 VMware 云解决方案，许多用例都可以轻松地部署在您的 AWS VMC 中。针对 VMware 定义的每个云区域都定义了用例：

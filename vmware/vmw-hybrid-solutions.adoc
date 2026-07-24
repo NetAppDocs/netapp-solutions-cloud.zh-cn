@@ -18,6 +18,7 @@ summary:
 
 
 
+[[netapp-solutions-for-vmware-environments]]
 == 适用于 VMware 环境的NetApp解决方案
 
 无论您采用混合云模型还是“云优先”模型， NetApp都提供各种解决方案来满足在云或混合云模型中管理工作负载的最常见用例。

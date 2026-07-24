@@ -26,6 +26,7 @@ image:dr-draas-nfs-001.png["该图显示输入/输出对话框或表示书面内
 
 
 
+[[getting-started]]
 == 入门
 
 要开始使用BlueXP disaster recovery，请使用BlueXP控制台，然后访问该服务。
@@ -58,6 +59,7 @@ image:dr-draas-nfs-003.png["该图显示输入/输出对话框或表示书面内
 
 
 
+[[bluexp-disaster-recovery-configuration]]
 == BlueXP disaster recovery配置
 
 准备灾难恢复的第一步是发现并将内部部署 vCenter 和存储资源添加到BlueXP disaster recovery。
@@ -82,6 +84,7 @@ image:dr-draas-nfs-006.png["该图显示输入/输出对话框或表示书面内
 
 
 
+[[configuring-storage-replication-between-source-site-array-and-destination-site-array]]
 == 配置源站点阵列和目标站点阵列之间的存储复制
 
 SnapMirror在NetApp环境中提供数据复制。 SnapMirror复制基于NetApp Snapshot 技术构建，非常高效，因为它仅复制自上次更新以来已更改或添加的块。可以使用NetApp OnCommand System Manager或ONTAP CLI 轻松配置SnapMirror 。如果预先配置了集群和 SVM 对等连接， BlueXP DRaaS 还会创建SnapMirror关系。
@@ -93,6 +96,7 @@ NOTE: 如果已经通过 CLI 或系统管理器为卷配置了SnapMirror关系�
 
 
 
+[[how-to-set-it-up-for-vmware-disaster-recovery]]
 == 如何设置 VMware 灾难恢复
 
 对于任何给定的应用程序，创建SnapMirror复制的过程都是相同的。该过程可以是手动的，也可以是自动的。最简单的方法是利用BlueXP配置SnapMirror复制，只需将环境中的源ONTAP系统拖放到目标上即可触发指导其余过程的向导。
@@ -113,6 +117,7 @@ NOTE: 如果已经通过 CLI 为卷配置了SnapMirror关系， BlueXP DRaaS 将
 
 
 
+[[what-can-bluexp-disaster-recovery-do-for-you]]
 == BlueXP disaster recovery能为您做什么？
 
 添加源站点和目标站点后， BlueXP disaster recovery将执行自动深度发现并显示虚拟机及其相关元数据。  BlueXP disaster recovery还会自动检测虚拟机使用的网络和端口组并填充它们。
@@ -194,6 +199,7 @@ BlueXP DRaaS 包含以下工作流程：
 
 
 
+[[test-failover]]
 == 测试故障转移
 
 BlueXP DRaaS 中的测试故障转移是一种操作程序，允许 VMware 管理员在不中断生产环境的情况下全面验证其恢复计划。
@@ -220,6 +226,7 @@ image:dr-draas-nfs-026.png["该图显示输入/输出对话框或表示书面内
 
 
 
+[[cleanup-failover-test-operation]]
 == 清理故障转移测试操作
 
 清理故障转移测试操作在复制计划测试完成并且 VMware 管理员响应清理提示后发生。
@@ -236,6 +243,7 @@ image:dr-draas-nfs-027.png["该图显示输入/输出对话框或表示书面内
 
 
 
+[[planned-migration-and-fail-over]]
 == 计划迁移和故障转移
 
 BlueXP DRaaS 有两种执行实际故障转移的方法：计划迁移和故障转移。第一种方法，计划迁移，将虚拟机关闭和存储复制同步纳入到恢复或有效地将虚拟机移动到目标站点的过程中。计划迁移需要访问源站点。第二种方法，故障转移，是计划内/非计划内故障转移，其中虚拟机从上次能够完成的存储复制间隔在目标站点恢复。根据解决方案中设计的 RPO，在 DR 场景中可能会出现一定量的数据丢失。
@@ -256,6 +264,7 @@ image:dr-draas-nfs-029.png["该图显示输入/输出对话框或表示书面内
 
 
 
+[[failback]]
 == 故障回复
 
 故障回复是一种可选过程，可在恢复后恢复源站点和目标站点的原始配置。
@@ -276,6 +285,7 @@ image:dr-draas-nfs-030.png["该图显示输入/输出对话框或表示书面内
 
 
 
+[[monitoring-and-dashboard]]
 == 监控和仪表板
 
 从BlueXP或ONTAP CLI，您可以监控相应数据存储卷的复制健康状态，并且可以通过作业监控跟踪故障转移或测试故障转移的状态。

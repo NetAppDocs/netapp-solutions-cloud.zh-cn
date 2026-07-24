@@ -18,6 +18,7 @@ Amazon FSx ONTAP与 VMware Cloud on AWS 的集成是一个 AWS 管理的外部 N
 
 
 
+[[overview]]
 == 概述
 
 对于希望使用 VMware Cloud on AWS SDDC 作为灾难恢复目标的客户，可以使用 FSx ONTAP数据存储区通过任何经过验证且提供 VM 复制功能的第三方解决方案从本地复制数据。通过添加 FSx ONTAP数据存储，它将实现成本优化部署，而不是在 AWS SDDC 上构建 VMware 云，并使用大量 ESXi 主机来容纳存储。
@@ -26,6 +27,7 @@ Amazon FSx ONTAP与 VMware Cloud on AWS 的集成是一个 AWS 管理的外部 N
 
 
 
+[[problem-statement]]
 == 问题陈述
 
 本文档介绍如何使用 FSx ONTAP数据存储和 Veeam Backup 和复制，通过 VM 复制功能为本地 VMware VM 到 VMware Cloud on AWS 设置灾难恢复。
@@ -42,10 +44,12 @@ image:dr-veeam-fsx-001.png["使用 Veeam Replication 和 FSx ONTAP for VMC 的 D
 
 
 
+[[solution-deployment]]
 == 解决方案部署
 
 
 
+[[high-level-steps]]
 === 高级步骤
 
 . Veeam Backup and Replication 软件在具有适当网络连接的本地环境中运行。
@@ -57,6 +61,7 @@ image:dr-veeam-fsx-001.png["使用 Veeam Replication 和 FSx ONTAP for VMC 的 D
 
 
 
+[[pre-requisites-for-veeam-vm-replication-to-vmc-and-fsx-ontap-datastores]]
 === Veeam VM 复制到 VMC 和 FSx ONTAP数据存储的先决条件
 
 . 确保 Veeam Backup & Replication 备份 VM 连接到源 vCenter 以及 AWS SDDC 集群上的目标 VMware 云。
@@ -68,6 +73,7 @@ image:dr-veeam-fsx-001.png["使用 Veeam Replication 和 FSx ONTAP for VMC 的 D
 
 
 
+[[deployment-details]]
 === 部署详情
 
 .步骤 1：复制虚拟机
@@ -217,6 +223,7 @@ image:dr-veeam-fsx-019.png["该图显示输入/输出对话框或表示书面内
 ====
 
 
+[[conclusion]]
 == 结束语
 
 FSx ONTAP数据存储功能使 Veeam 或任何经过验证的第三方工具能够使用 Pilot Light 集群提供低成本的 DR 解决方案，而无需在集群中建立大量主机以容纳 VM 副本。这提供了一个强大的解决方案来处理量身定制的灾难恢复计划，并且还允许重复使用内部现有的备份产品来满足灾难恢复需求，从而通过退出内部灾难恢复数据中心实现基于云的灾难恢复。故障转移可以按计划进行，也可以在灾难发生时单击按钮进行故障转移，并决定激活 DR 站点。

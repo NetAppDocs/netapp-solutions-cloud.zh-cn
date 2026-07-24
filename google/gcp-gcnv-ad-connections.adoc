@@ -23,6 +23,7 @@ NOTE: NetApp Volumes-SW 要求 Active Directory 服务器位于同一区域。�
 
 
 
+[[active-directory-credentials]]
 == Active Directory 凭据
 
 启用 SMB 或 LDAP for NFS 后， Google Cloud NetApp Volumes会与 Active Directory 控制器交互以创建用于身份验证的机器帐户对象。这与 Windows SMB 客户端加入域并需要对 Active Directory 中的组织单位 (OU) 具有相同的访问权限的方式没有什么不同。
@@ -31,6 +32,7 @@ NOTE: NetApp Volumes-SW 要求 Active Directory 服务器位于同一区域。�
 
 
 
+[[permissions-needed-to-create-smb-machine-accounts]]
 === 创建 SMB 机器帐户所需的权限
 
 要将Google Cloud NetApp Volumes机器对象添加到 Active Directory，需要具有域管理权限或具有 https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/plan/delegating-administration-by-using-ou-objects["委派创建和修改计算机帐户对象的权限"^]需要指定 OU。您可以使用 Active Directory 中的控制委派向导来执行此操作，方法是创建自定义任务，该任务为用户提供创建/删除计算机对象的权限，并提供以下访问权限：
@@ -48,6 +50,7 @@ NOTE: 传递给 Active Directory 域的用户名和密码在机器帐户对象�
 
 
 
+[[active-directory-connection-details]]
 == Active Directory 连接详细信息
 
  https://docs.cloud.google.com/netapp/volumes/docs/configure-and-use/active-directory/about-ad["Active Directory 连接详细信息"^]为管理员提供指导，以便为计算机帐户放置提供特定的 Active Directory 架构信息，例如：
@@ -66,6 +69,7 @@ NOTE: 默认情况下，大多数 Windows 服务器不会禁用较弱的密码�
 
 
 
+[[kerberos-realm-details]]
 == Kerberos 领域详细信息
 
 此选项不适用于 SMB 服务器。相反，它用于为Google Cloud NetApp Volumes系统配置 NFS Kerberos。填充这些详细信息后，将配置 NFS Kerberos 领域（类似于 Linux 上的 krb5.conf 文件），并在Google Cloud NetApp Volumes卷创建上指定 NFS Kerberos 时使用，因为 Active Directory 连接充当 NFS Kerberos 分发中心 (KDC)。
@@ -75,6 +79,7 @@ NOTE: 非 Windows KDC 当前不支持与Google Cloud NetApp Volumes一起使用�
 
 
 
+[[region]]
 == 地区
 
 通过区域，您可以指定 Active Directory 连接所在的位置。该区域必须与Google Cloud NetApp Volumes卷位于同一区域。
@@ -84,6 +89,7 @@ NOTE: 非 Windows KDC 当前不支持与Google Cloud NetApp Volumes一起使用�
 
 
 
+[[backup-users]]
 == 备份用户
 
 此选项使您能够指定对Google Cloud NetApp Volumes卷具有备份权限的 Windows 用户。某些应用程序需要备份权限（SeBackupPrivilege）才能正确备份和恢复 NAS 卷中的数据。此用户对卷中的数据具有高级别访问权限，因此您应该考虑 https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/audit-audit-the-use-of-backup-and-restore-privilege["启用该用户访问的审计"^]。启用后，审计事件将显示在事件查看器 > Windows 日志 > 安全中。
@@ -92,6 +98,7 @@ image:ncvs-gc-019.png["该图显示输入/输出对话框或表示书面内容"]
 
 
 
+[[security-privilege-users]]
 == 安全特权用户
 
 通过此选项，您可以指定对Google Cloud NetApp Volumes卷具有安全修改权限的 Windows 用户。某些应用程序需要安全权限（SeSecurityPrivilege）(https://docs.netapp.com/us-en/ontap/smb-hyper-v-sql/add-sesecurityprivilege-user-account-task.html["例如 SQL Server"^] ) 在安装过程中正确设置权限。管理安全日志需要此权限。虽然此权限不如 SeBackupPrivilege 强大，NetApp建议 https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/basic-audit-privilege-use["审计用户的用户访问"^]如果需要的话，可以使用此权限级别。
@@ -100,6 +107,8 @@ image:ncvs-gc-019.png["该图显示输入/输出对话框或表示书面内容"]
 
 
 
+[[how-google-cloud-netapp-volumes-shows-up-in-active-directory]]
+[[how-cloud-volumes-service-shows-up-in-active-directory]]
 == Google Cloud NetApp Volumes如何在 Active Directory 中显示
 
 Google Cloud NetApp Volumes在 Active Directory 中显示为普通机器帐户对象。命名约定如下。

@@ -18,12 +18,14 @@ Veeam Backup & Replication 是保护 VMware Cloud 中数据的有效且可靠的
 
 
 
+[[overview]]
 == 概述
 
 VMware Cloud（在 AWS 中）支持使用 NFS 数据存储作为补充存储，而 FSx ONTAP对于需要为其云应用程序存储大量数据的客户来说是一种安全的解决方案，并且可以独立于 SDDC 集群中的 ESXi 主机数量进行扩展。此集成的 AWS 存储服务提供高效存储以及所有传统的NetApp ONTAP功能。
 
 
 
+[[use-cases]]
 === 使用案例
 
 此解决方案适用于以下用例：
@@ -35,6 +37,7 @@ VMware Cloud（在 AWS 中）支持使用 NFS 数据存储作为补充存储，�
 
 
 
+[[nfs-datastores-using-amazon-fsx-ontap]]
 === 使用Amazon FSx ONTAP 的NFS 数据存储
 
 此解决方案中的所有虚拟机都驻留在 FSx ONTAP补充 NFS 数据存储上。使用 FSx ONTAP作为补充 NFS 数据存储有几个好处。例如，它允许您：
@@ -82,6 +85,7 @@ VMware Cloud（在 AWS 中）支持使用 NFS 数据存储作为补充存储，�
 ====
 
 
+[[high-level-architecture]]
 == 高级架构
 
 该解决方案的测试/验证是在实验室中进行的，该实验室可能与最终部署环境匹配，也可能不匹配。欲了解更多信息，请参阅以下章节。
@@ -106,6 +110,7 @@ image:aws-vmc-veeam-037.png["解决方案架构图"]
 ====
 
 
+[[solution-deployment]]
 == 解决方案部署
 
 在此解决方案中，我们提供了有关部署和验证解决方案的详细说明，该解决方案利用 Veeam Backup 和 Replication 软件在 AWS 上的 VMware Cloud SDDC 中执行 SQL Server、Oracle 以及 Windows 和 Linux 文件服务器虚拟机的备份和恢复。此解决方案中的虚拟机驻留在由 FSx ONTAP托管的补充 NFS 数据存储上。此外，单独的 FSx ONTAP文件系统用于托管将用于 Veeam 备份存储库的 iSCSI 卷。
@@ -120,6 +125,7 @@ image:aws-vmc-veeam-037.png["解决方案架构图"]
 
 
 
+[[deploy-veeam-proxy-server]]
 === 部署 Veeam 代理服务器
 
 Veeam 代理服务器是 Veeam Backup & Replication 软件的一个组件，充当源和备份或复制目标之间的中介。代理服务器通过在本地处理数据来帮助优化和加速备份作业期间的数据传输，并且可以使用不同的传输模式通过 VMware vStorage API 进行数据保护或通过直接存储访问来访问数据。
@@ -178,6 +184,7 @@ image:aws-vmc-veeam-010.png["配置网络流量规则"]
 ====
 
 
+[[configure-storage-and-backup-repositories]]
 === 配置存储和备份存储库
 
 主 Veeam Backup 服务器和 Veeam Proxy 服务器可以以直接连接存储的形式访问备份存储库。在本节中，我们介绍如何创建 FSx ONTAP文件系统、将 iSCSI LUN 安装到 Veeam 服务器以及创建备份存储库。
@@ -278,6 +285,7 @@ image:aws-vmc-veeam-016.png["选择挂载服务器"]
 ====
 
 
+[[configure-veeam-backup-jobs]]
 === 配置 Veeam 备份作业
 
 应利用上一节中的备份存储库创建备份作业。创建备份作业是任何存储管理员的正常工作的一部分，我们不会在这里介绍所有步骤。有关在 Veeam 中创建备份作业的更多完整信息，请参阅 https://www.veeam.com/documentation-guides-datasheets.html?productId=8&version=product%3A8%2F221["Veeam 帮助中心技术文档"^]。
@@ -307,6 +315,7 @@ image:aws-vmc-veeam-018.png["长期保留政策"]
 ====
 
 
+[[restore-application-vms-with-veeam-full-restore]]
 === 使用 Veeam 完整恢复功能恢复应用程序虚拟机
 
 使用 Veeam 执行完整恢复是执行应用程序恢复的第一步。我们验证了虚拟机的完全恢复已启动并且所有服务均正常运行。
@@ -315,6 +324,7 @@ image:aws-vmc-veeam-018.png["长期保留政策"]
 
 
 
+[[restore-sql-server-databases]]
 === 还原 SQL Server 数据库
 
 Veeam Backup & Replication 提供了多种用于恢复 SQL Server 数据库的选项。为了进行此验证，我们使用具有即时恢复功能的 Veeam Explorer for SQL Server 来执行 SQL Server 数据库的恢复。 SQL Server 即时恢复功能允许您快速还原 SQL Server 数据库，而无需等待完整的数据库还原。这种快速恢复过程可最大限度地减少停机时间并确保业务连续性。工作原理如下：
@@ -360,6 +370,7 @@ image:aws-vmc-veeam-024.png["监控 SQL Server 恢复过程"]
 
 
 
+[[restore-oracle-databases-with-veeam-explorer]]
 === 使用 Veeam Explorer 恢复 Oracle 数据库
 
 Veeam Explorer for Oracle 数据库提供了执行标准 Oracle 数据库还原或使用即时恢复进行不间断还原的能力。它还支持发布数据库以实现快速访问、恢复 Data Guard 数据库以及从 RMAN 备份中恢复。
@@ -443,6 +454,7 @@ image:aws-vmc-veeam-036.png["从列表中选择一个还原点"]
 ====
 
 
+[[conclusion]]
 == 结束语
 
 VMware Cloud 是一个强大的平台，用于运行关键业务应用程序和存储敏感数据。对于依赖 VMware Cloud 来确保业务连续性并帮助防止网络威胁和数据丢失的企业来说，安全的数据保护解决方案至关重要。通过选择可靠且强大的数据保护解决方案，企业可以确信无论如何其关键数据都是安全的。
@@ -451,6 +463,7 @@ VMware Cloud 是一个强大的平台，用于运行关键业务应用程序和�
 
 
 
+[[additional-information]]
 == 追加信息
 
 要了解有关此解决方案中提出的技术的更多信息，请参阅以下附加信息。

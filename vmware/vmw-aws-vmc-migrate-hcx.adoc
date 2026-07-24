@@ -18,6 +18,7 @@ Amazon Web Services (AWS) 上的 VMware Cloud (VMC) 及其在Amazon FSx ONTAP上
 
 
 
+[[overview-migrating-virtual-machines-with-vmware-hcx-fsx-ontap-supplemental-datastores-and-vmware-cloud]]
 == 概述：使用 VMware HCX、FSx ONTAP补充数据存储区和 VMware Cloud 迁移虚拟机
 
 VMware HCX 主要是一个移动平台，旨在简化跨云的工作负载迁移、工作负载重新平衡和业务连续性。它是 AWS 上 VMware Cloud 的一部分，提供多种迁移工作负载的方法，并可用于灾难恢复 (DR) 操作。
@@ -68,6 +69,7 @@ image:fsx-hcx-001.png["该图显示输入/输出对话框或表示书面内容"]
 ====
 
 
+[[solution-deployment]]
 == 解决方案部署
 
 按照一系列步骤完成此解决方案的部署：
@@ -318,12 +320,14 @@ NOTE: 目标 VMC FSx ONTAP数据存储必须具有足够的空间来容纳迁移
 ====
 
 
+[[conclusion]]
 == 结束语
 
 无论您的目标是全云还是混合云，以及驻留在本地任何类型/供应商存储上的数据， Amazon FSx ONTAP和 HCX 都提供了部署和迁移工作负载的绝佳选择，同时通过使数据要求无缝连接到应用程序层来降低 TCO。无论用例如何，选择 VMC 和 FSx ONTAP数据存储都可以快速实现云优势、跨本地和多个云的一致基础架构和操作、工作负载的双向可移植性以及企业级容量和性能。使用 VMware vSphere 复制、VMware vMotion 甚至 NFC 复制来连接存储和迁移虚拟机所采用的流程和程序相同。
 
 
 
+[[takeaways]]
 == 总结
 
 该文件的要点包括：
@@ -335,6 +339,7 @@ NOTE: 目标 VMC FSx ONTAP数据存储必须具有足够的空间来容纳迁移
 
 
 
+[[where-to-find-additional-information]]
 == 在哪里可以找到更多信息
 
 要了解有关本文档中描述的信息的更多信息，请参阅以下网站链接：

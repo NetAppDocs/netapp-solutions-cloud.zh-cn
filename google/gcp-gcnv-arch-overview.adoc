@@ -20,12 +20,14 @@ Google Cloud NetApp Volumes的总体架构可以分为两个主要组件：控�
 
 
 
+[[control-plane]]
 == 控制平面
 
 Google Cloud NetApp Volumes中的控制平面是由Google Cloud NetApp Volumes管理员和NetApp原生自动化软件管理的后端基础架构。该平面对最终用户完全透明，包括网络、存储硬件、软件更新等，以帮助为Google Cloud NetApp Volumes等云驻留解决方案提供价值。
 
 
 
+[[data-plane]]
 == 数据平面
 
 Google Cloud NetApp Volumes中的数据平面包括实际数据卷和整体Google Cloud NetApp Volumes配置（例如访问控制、Kerberos 身份验证等）。数据平面完全由Google Cloud NetApp Volumes平台的最终用户和消费者控制。

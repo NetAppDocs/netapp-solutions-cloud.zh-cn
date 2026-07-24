@@ -20,6 +20,7 @@ Google Cloud NetApp Volumes为该协议的 SMB 2.1 和 3.x 版本提供支持。
 
 
 
+[[access-controlsmb-shares]]
 == 访问控制/SMB 共享
 
 * 当 Windows 用户名请求访问Google Cloud NetApp Volumes卷时， Google Cloud NetApp Volumes会使用Google Cloud NetApp Volumes管理员配置的方法查找 UNIX 用户名。
@@ -65,6 +66,7 @@ Address:  10. xxx.0. x
 
 
 
+[[using-smb-name-aliases]]
 === 使用 SMB 名称别名
 
 在某些情况下，让最终用户知道Google Cloud NetApp Volumes使用的机器帐户名称可能会带来安全隐患。在其他情况下，您可能只是想为最终用户提供更简单的访问路径。在这些情况下，您可以创建 SMB 别名。
@@ -93,6 +95,7 @@ image:ncvs-gc-009.png["该图显示输入/输出对话框或表示书面内容"]
 
 
 
+[[smb-authentication-dialects]]
 === SMB 身份验证方言
 
 Google Cloud NetApp Volumes支持以下 https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-smb2/8df1a501-ce4e-4287-8848-5f1d4733e280["方言"^]对于 SMB 身份验证：
@@ -111,10 +114,12 @@ Google Cloud NetApp Volumes还支持 LM 和 NTLM 身份验证的向后兼容性�
 
 
 
+[[permission-models]]
 == 权限模型
 
 
 
+[[ntfsfile-permissions]]
 === NTFS/文件权限
 
 NTFS 权限是遵循 NTFS 逻辑对文件系统中的文件和文件夹应用的权限。您可以在 `Basic`或者 `Advanced`并可设置为 `Allow`或者 `Deny`用于访问控制。
@@ -138,6 +143,7 @@ NTFS 权限由 Windows SMB 客户端控制。
 
 
 
+[[share-permissions]]
 === 共享权限
 
 共享权限比 NTFS 权限（仅读取/更改/完全控制）更通用，并控制进入 SMB 共享的初始条目 - 类似于 NFS 导出策略规则的工作方式。
@@ -163,6 +169,7 @@ image:ncvs-gc-011.png["该图显示输入/输出对话框或表示书面内容"]
 
 
 
+[[smb-share-security-features]]
 == SMB 共享安全功能
 
 当您首次在Google Cloud NetApp Volumes中创建具有 SMB 访问权限的卷时，系统会向您提供一系列用于保护该卷的选择。
@@ -184,6 +191,7 @@ image:ncvs-gc-012.png["该图显示输入/输出对话框或表示书面内容"]
 
 
 
+[[default-hidden-shares]]
 == 默认隐藏共享
 
 在Google Cloud NetApp Volumes中创建 SMB 服务器时， https://library.netapp.com/ecmdocs/ECMP1366834/html/GUID-5B56B12D-219C-4E23-B3F8-1CB1C4F619CE.html["隐藏的管理共享"^] （使用 $ 命名约定）除了数据卷 SMB 共享之外创建的。这些包括 C$（命名空间访问）和 IPC$（共享命名管道以用于程序之间的通信，例如用于 Microsoft 管理控制台 (MMC) 访问的远程过程调用 (RPC)）。
@@ -194,6 +202,7 @@ C$ 共享默认允许 BUILTIN/Administrators 访问，但Google Cloud NetApp Vol
 
 
 
+[[accounts-with-localbuiltin-administratorbackup-rights]]
 == 具有本地/内置管理员/备份权限的帐户
 
 Google Cloud NetApp Volumes SMB 服务器保持与常规 Windows SMB 服务器类似的功能，即存在将访问权限应用于选定域用户和组的本地组（例如 BUILTIN\Administrators）。
@@ -238,6 +247,7 @@ image:ncvs-gc-016.png["该图显示输入/输出对话框或表示书面内容"]
 
 
 
+[[mmccomputer-management-access]]
 == MMC/计算机管理访问
 
 Google Cloud NetApp Volumes中的 SMB 访问提供与计算机管理 MMC 的连接，使您能够查看共享、管理共享 ACL 以及查看/管理 SMB 会话和打开文件。
@@ -282,6 +292,7 @@ image:ncvs-gc-018.png["该图显示输入/输出对话框或表示书面内容"]
 |===
 
 
+[[smb-server-security-information]]
 == SMB 服务器安全信息
 
 Google Cloud NetApp Volumes中的 SMB 服务器使用一系列选项来定义 SMB 连接的安全策略，包括 Kerberos 时钟偏差、票证年龄、加密等。

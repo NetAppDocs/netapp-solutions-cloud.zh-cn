@@ -18,6 +18,7 @@ AWS 支持使用本机 FSx 服务 (FSx ONTAP) 或Cloud Volumes ONTAP (CVO) 连�
 
 
 
+[[fsx-ontap]]
 == FSx ONTAP
 
 Amazon FSx ONTAP是一项完全托管的服务，它基于 NetApp 流行的ONTAP文件系统构建，提供高度可靠、可扩展、高性能且功能丰富的文件存储。  FSx ONTAP将NetApp文件系统的熟悉功能、性能、功能和 API 操作与完全托管的 AWS 服务的灵活性、可扩展性和简单性相结合。
@@ -30,6 +31,7 @@ FSx ONTAP还提供高可用性和持久性存储，具有完全托管的备份�
 
 
 
+[[fsx-ontap-as-guest-connected-storage]]
 === FSx ONTAP作为来宾连接存储
 
 .使用 VMware Cloud on AWS 配置Amazon FSx ONTAP
@@ -273,6 +275,8 @@ image:aws-fsx-guest-032.png["该图显示输入/输出对话框或表示书面�
 ====
 
 
+[[cloud-volumes-ontap-cvo]]
+[[aws-cvo]]
 == Cloud Volumes ONTAP (CVO)
 
 Cloud Volumes ONTAP（或称 CVO）是基于 NetApp 的ONTAP存储软件构建的业界领先的云数据管理解决方案，可在 Amazon Web Services (AWS)、Microsoft Azure 和 Google Cloud Platform (GCP) 上原生使用。
@@ -285,6 +289,7 @@ CVO 的设计旨在提供极致的性能和先进的数据管理功能，以满�
 
 
 
+[[cloud-volumes-ontap-cvo-as-guest-connected-storage]]
 === Cloud Volumes ONTAP (CVO) 作为来宾连接存储
 
 .在 AWS 中部署新的Cloud Volumes ONTAP实例（自行部署）

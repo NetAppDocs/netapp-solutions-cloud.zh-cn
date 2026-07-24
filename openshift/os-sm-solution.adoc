@@ -20,6 +20,7 @@ NetApp Cloud Volumes ONTAP 存储为 AWS、Azure 和 Google Cloud 中的容器�
 
 
 
+[[data-protection-and-migration-solution-for-openshift-container-workloads-in-a-hybrid-cloud-using-trident-protect]]
 == 使用Trident Protect 为混合云中的 OpenShift Container 工作负载提供数据保护和迁移解决方案
 
 本地和 AWSimage:rhhc-self-managed-aws.png["该图显示输入/输出对话框或表示书面内容"]

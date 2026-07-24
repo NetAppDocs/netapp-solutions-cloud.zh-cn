@@ -18,6 +18,7 @@ NetApp存储可以作为来宾连接存储或补充存储附加到 Azure VMware 
 
 
 
+[[azure-netapp-files-anf-as-a-supplemental-nfs-datastore]]
 == Azure NetApp Files(ANF) 作为补充 NFS 数据存储
 
 ESXi 版本 3 在本地部署中引入了 NFS 数据存储支持，这极大地扩展了 vSphere 的存储功能。
@@ -34,6 +35,7 @@ Azure NetApp Files基于业界领先、高可用性的NetApp ONTAP数据管理�
 
 
 
+[[azure-netapp-files-anf-as-guest-connected-storage]]
 == Azure NetApp Files(ANF) 作为来宾连接存储
 
 Azure NetApp Files为 Azure 带来企业级数据管理和存储，以便您可以轻松管理工作负载和应用程序。将您的工作负载迁移到云端并运行它们，而不会牺牲性能。
@@ -46,6 +48,7 @@ Azure NetApp Files消除了障碍，因此您可以将所有基于文件的应�
 
 
 
+[[cloud-volumes-ontap-cvo-as-guest-connected-storage]]
 == Cloud Volumes ONTAP (CVO) 作为来宾连接存储
 
 Cloud Volumes ONTAP (CVO) 是基于 NetApp ONTAP存储软件构建的业界领先的云数据管理解决方案，可在 Amazon Web Services (AWS)、Microsoft Azure 和 Google Cloud Platform (GCP) 上原生使用。

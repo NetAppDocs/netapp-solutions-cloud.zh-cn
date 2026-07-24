@@ -18,6 +18,7 @@ Google Cloud NetApp Volumes能够与 SMB 和 NFS 客户端共享相同的数据�
 
 
 
+[[access-control]]
 == 访问控制
 
 * *共享访问控制。*确定哪些客户端和/或用户和组可以访问 NAS 共享。对于 NFS，导出策略和规则控制客户端对导出的访问。  NFS 导出由Google Cloud NetApp Volumes实例管理。 SMB 利用 CIFS/SMB 共享和共享 ACL 在用户和组级别提供更精细的控制。您只能通过使用https://library.netapp.com/ecmdocs/ECMP1401220/html/GUID-C1772CDF-8AEE-422B-AB87-CFCB7E50FF94.html [MMC/Computer Management^] 和在Google Cloud NetApp Volumes实例上具有管理员权限的帐户从 SMB 客户端配置共享级 ACL（请参阅部分链接：gcp-gcnv-smb.html#Accounts with local/BUILTIN administrator/backup rights["Accounts with local/BUILTIN administrator/backup rights."]）。
@@ -28,6 +29,7 @@ Google Cloud NetApp Volumes能够与 SMB 和 NFS 客户端共享相同的数据�
 
 
 
+[[user-mapping]]
 == 用户映射
 
 当客户端访问卷时， Google Cloud NetApp Volumes会尝试将传入用户映射到相反方向的有效用户。这对于跨协议确定正确的访问权限以及确保请求访问的用户确实是他们所声称的用户来说是必要的。
@@ -40,6 +42,7 @@ Google Cloud NetApp Volumes能够与 SMB 和 NFS 客户端共享相同的数据�
 
 
 
+[[permission-model]]
 == 权限模型
 
 使用双协议设置时， Google Cloud NetApp Volumes会利用卷的安全样式来确定 ACL 的类型。这些安全样式是根据指定的 NAS 协议设置的，或者在双协议的情况下，是在创建Google Cloud NetApp Volumes卷时做出的选择。

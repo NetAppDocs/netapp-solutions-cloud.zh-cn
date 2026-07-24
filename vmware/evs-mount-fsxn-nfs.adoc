@@ -18,6 +18,7 @@ summary: 本节将展示如何将 FSx for ONTAP部署为 NFS 数据存储区的�
 
 
 
+[[high-level-deployment-steps]]
 == 高级部署步骤
 
 部署 FSx for ONTAP文件系统作为 Amazon EVS 的 NFS 数据存储并在两种服务之间建立连接将包括以下步骤：
@@ -29,6 +30,7 @@ summary: 本节将展示如何将 FSx for ONTAP部署为 NFS 数据存储区的�
 
 
 
+[[prerequisites]]
 == 前提条件
 
 在开始将 FSx for ONTAP设置为 Amazon EVS 的 NFS 数据存储之前，应满足以下先决条件：
@@ -49,6 +51,7 @@ NOTE: 您的 FSx for ONTAP文件系统应部署在与 Amazon EVS SDDC 相同的 
 
 
 
+[[create-an-fsx-for-ontap-file-system]]
 == 创建 FSx for ONTAP文件系统
 
 以下步骤将向您展示如何配置和挂载 FSx for ONTAP文件系统：
@@ -154,6 +157,7 @@ NOTE: 要创建额外的 FSx for ONTAP文件系统，您可以按照上面详述
 
 
 
+[[validating-vpc-and-virtualization-environment-routing-and-security-groups]]
 == 验证 VPC 和虚拟化环境路由和安全组
 
 验证 VPC 和 SDDC 路由和安全组对于确保 Amazon EVS 虚拟化环境和 FSx for ONTAP文件系统组件能够正常协同工作非常重要。
@@ -207,6 +211,7 @@ image:evs-mount-fsxn-017.png["该图表示上述步骤的对话框"]
 
 
 
+[[attaching-an-fsx-for-ontap-nfs-volume-to-amazon-evs-for-use-as-a-datastore]]
 == 将 FSx for ONTAP NFS 卷附加到 Amazon EVS 以用作数据存储
 
 现在您的 FSx for ONTAP文件系统已配置完毕，并且所有正确的连接参数都已验证，接下来就可以将 FSx for ONTAP存储卷附加到 Amazon EVS 了。以下步骤将展示如何访问 vCenter 并将 FSx for ONTAP卷挂载为 NFS 数据存储：

@@ -24,12 +24,14 @@ image:ncvs-gc-001.png["该图显示输入/输出对话框或表示书面内容"]
 
 
 
+[[tenancy-model]]
 == 租赁模型
 
 在Google Cloud NetApp Volumes中，单个项目被视为唯一的租户。这意味着对卷、Snapshot 副本等的操作都是基于每个项目执行的。换句话说，所有卷都归创建它们的项目所有，并且默认情况下只有该项目可以管理和访问其中的数据。这被认为是服务的控制平面视图。
 
 
 
+[[shared-vpcs]]
 === 共享 VPC
 
 在数据平面视图上， Google Cloud NetApp Volumes可以连接到共享 VPC。您可以在托管项目或连接到共享 VPC 的某个服务项目中创建卷。连接到该共享 VPC 的所有项目（主机或服务）都能够访问网络层（TCP/IP）的卷。由于共享 VPC 上具有网络连接的所有客户端都可以通过 NAS 协议访问数据，因此必须使用单个卷上的访问控制（例如用户/组访问控制列表 (ACL) 和 NFS 导出的主机名/IP 地址）来控制谁可以访问数据。
@@ -42,6 +44,7 @@ image:ncvs-gc-001.png["该图显示输入/输出对话框或表示书面内容"]
 
 
 
+[[vpc-service-controls]]
 === VPC 服务控制
 
 VPC 服务控制在连接到互联网且可在全球范围内访问的 Google Cloud 服务周围建立访问控制边界。这些服务通过用户身份提供访问控制，但无法限制请求来自哪个网络位置。  VPC 服务控制通过引入限制对定义网络的访问的功能来弥补这一差距。
@@ -52,6 +55,8 @@ Google Cloud NetApp Volumes数据平面未连接到外部互联网，而是连�
 
 
 
+[[packet-sniffingtrace-considerations]]
+[[packet-sniffing]]
 === 数据包嗅探/跟踪注意事项
 
 数据包捕获可用于解决网络问题或其他问题（例如 NAS 权限、LDAP 连接等），但也可能被恶意用于获取有关网络 IP 地址、MAC 地址、用户和组名称以及端点上使用的安全级别的信息。由于 Google Cloud 网络、VPC 和防火墙规则的配置方式，如果没有用户登录凭据或link:gcp-gcnv-control-plane-arch.html#jwt-tokens["JWT 令牌"]进入云实例。数据包捕获仅可在端点（例如虚拟机 (VM)）上进行，并且仅可在 VPC 内部的端点上进行，除非使用共享 VPC 和/或外部网络隧道/IP 转发明确允许外部流量到端点。没有办法嗅探客户端之外的流量。
@@ -71,6 +76,7 @@ image:ncvs-gc-004.png["该图显示输入/输出对话框或表示书面内容"]
 
 
 
+[[vm-network-interfaces]]
 === 虚拟机网络接口
 
 攻击者可能会尝试的一个技巧是向虚拟机添加新的网络接口卡 (NIC) https://en.wikipedia.org/wiki/Promiscuous_mode["混杂模式"^] （端口镜像）或在现有 NIC 上启用混杂模式以嗅探所有流量。在 Google Cloud 中，添加新的 NIC 需要完全关闭 VM，这会创建警报，因此攻击者无法不被注意地执行此操作。

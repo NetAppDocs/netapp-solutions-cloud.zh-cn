@@ -18,6 +18,7 @@ summary: 本节介绍设置适用于 VMware 的 SnapCenter 插件的步骤。
 
 
 
+[[adding-the-storage-system]]
 == 添加存储系统
 
 使用 SVC 保护工作负载的下一步是添加link:https://docs.netapp.com/us-en/sc-plugin-vmware-vsphere/scpivs44_add_storage_01.html["存储系统"]。添加存储允许 SCV 检测和管理 vCenter 内的备份和还原操作。将 FSx for NetApp ONTAP 管理端点或存储虚拟机 (SVM) 管理端点 IP 作为存储系统，以启用 VM 备份和还原。
@@ -37,6 +38,7 @@ NOTE: 添加文件系统时会自动添加所有 SVM。
 
 
 
+[[create-a-backup-policy]]
 == 创建备份策略
 
 强大的备份策略应定义关键因素，例如备份计划、要备份的数据以及备份的保留期。可以按小时或按天安排快照副本，以保护整个数据存储区。通过这种方式安排备份不仅可以保护数据存储，还可以支持这些数据存储中包含的 VM 和 VMDK 的备份和恢复操作。
@@ -69,6 +71,7 @@ image:evs-protect-fsxn-004.png["该图表示上述步骤的对话框"]
 
 
 
+[[create-a-resource-group]]
 == 创建资源组
 
 资源组用作需要保护的 VM 和数据存储的容器。资源可以随时添加到资源组或从资源组中删除，这为管理备份配置提供了灵活性。
@@ -92,6 +95,7 @@ image:evs-protect-fsxn-005.png["该图表示上述步骤的对话框"]
 
 
 
+[[backing-up-resource-groups]]
 == 备份资源组
 
 备份操作对资源组中定义的所有资源执行。如果资源组附加了策略并配置了计划，则会根据计划自动进行备份。

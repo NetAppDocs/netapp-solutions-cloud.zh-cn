@@ -25,6 +25,8 @@ summary:
 
 
 
+[[configuring-avs-in-azure]]
+[[config]]
 == 在 Azure 中配置 AVS
 
 与本地一样，规划基于云的虚拟化环境对于成功创建虚拟机和迁移的生产就绪环境至关重要。
@@ -45,6 +47,8 @@ NOTE: 来宾内存储是将Cloud Volumes ONTAP连接到 Azure VMware 解决方�
 
 
 
+[[netapp-storage-options-for-avs]]
+[[datastore]]
 == NetApp的 AVS 存储选项
 
 NetApp存储可以在 Azure AVS 中以多种方式使用 - 既可以作为猜测连接，也可以作为补充 NFS 数据存储。
@@ -62,6 +66,8 @@ Azure 支持以下配置的NetApp存储：
 
 
 
+[[solution-use-cases]]
+[[solutions]]
 == 解决方案用例
 
 借助NetApp和 VMware 云解决方案，许多用例都可以在 Azure AVS 中轻松部署。针对 VMware 定义的每个云区域都定义了这些用例：

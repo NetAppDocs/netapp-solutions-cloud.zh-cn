@@ -20,6 +20,7 @@ NetApp的 Niyaz Mohamed
 
 
 
+[[overview]]
 == 概述
 
 灾难恢复到云端是一种具有弹性且经济高效的方法，可以保护工作负载免受站点中断和数据损坏事件（例如勒索软件）的影响。借助NetApp SnapMirror技术，本地 VMware 工作负载可以复制到在 AWS 中运行的 FSx ONTAP 。
@@ -30,10 +31,12 @@ image:dro-vmc-001.png["此图描述了本地数据中心、VMware Cloud on AWS S
 
 
 
+[[getting-started]]
 == 入门
 
 
 
+[[deploy-and-configure-vmware-cloud-on-aws]]
 === 在 AWS 上部署和配置 VMware Cloud
 
 link:https://www.vmware.com/products/vmc-on-aws.html["AWS 上的 VMware Cloud"^]为 AWS 生态系统中基于 VMware 的工作负载提供云原生体验。每个 VMware 软件定义数据中心 (SDDC) 都在 Amazon 虚拟私有云 (VPC) 中运行，并提供完整的 VMware 堆栈（包括 vCenter Server）、NSX-T 软件定义网络、vSAN 软件定义存储以及一个或多个为工作负载提供计算和存储资源的 ESXi 主机。要在 AWS 上配置 VMC 环境，请按照以下步骤操作link:vmw-aws-vmc-setup.html["链接"^]。指示灯组也可用于 DR 目的。
@@ -43,12 +46,14 @@ NOTE: 在初始版本中，DRO 支持现有的指示灯集群。按需 SDDC 创�
 
 
 
+[[provision-and-configure-fsx-ontap]]
 === 配置 FSx ONTAP
 
 Amazon FSx ONTAP是一项完全托管的服务，它基于流行的NetApp ONTAP文件系统构建，提供高度可靠、可扩展、高性能且功能丰富的文件存储。按照此处的步骤操作link:vmw-aws-vmc-nfs-ds-overview.html["链接"^]配置和配置 FSx ONTAP。
 
 
 
+[[deploy-and-configure-snapmirror-to-fsx-ontap]]
 === 部署并配置SnapMirror到 FSx ONTAP
 
 下一步是使用NetApp BlueXP并发现 AWS 实例上配置的 FSx ONTAP ，并以适当的频率和NetApp Snapshot 副本保留将所需的数据存储卷从本地环境复制到 FSx ONTAP ：
@@ -62,12 +67,14 @@ NOTE: SnapMirror关系是先决条件，必须事先创建。
 
 
 
+[[dro-installation]]
 == DRO安装
 
 要开始使用 DRO，请在指定的 EC2 实例或虚拟机上使用 Ubuntu 操作系统，以确保您满足先决条件。然后安装该包。
 
 
 
+[[prerequisites]]
 === 前提条件
 
 * 确保与源和目标 vCenter 和存储系统的连接存在。
@@ -77,6 +84,7 @@ NOTE: SnapMirror关系是先决条件，必须事先创建。
 
 
 
+[[os-requirements]]
 === OS 要求
 
 * Ubuntu 20.04 (LTS)，最低配置 2GB 内存和 4 个 vCPU
@@ -96,6 +104,7 @@ NOTE: 这 `deploy.sh`脚本执行所有必需的先决条件。
 
 
 
+[[install-the-package]]
 === 安装包
 
 . 在指定虚拟机上下载安装包：
@@ -144,6 +153,7 @@ image:dro-vmc-003.png["灾难恢复协调器登录屏幕。"]
 
 
 
+[[dro-configuration]]
 == DRO 配置
 
 正确配置 FSx ONTAP和 VMC 后，您可以开始配置 DRO，以使用 FSx ONTAP上的只读SnapMirror副本自动将本地工作负载恢复到 VMC。
@@ -178,6 +188,7 @@ image:dro-vmc-006.png["自动发现屏幕包含 219 个虚拟机和 10 个数据
 
 
 
+[[resource-groupings]]
 === 资源分组
 
 添加平台后，您可以将要恢复的虚拟机分组到资源组中。  DRO 资源组允许您将一组从属虚拟机分组为逻辑组，这些逻辑组包含它们的启动顺序、启动延迟以及可在恢复时执行的可选应用程序验证。
@@ -202,6 +213,7 @@ image:dro-vmc-007.png["包含两个条目的资源组列表的屏幕截图：Tes
 
 
 
+[[replication-plans]]
 === 复制计划
 
 您需要一个在发生灾难时恢复应用程序的计划。从下拉菜单中选择源和目标 vCenter 平台，并选择要包含在该计划中的资源组，以及应用程序应如何恢复和启动的分组（例如，域控制器，然后是第 1 层，然后是第 2 层，等等）。此类计划有时也称为蓝图。要定义恢复计划，请导航到“*复制计划*”选项卡并单击“*新建复制计划*”。
@@ -267,6 +279,7 @@ image:dro-vmc-022.png["临时占位符图像描述。"]
 
 
 
+[[ransomware-recovery]]
 === 勒索软件恢复
 
 从勒索软件中恢复可能是一项艰巨的任务。具体来说，IT 组织很难确定安全的返回点，而且一旦确定，就很难保护恢复的工作负载免受休眠恶意软件或易受攻击的应用程序等的重复攻击。
@@ -275,6 +288,7 @@ DRO 可让您从任何可用时间点恢复系统，从而解决这些问题。�
 
 
 
+[[benefits]]
 == 受益
 
 * 使用高效且有弹性的SnapMirror复制。

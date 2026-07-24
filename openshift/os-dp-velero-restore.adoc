@@ -18,6 +18,7 @@ summary: Red Hat OpenShift 容器应用程序数据保护与NetApp ONTAP
 
 
 
+[[prerequisites]]
 == 前提条件
 
 为了从备份中恢复，我们假设应用程序所在的命名空间被意外删除了。

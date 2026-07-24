@@ -18,6 +18,7 @@ summary: 本节介绍设置适用于 VMware 的 SnapCenter 插件的步骤。
 
 
 
+[[prerequisites]]
 == 前提条件
 
 开始之前需要满足以下先决条件：
@@ -33,6 +34,7 @@ NOTE: SCV 免费提供。
 
 
 
+[[setting-up-the-snapcenter-plug-in-for-vmware]]
 == 设置适用于 VMware 的 SnapCenter 插件
 
 为了保护虚拟机和基于 NFS/iSCSI 的数据存储，必须部署 SCV。这是一个简单的 OVF 导入。

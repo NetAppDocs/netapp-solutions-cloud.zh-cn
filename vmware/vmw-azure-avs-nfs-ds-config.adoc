@@ -37,6 +37,7 @@ NOTE: 联系 Azure 和NetApp解决方案架构师来规划和调整存储大小�
 
 
 
+[[detailed-architecture]]
 == 详细架构
 
 从高层次的角度来看，该架构描述了如何实现跨本地环境和 Azure 的混合云连接和应用程序可移植性。它还描述了如何使用Azure NetApp Files作为补充 NFS 数据存储以及作为 Azure VMware 解决方案上托管的客户虚拟机的客户机存储选项。
@@ -45,6 +46,7 @@ image:vmware-dr-001.png["该图显示输入/输出对话框或表示书面内容
 
 
 
+[[sizing]]
 == 浆纱
 
 迁移或灾难恢复中最重要的方面是确定目标环境的正确规模。了解需要多少个节点才能完成从本地到 Azure VMware 解决方案的直接迁移练习非常重要。
@@ -64,6 +66,7 @@ NOTE: 与来宾内存储一起使用的来宾虚拟机必须单独计算；但�
 
 
 
+[[deploying-and-configuring-azure-vmware-solution]]
 == 部署和配置 Azure VMware 解决方案
 
 与本地一样，规划 Azure VMware 解决方案对于成功创建虚拟机和迁移的生产就绪环境至关重要。
@@ -79,6 +82,7 @@ NOTE: 与来宾内存储一起使用的来宾虚拟机必须单独计算；但�
 
 
 
+[[configure-azure-netapp-files-with-azure-vmware-solution]]
 == 使用 Azure VMware 解决方案配置Azure NetApp Files
 
 Azure NetApp Files之间的新集成使您能够通过 Azure VMware 解决方案资源提供程序 API/CLI 使用Azure NetApp Files卷创建 NFS 数据存储，并将数据存储安装在私有云中您选择的集群上。除了容纳 VM 和应用程序 VMDK 之外，Azure NetApp文件卷还可以从在 Azure VMware 解决方案 SDDC 环境中创建的 VM 中装载。由于Azure NetApp Files支持服务器消息块 (SMB) 和网络文件系统 (NFS) 协议，因此卷可以安装在 Linux 客户端上并映射到 Windows 客户端上。
@@ -217,6 +221,7 @@ image:vmware-dr-005.png["该图显示输入/输出对话框或表示书面内容
 ====
 
 
+[[sizing-and-performance-optimization]]
 == 尺寸和性能优化
 
 Azure NetApp Files支持三种服务级别：标准级（每 TB 16MBps）、高级级（每 TB 64MBps）和超级级（每 TB 128MBps）。配置正确的卷大小对于数据库工作负载的最佳性能非常重要。使用Azure NetApp Files，卷性能和吞吐量限制根据以下因素确定：
@@ -244,6 +249,7 @@ image:vmware-dr-006.png["该图显示输入/输出对话框或表示书面内容
 |===
 
 
+[[performance-considerations]]
 == 性能考虑
 
 重要的是要理解，使用 NFS 版本 3 时，ESXi 主机和单个存储目标之间的连接只有一个活动管道。这意味着尽管可能存在可用于故障转移的备用连接，但单个数据存储和底层存储的带宽仅限于单个连接所能提供的带宽。
@@ -268,6 +274,7 @@ image:vmware-dr-006.png["该图显示输入/输出对话框或表示书面内容
 |===
 
 
+[[increasing-the-size-of-the-datastore]]
 == 增加数据存储的大小
 
 卷重塑和动态服务级别变化对于 SDDC 来说是完全透明的。在Azure NetApp Files中，这些功能可提供持续的性能、容量和成本优化。通过从 Azure 门户调整卷大小或使用 CLI 来增加 NFS 数据存储的大小。完成后，访问 vCenter，转到数据存储选项卡，右键单击相应的数据存储，然后选择刷新容量信息。这种方法可用于增加数据存储容量，并以动态方式提高数据存储的性能，且无需停机。这个过程对于应用程序来说也是完全透明的。
@@ -284,6 +291,7 @@ image:vmware-dr-006.png["该图显示输入/输出对话框或表示书面内容
 |===
 
 
+[[workloads]]
 == 工作负载
 
 .迁移

@@ -18,6 +18,7 @@ summary:
 
 
 
+[[overview]]
 == 概述
 
 该策略由三条基本规则组成：
@@ -31,6 +32,7 @@ summary:
 
 
 
+[[use-cases]]
 === 使用案例
 
 此解决方案适用于以下用例：
@@ -41,6 +43,7 @@ summary:
 
 
 
+[[netapp-ontap-data-storage]]
 === NetApp ONTAP数据存储
 
 ONTAP是 NetApp 业界领先的存储解决方案，无论您通过 SAN 还是 NAS 协议访问，它都能提供统一存储。  3-2-1 备份策略确保本地数据在多种媒体类型上受到保护，并且NetApp提供从高速闪存到低成本媒体的平台。
@@ -51,6 +54,7 @@ image:bxp-scv-hybrid-040.png["ONTAP数据存储"]
 
 
 
+[[snapcenter-plug-in-for-vmware-vsphere]]
 === 适用于 VMware vSphere 的 SnapCenter 插件
 
 VMware vSphere 的SnapCenter插件是一种数据保护产品，它与 VMware vSphere 紧密集成，可以轻松管理虚拟机的备份和恢复。作为该解决方案的一部分， SnapMirror提供了一种快速可靠的方法，可以在二级ONTAP存储集群上创建虚拟机数据的第二个不可变备份副本。有了这种架构，就可以从主备份位置或辅助备份位置轻松启动虚拟机恢复操作。
@@ -61,6 +65,7 @@ SCV 使用 OVA 文件部署为 Linux 虚拟设备。该插件现在使用远程�
 
 
 
+[[bluexp-backup-and-recovery-for-virtual-machines]]
 === BlueXP backup and recovery
 
 BlueXP backup and recovery是一种基于云的数据管理工具，它为跨本地和云环境的各种备份和恢复操作提供单一控制平面。 NetApp BlueXP backup and recovery套件的一部分功能是与 VMware vSphere（本地）的SnapCenter插件集成，以将数据副本扩展到云中的对象存储。这将建立来自主存储或辅助存储备份的异地数据的第三份副本。  BlueXP backup and recovery可以轻松设置存储策略，从这两个内部位置中的任意一个传输数据副本。
@@ -126,6 +131,7 @@ image:bxp-scv-hybrid-003.png["级联拓扑"]
 ====
 
 
+[[high-level-architecture]]
 == 高级架构
 
 该解决方案的测试/验证是在实验室中进行的，该实验室可能与最终部署环境匹配，也可能不匹配。
@@ -134,6 +140,7 @@ image:bxp-scv-hybrid-004.png["解决方案架构图"]
 
 
 
+[[solution-deployment]]
 == 解决方案部署
 
 在此解决方案中，我们提供了有关部署和验证利用适用于SnapCenter Plug-in for VMware vSphere以及BlueXP backup and recovery方案的详细说明，以便在位于本地数据中心的 VMware vSphere 群集内执行 Windows 和 Linux 虚拟机的备份和恢复。此设置中的虚拟机存储在由ONTAP A300 存储集群托管的 NFS 数据存储库上。此外，单独的ONTAP A300 存储集群可作为使用SnapMirror复制的卷的辅助目标。此外，托管在 Amazon Web Services 和 Azure Blob 上的对象存储被用作数据第三份副本的目标。
@@ -146,6 +153,7 @@ image:bxp-scv-hybrid-004.png["解决方案架构图"]
 
 
 
+[[establish-snapmirror-relationships-between-ontap-clusters]]
 === 在ONTAP集群之间建立SnapMirror关系
 
 SnapCenter Plug-in for VMware vSphere使用ONTAP SnapMirror技术来管理二级SnapMirror和/或SnapVault副本到二级ONTAP集群的传输。
@@ -359,6 +367,7 @@ ONTAP-Dest::> snapmirror initialize -destination-path DestSVM:DestVol
 ====
 
 
+[[configure-the-snapcenter-plug-in-for-vmware-vsphere]]
 === SnapCenter Plug-in for VMware vSphere
 
 安装后，可以从 vCenter Server Appliance 管理界面访问SnapCenter Plug-in for VMware vSphere。  SCV 将管理安装到 ESXi 主机并包含 Windows 和 Linux VM 的 NFS 数据存储的备份。
@@ -478,6 +487,7 @@ image:bxp-scv-hybrid-015.png["监控工作进度"]
 ====
 
 
+[[configure-backups-to-object-storage-in-bluexp-backup-and-recovery]]
 === 在BlueXP backup and recovery中配置对象存储备份
 
 为了使BlueXP有效地管理数据基础设施，需要事先安装连接器。连接器执行涉及发现资源和管理数据操作的操作。
@@ -606,6 +616,7 @@ NOTE: 此时数据传输可能不会立即开始。  BlueXP backup and recovery�
 ====
 
 
+[[restoring-virtual-machines-in-the-case-of-data-loss]]
 === 数据丢失时恢复虚拟机
 
 确保数据的安全只是全面数据保护的一个方面。同样重要的是，在发生数据丢失或勒索软件攻击时能够从任何位置迅速恢复数据。此功能对于维持无缝业务运营和满足恢复点目标至关重要。
@@ -681,6 +692,7 @@ image:bxp-scv-hybrid-039.png["从“作业监控”选项卡检查还原"]
 ====
 
 
+[[conclusion]]
 == 结束语
 
 3-2-1 备份策略与SnapCenter Plug-in for VMware vSphere以及适用于虚拟机的BlueXP backup and recovery一起实施时，可提供强大、可靠且经济高效的数据保护解决方案。该策略不仅确保了数据冗余和可访问性，而且还提供了从任何位置以及从内部ONTAP存储系统和基于云的对象存储恢复数据的灵活性。
@@ -689,6 +701,7 @@ image:bxp-scv-hybrid-039.png["从“作业监控”选项卡检查还原"]
 
 
 
+[[additional-information]]
 == 追加信息
 
 要了解有关此解决方案中提出的技术的更多信息，请参阅以下附加信息。

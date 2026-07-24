@@ -18,6 +18,7 @@ Azure NetApp Files (ANF) 数据存储将存储与计算分离，并释放了任�
 
 
 
+[[overview]]
 == 概述
 
 基于Azure NetApp Files(ANF) 卷的 NFS 数据存储可用于使用任何经过验证的提供 VM 复制功能的第三方解决方案从本地复制数据。通过添加Azure NetApp Files数据存储，它将实现成本优化部署，而不是构建具有大量 ESXi 主机来容纳存储的 Azure VMware 解决方案 SDDC。这种方法被称为“Pilot Light Cluster”。试点灯集群是最小 AVS 主机配置（3 x AVS 节点）以及Azure NetApp Files数据存储容量。
@@ -26,6 +27,7 @@ Azure NetApp Files (ANF) 数据存储将存储与计算分离，并释放了任�
 
 
 
+[[purposes-of-this-document]]
 == 本文件的目的
 
 本文介绍如何将Azure NetApp Files数据存储与 Veeam Backup 和复制结合使用，以使用 Veeam VM 复制软件功能为本地 VMware VM 到 (AVS) 设置灾难恢复。
@@ -40,10 +42,12 @@ image:dr-veeam-anf-001.png["该图显示输入/输出对话框或表示书面内
 
 
 
+[[solution-deployment]]
 == 解决方案部署
 
 
 
+[[high-level-steps]]
 === 高级步骤
 
 . Veeam Backup and Replication 软件在具有适当网络连接的本地环境中运行。
@@ -58,6 +62,7 @@ image:dr-veeam-anf-001.png["该图显示输入/输出对话框或表示书面内
 
 
 
+[[pre-requisites-for-veeam-vm-replication-to-avs-and-anf-datastores]]
 === Veeam VM 复制到 AVS 和 ANF 数据存储区的先决条件
 
 . 确保 Veeam Backup & Replication 备份 VM 连接到源以及目标 AVS SDDC 集群。
@@ -69,6 +74,7 @@ image:dr-veeam-anf-001.png["该图显示输入/输出对话框或表示书面内
 
 
 
+[[deployment-details]]
 === 部署详情
 
 .步骤 1：复制虚拟机
@@ -225,6 +231,7 @@ image:dr-veeam-anf-022.png["该图显示输入/输出对话框或表示书面内
 ====
 
 
+[[conclusion]]
 == 结束语
 
 Azure NetApp Files数据存储功能使 Veeam 或任何经过验证的第三方工具能够利用 Pilot light 集群来提供低成本的 DR 解决方案，而不是仅仅为了容纳 VM 副本而建立大型集群。这提供了一种有效的方法来处理量身定制的灾难恢复计划，并重复使用内部现有的备份产品进行灾难恢复，通过退出内部灾难恢复数据中心实现基于云的灾难恢复。发生灾难时，可以通过单击按钮进行故障转移，或者在发生灾难时自动进行故障转移。

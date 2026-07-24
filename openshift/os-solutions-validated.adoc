@@ -31,6 +31,7 @@ summary:
 
 
 
+[[scenario-1-data-protection-and-migration-within-the-on-premises-environment-using-trident-protect]]
 == 场景 1：使用Trident Protect 在本地环境中进行数据保护和迁移
 
 **本地：自我管理的 OpenShift 集群和自我管理的NetApp存储**
@@ -40,12 +41,14 @@ summary:
 
 
 
+[[scenario-1]]
 === 场景 1
 
 image:rhhc-on-premises.png["该图显示输入/输出对话框或表示书面内容"]
 
 
 
+[[scenario-2-data-protection-and-migration-from-the-on-premises-environment-to-aws-environment-using-trident-protect]]
 == 场景 2：使用Trident Protect 进行数据保护以及从本地环境到 AWS 环境的迁移
 
 **本地：自管理 OpenShift 集群和自管理存储** **AWS 云：自管理 OpenShift 集群和自管理存储**
@@ -55,12 +58,14 @@ image:rhhc-on-premises.png["该图显示输入/输出对话框或表示书面内
 
 
 
+[[scenario-2]]
 === 场景 2
 
 image:rhhc-self-managed-aws.png["该图显示输入/输出对话框或表示书面内容"]
 
 
 
+[[scenario-3-data-protection-and-migration-from-the-on-premises-environment-to-aws-environment]]
 == 场景 3：数据保护以及从本地环境到 AWS 环境的迁移
 
 **本地：自管理 OpenShift 集群和自管理存储** **AWS 云：提供商管理的 OpenShift 集群 (ROSA) 和提供商管理的存储 (FSx ONTAP)**
@@ -71,12 +76,14 @@ image:rhhc-self-managed-aws.png["该图显示输入/输出对话框或表示书�
 
 
 
+[[scenario-3]]
 === 场景 3
 
 image:rhhc-rosa-with-fsxn.png["该图显示输入/输出对话框或表示书面内容"]
 
 
 
+[[scenario-4-data-protection-and-migration-from-the-on-premises-environment-to-gcp-environment-using-trident-protect]]
 === 场景 4：使用Trident Protect 进行数据保护以及从本地环境到 GCP 环境的迁移
 
 **本地：自管理 OpenShift 集群和自管理存储** **Google Cloud：自管理 OpenShift 集群和自管理存储**
@@ -90,6 +97,7 @@ image:rhhc-self-managed-gcp.png["该图显示输入/输出对话框或表示书�
 
 
 
+[[scenario-5-data-protection-and-migration-from-the-on-premises-environment-to-azure-environment-using-trident-protect]]
 === 场景 5：使用Trident Protect 进行数据保护以及从本地环境到 Azure 环境的迁移
 
 **本地：自管理 OpenShift 集群和自管理存储** **Azure 云：自管理 OpenShift 集群和自管理存储**
