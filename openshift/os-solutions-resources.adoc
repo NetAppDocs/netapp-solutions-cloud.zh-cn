@@ -25,7 +25,7 @@ summary:
 . link:https://docs.netapp.com/us-en/trident/["Trident"]
 . link:https://docs.netapp.com/us-en/ontap/["ONTAP 9"]
 . link:https://github.com/NetApp/Verda["NetApp Verda"]- Verda（开源）拥有一系列适用于流行的云原生数据密集型应用程序的参考执行钩子
-. link:https://docs.netapp.com/us-en/cloud-manager-family/["NetApp BlueXP"]
+. link:https://bluexp.netapp.com/["NetApp BlueXP"]
 . link:https://docs.openshift.com/rosa/welcome/index.html["AWS 上的 Red Hat OpenShift 服务"]
 . link:https://docs.netapp.com/us-en/cloud-manager-fsx-ontap/["Amazon FSx ONTAP"]
 . link:https://docs.openshift.com/container-platform/4.13/installing/installing_gcp/preparing-to-install-on-gcp.html["在 GCP 上安装 OpenShift 集群"]

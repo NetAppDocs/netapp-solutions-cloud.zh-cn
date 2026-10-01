@@ -57,7 +57,7 @@ NOTE: 该连接器也可以安装在云环境中。参考link:https://docs.netap
 .在 OCP 集群中安装Trident
 [%collapsible%open]
 ====
-* 使用 Helm 部署Trident Operator。参考说明link:https://docs.netapp.com/us-en/trident/trident-get-started/kubernetes-deploy-helm.html["此处"]
+* 使用 Helm 部署 Trident Operator。请参见说明 link:https://docs.netapp.com/us-en/trident/trident-install/kubernetes-deploy-helm.html["此处"]
 * 创建后端和存储类。参考说明link:https://docs.netapp.com/us-en/trident/trident-use/backends.html["此处"]。
 
 

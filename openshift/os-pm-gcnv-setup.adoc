@@ -33,7 +33,7 @@ image:rhhc-osd-with-gcnv.png["该图显示输入/输出对话框或表示书面�
 
 
 .在 OSD 集群上安装Trident （使用 Helm 图表）
-* 使用 Helm 图表在 OSD 集群上安装 Trident。有关如何安装 Helm Chart 的说明，请参阅 link:https://docs.netapp.com/us-en/trident/trident-get-started/kubernetes-deploy-helm.html["此处"]。
+* 使用 Helm 图表在 OSD 集群上安装 Trident。有关如何安装 Helm Chart 的说明，请参阅 link:https://docs.netapp.com/us-en/trident/trident-install/kubernetes-deploy-helm.html["此处"^]。
 
 
 .将NetApp Volumes 与NetApp Trident集成用于 OSD 集群
@@ -63,4 +63,4 @@ allowVolumeExpansion: true
 * 为集群设置一个新的 Argo CD 实例。参考说明link:https://docs.openshift.com/gitops/1.13/argocd_instance/setting-up-argocd-instance.html["此处"]。
 
 
-打开Argo CD的控制台并部署一个应用程序。例如，您可以使用带有 Helm Chart 的 Argo CD 部署 Jenkins 应用程序。创建应用程序时，提供了以下详细信息：项目：默认集群：'https://kubernetes.default.svc'[] （不带引号）命名空间：Jenkins Helm Chart 的 URL：'https://charts.bitnami.com/bitnami'[] （不带引号）
+打开 Argo CD 的控制台并部署应用。例如，您可以使用带有 Helm Chart 的 Argo CD 部署 Jenkins 应用程序。创建应用程序时，提供了以下详细信息：Project：default cluster：+'https://kubernetes.default.svc'+[]（不带引号）Namespace：Jenkins Helm Chart 的 URL：+'https://charts.bitnami.com/bitnami'+[]（不带引号）

@@ -13,13 +13,11 @@ summary:
 :imagesdir: ../media/
 
 
+[role="lead"]
+请参见以下解决方案：
 
+* link:https://docs.netapp.com/us-en/netapp-solutions-containers/openshift/os-solution-overview.html["Red Hat OpenShift Container 本地解决方案"^]
+* link:https://docs.netapp.com/us-en/netapp-solutions-containers/openshift/os-rosa-solution-overview.html["AWS 上的 Red Hat OpenShift Service 容器解决方案"^]
+* link:https://docs.netapp.com/us-en/netapp-solutions-virtualization/openshift/osv-storage-getting-started.html["本地 Red Hat OpenShift 虚拟化解决方案"^]
+* link:https://docs.netapp.com/us-en/netapp-solutions-virtualization/openshift/osv-rosa-overview.html["Red Hat OpenShift Service on AWS 虚拟化解决方案"^]
 
-[[additional-solutions]]
-== 其他解决方案
-
-其他部分提供了其他解决方案，如下所示：
-
-对于 Red Hat OpenShift Container 解决方案，请参阅link:https://docs.netapp.com/us-en/netapp-solutions-containers/openshift/os-solution-overview.html["此处"^]。
-
-对于 Red Hat OpenShift 虚拟化解决方案，请参阅link:https://docs.netapp.com/us-en/netapp-solutions-virtualization/openshift/osv-deployment-prerequisites.html["此处"^]。

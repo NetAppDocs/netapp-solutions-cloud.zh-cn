@@ -114,7 +114,7 @@ NOTE: 目前， Google Cloud NetApp Volumes仅支持 Active Directory LDAP 的 L
 
 勒索软件、恶意软件和病毒对管理员来说是一个持续的威胁，检测、预防和缓解这些威胁始终是企业组织的首要任务。针对关键数据集的一次勒索软件事件就可能造成数百万美元的损失，因此尽最大努力将风险降至最低是有益的。
 
-尽管Google Cloud NetApp Volumes目前不包含原生检测或预防措施，例如防病毒保护或 https://www.netapp.com/blog/prevent-ransomware-spread-ONTAP/["自动勒索软件检测"^]，可以通过启用定期快照计划来快速从勒索软件事件中恢复。快照副本是不可变的，并且只读取文件系统中更改块的指针，接近即时的，对性能的影响极小，并且仅在数据更改或删除时才会占用空间。您可以设置 Snapshot 副本的计划以匹配所需的可接受恢复点目标 (RPO)/恢复时间目标 (RTO)，并且每个卷最多可保留 1,024 个 Snapshot 副本。
+虽然 Google Cloud NetApp Volumes 目前不包括本机检测或预防措施，例如防病毒保护或 https://www.netapp.com/cyber-resilience/ransomware-protection/ransomware-detection/["自动勒索软件检测"^]，但可以通过启用常规快照计划来快速从勒索软件事件中恢复。快照副本是不可变的只读指针，指向文件系统中已更改的块，近乎即时，对性能影响极小，并且仅在数据更改或删除时才占用空间。您可以为快照副本设置计划，以满足所需的可接受恢复点目标 （RPO）/恢复时间目标 （RTO），每个卷最多可保留 1,024 个快照副本。
 
 Google Cloud NetApp Volumes提供免费的快照支持（除了 Snapshot 副本保留的更改块/数据的数据存储费用之外），并且在发生勒索软件攻击时，可用于回滚到攻击发生之前的 Snapshot 副本。快照恢复只需几秒钟即可完成，然后您就可以恢复正常提供数据。有关更多信息，请参阅 https://www.netapp.com/pdf.html?item=/media/16716-sb-3938pdf.pdf&v=202093745["NetApp勒索软件解决方案"^] 。
 
