@@ -2,7 +2,7 @@
 sidebar: sidebar 
 permalink: vmware/vmw-aws-vmc-dr-prereqs.html 
 keywords: overview, dr, snapcenter, data replication, snapmirror 
-summary: 在此解决方案中， SnapCenter为 SQL Server 和 Oracle 应用程序数据提供应用程序一致的快照。此配置与SnapMirror技术相结合，可在我们的内部AFF和 FSx ONTAP集群之间提供高速数据复制。此外，Veeam Backup & Replication 为我们的虚拟机提供备份和恢复功能。 
+summary: 查看使用 SnapCenter 应用程序一致性快照、SnapMirror 复制到 FSx ONTAP 以及针对 VM 的 Veeam Backup and Replication 的灾难恢复解决方案的要求和规划。 
 ---
 = DR 解决方案要求、先决条件和规划
 :hardbreaks:
