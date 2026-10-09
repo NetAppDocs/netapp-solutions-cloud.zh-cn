@@ -59,7 +59,7 @@ summary: 当使用Google Cloud NetApp Volumes进行 NAS 共享时，可能需要
 [[network-ports-for-use-with-ldap-and-kerberos]]
 == 用于 LDAP 和 Kerberos 的网络端口
 
-使用 LDAP 和 Kerberos 时，您应该确定这些服务正在使用的网络端口。您可以在以下位置找到Google Cloud NetApp Volumes使用的端口的完整列表： https://cloud.google.com/architecture/partners/netapp-cloud-volumes/security-considerations?hl=en_US["Google Cloud NetApp Volumes有关安全注意事项的文档"^] 。
+使用 LDAP 和 Kerberos 时，您应该确定这些服务使用的网络端口。您可以在 https://docs.cloud.google.com/netapp/volumes/docs/plan-and-prepare/security-considerations["Google Cloud NetApp Volumes有关安全注意事项的文档"^]中找到 Google Cloud NetApp Volumes 正在使用的端口的完整列表。
 
 
 
@@ -326,7 +326,7 @@ Active Directory 和 Kerberos 都依赖 DNS 来实现主机名到 IP/IP 到主�
 
 请注意，Google 项目内的资源默认使用 Google Cloud DNS，它与 Active Directory DNS 无关。使用 Cloud DNS 的客户端无法解析Google Cloud NetApp Volumes返回的 UNC 路径。加入 Active Directory 域的 Windows 客户端配置为使用 Active Directory DNS，并且可以解析此类 UNC 路径。
 
-要将客户端加入 Active Directory，您必须配置其 DNS 配置以使用 Active Directory DNS。或者，您可以配置 Cloud DNS 以将请求转发到 Active Directory DNS。看 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/faqs-netapp["为什么我的客户端无法解析 SMB NetBIOS 名称？"^]了解更多信息。
+若要将客户端加入 Active Directory，必须将其 DNS 配置配置为使用 Active Directory DNS。或者，您可以将 Cloud DNS 配置为将请求转发到 Active Directory DNS。有关详细信息，请参见 https://docs.cloud.google.com/netapp/volumes/docs/configure-and-use/active-directory/about-ad["为什么我的客户端无法解析 SMB NetBIOS 名称？"^]。
 
 
 NOTE: Google Cloud NetApp Volumes目前不支持 DNSSEC，DNS 查询以纯文本形式执行。

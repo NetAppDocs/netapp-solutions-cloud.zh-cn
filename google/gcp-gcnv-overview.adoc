@@ -16,7 +16,7 @@ summary: 安全性，特别是在云中，因为基础设施不受存储管理�
 Oliver Krause、Justin Parisi、 NetApp
 
 [role="lead"]
-安全性，特别是在云中，因为基础设施不受存储管理员的控制，对于将您的数据信任给云提供商提供的服务产品至关重要。本文档概述了 https://cloud.netapp.com/cloud-volumes-service-for-gcp["Google Cloud NetApp Volumes在 Google Cloud 中提供"^]。
+安全性，特别是在基础架构不受存储管理员控制的云环境中，对于放心地将数据交由云提供商提供的服务产品至关重要。本文档概述了 https://www.netapp.com/google-cloud/netapp-volumes/["Google Cloud NetApp Volumes在 Google Cloud 中提供"^]提供的安全产品。
 
 
 

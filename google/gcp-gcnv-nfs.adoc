@@ -144,7 +144,7 @@ Google Cloud NetApp Volumes支持模式位（例如 rwx 的 644、777 等）和 
 |===
 最后，根据 RPC 数据包限制，NFS 组成员资格（在 NFSv3 和 NFSV4.x 中）对于 AUTH_SYS 的默认最大值限制为 16。  NFS Kerberos 提供最多 32 个组，NFSv4 ACL 通过细粒度的用户和组 ACL（每个 ACE 最多 1024 个条目）消除了限制。
 
-此外， Google Cloud NetApp Volumes还提供扩展组支持，将最大支持组数扩展至 32 个。这需要与包含有效 UNIX 用户和组身份的 LDAP 服务器建立 LDAP 连接。有关配置此功能的更多信息，请参阅 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/creating-nfs-volumes?hl=en_US["创建和管理 NFS 卷"^]在 Google 文档中。
+此外，Google Cloud NetApp Volumes 还提供扩展组支持，可将受支持的最大组数扩展到 32 个。这需要与包含有效 UNIX 用户和组标识的 LDAP 服务器建立 LDAP 连接。有关配置此功能的详细信息，请参见 Google 文档中的 https://docs.cloud.google.com/netapp/volumes/docs/configure-and-use/active-directory/ad-ldap-access["创建和管理 NFS 卷"^]。
 
 
 

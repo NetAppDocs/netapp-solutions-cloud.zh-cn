@@ -581,7 +581,7 @@ NOTE: 此处输入的SnapMirror标签用于标识要应用该策略的备份。�
 ====
 最后一步是激活各个数据存储区和虚拟机的数据保护。以下步骤概述了如何激活 AWS 备份。
 
-更多信息请参阅 https://docs.netapp.com/us-en/bluexp-backup-recovery/task-backup-vm-data-to-aws.html["将数据存储备份到 Amazon Web Services"]。
+有关更多信息，请参阅 https://docs.netapp.com/us-en/data-services-backup-recovery/br-use-vmware-backup.html["备份 VMware 工作负载"^]。
 
 . 从BlueXP backup and recovery主页，访问要备份的数据存储区的设置下拉菜单并选择*激活备份*。
 +
@@ -663,7 +663,7 @@ image:bxp-scv-hybrid-035.png["选择主要或次要"]
 
 BlueXP backup and recovery允许将虚拟机恢复到其原始位置。可通过BlueXP Web 控制台访问恢复功能。
 
-更多信息请参阅 https://docs.netapp.com/us-en/bluexp-backup-recovery/task-restore-vm-data.html["从云端恢复虚拟机数据"]。
+有关详细信息，请参阅 https://docs.netapp.com/us-en/data-services-backup-recovery/br-use-vmware-restore.html["从云端恢复虚拟机数据"^]。
 
 .从BlueXP backup and recovery中恢复虚拟机
 [%collapsible%open]

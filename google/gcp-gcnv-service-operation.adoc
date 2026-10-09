@@ -77,4 +77,4 @@ Google Cloud NetApp Volumes for Google Cloud 目前已通过 ISO/IEC 27001:2013 
 [[gdpr]]
 == GDPR
 
-我们对隐私和 GDPR 合规性的承诺体现在我们的许多 https://www.netapp.com/how-to-buy/sales-terms-and-conditions%22%20/o%20%22SEO%20-%20Sales%20Terms%20and%20Conditions["客户合同"^]，例如我们的 https://netapp.na1.echosign.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhCqPPgcufskl_71q-FelD4DHz5EMJVOkqqT0iiORT10DlfZnZeMpDrse5W6K9LEw6o*["客户Data Processing附录"^]，其中包括 https://ec.europa.eu/info/law/law-topic/data-protection/international-dimension-data-protection/standard-contractual-clauses-scc_en["标准合同条款"^]由欧盟委员会提供。我们还在我们的隐私政策中做出了这些承诺，并以我们公司行为准则中规定的核心价值观为后盾。
+我们对隐私和遵守 GDPR 的承诺在我们的许多 https://www.netapp.com/how-to-buy/sales-terms-and-conditions/["客户合同"^]中均有体现，例如我们的 https://netapp.na1.echosign.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhCqPPgcufskl_71q-FelD4DHz5EMJVOkqqT0iiORT10DlfZnZeMpDrse5W6K9LEw6o*["客户Data Processing附录"^]，其中包括欧盟委员会提供的 https://ec.europa.eu/info/law/law-topic/data-protection/international-dimension-data-protection/standard-contractual-clauses-scc_en["标准合同条款"^]。我们还在隐私政策中做出了这些承诺，并以公司行为准则中规定的核心价值观为后盾。

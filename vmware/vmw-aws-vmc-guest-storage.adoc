@@ -300,7 +300,7 @@ CVO 的设计旨在提供极致的性能和先进的数据管理功能，以满�
 要将卷从本地环境复制到云以实现灾难恢复或迁移，请使用站点到站点 VPN 或 DirectConnect 建立与 AWS 的网络连接。将数据从本地复制到Cloud Volumes ONTAP超出了本文档的范围。要在本地和Cloud Volumes ONTAP系统之间复制数据，请参阅link:https://docs.netapp.com/us-en/occm/task_replicating_data.html#setting-up-data-replication-between-systems["设置系统之间的数据复制"]。
 
 
-NOTE: 使用link:https://cloud.netapp.com/cvo-sizer["Cloud Volumes ONTAP大小调整器"]准确确定Cloud Volumes ONTAP实例的大小。此外，监控本地性能以用作Cloud Volumes ONTAP大小调整器的输入。
+NOTE: 使用link:https://bluexp.netapp.com/cvo-sizer["Cloud Volumes ONTAP大小调整器"^]可准确调整 Cloud Volumes ONTAP 实例的大小。此外，监控本地性能以用作 Cloud Volumes ONTAP sizer 中的输入。
 
 . 登录NetApp Cloud Central；显示 Fabric View 屏幕。找到Cloud Volumes ONTAP选项卡并选择转到云管理器。登录后，将显示 Canvas 屏幕。
 

@@ -16,7 +16,7 @@ summary: Google Cloud NetApp Volumes for Google Cloud 利用 Google Cloud 私有
 [role="lead"]
 Google Cloud NetApp Volumes for Google Cloud 利用 Google Cloud https://cloud.google.com/vpc/docs/configure-private-services-access["私人服务访问"^]框架。在这个框架中，用户可以连接到Google Cloud NetApp Volumes。该框架像其他 Google Cloud 服务一样使用服务网络和 VPC 对等结构，确保租户之间的完全隔离。
 
-有关Google Cloud NetApp Volumes for Google Cloud 的架构概述，请参阅 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/architecture["Google Cloud NetApp Volumes的架构"^]。
+有关适用于 Google Cloud 的 Google Cloud NetApp Volumes 的架构概述，请参见 https://docs.cloud.google.com/netapp/volumes/docs/discover/overview#netapp_volumes_architecture["Google Cloud NetApp Volumes的架构"^]。
 
 用户 VPC（独立或共享）与托管卷的Google Cloud NetApp Volumes管理租户项目内的 VPC 对等。
 

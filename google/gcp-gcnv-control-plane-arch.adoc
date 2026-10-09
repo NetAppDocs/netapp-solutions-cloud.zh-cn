@@ -28,7 +28,7 @@ summary: 对Google Cloud NetApp Volumes 的所有管理操作均通过 API 完�
 [[authorizationpermission-overview]]
 === 授权/许可概述
 
-IAM 为Google Cloud NetApp Volumes提供内置的细粒度权限。您可以找到 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/security-considerations?hl=en_US["此处有详细的权限完整列表"^]。
+IAM 为 Google Cloud NetApp Volumes 提供内置的精细权限。您可以找到 https://docs.cloud.google.com/netapp/volumes/docs/plan-and-prepare/iam["此处有详细的权限完整列表"^]。
 
 IAM 还提供了两个预定义角色，称为 `netappcloudvolumes.admin`和 `netappcloudvolumes.viewer`。这些角色可以分配给特定用户或服务帐户。
 
@@ -52,14 +52,14 @@ IAM 还提供了两个预定义角色，称为 `netappcloudvolumes.admin`和 `ne
 * 使用 https://cloud.google.com/iam/docs/impersonating-service-accounts["服务帐户模拟"^]和 `roles/iam.serviceAccountTokenCreator`。代码（脚本、Terraform 等）运行 https://google.aip.dev/auth/4110["应用程序默认凭证"^]并模拟服务帐户以获取其权限。这种方法体现了 Google 安全最佳实践。
 
 
-看 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/api?hl=en_US["创建您的服务帐户和私钥"^]请参阅 Google 云文档以获取更多信息。
+有关详细信息，请参见 Google 云文档中的 https://docs.cloud.google.com/netapp/volumes/docs/apis["创建您的服务帐户和私钥"^]。
 
 
 
 [[google-cloud-netapp-volumes-api]]
 == Google Cloud NetApp VolumesAPI
 
-Google Cloud NetApp Volumes API 使用基于 REST 的 API，并使用 HTTPS（TLSv1.2）作为底层网络传输。您可以找到最新的 API 定义 https://cloudvolumesgcp-api.netapp.com/swagger.json["此处"^]以及如何使用 API 的信息 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/api?hl=en_US["Google 云文档中的 Cloud Volumes API"^]。
+Google Cloud NetApp Volumes API 使用基于 REST 的 API，并使用 HTTPS (TLSv1.2) 作为底层网络传输。您可以在 https://docs.cloud.google.com/netapp/volumes/docs/apis["Google 云文档中的 Cloud Volumes API"^]找到最新的 API 定义以及有关如何使用该 API 的信息。
 
 NetApp使用标准 HTTPS（TLSv1.2）功能来操作和保护 API 端点。
 
