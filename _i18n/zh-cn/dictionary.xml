@@ -355,7 +355,6 @@
   <block id="2eaa173e56517db74fb0eb92806a0877" category="inline-link">RFC-2307-bis</block>
   <block id="f0ffb6475b0cf36d6dec7230979a5d99" category="paragraph">要将 Active Directory 用作 UNIX LDAP 服务器，您必须在要用于 UNIX 身份的用户和组上填充必要的 UNIX 属性。 Google Cloud NetApp Volumes使用默认 LDAP 模式模板，该模板根据以下信息查询属性<block ref="54011f528a38d24d58a7f02f98da0d00" category="inline-link-rx"></block>。因此，下表显示了用户和组需要填充的最低限度的 Active Directory 属性以及每个属性的用途。</block>
   <block id="a6e75b8341b03d08fb1d6817635b1d47" category="inline-link">管理双协议访问。</block>
-  <block id="c0f3d72f07b570cdf3f5d1376c72a389" category="paragraph">有关在 Active Directory 中设置 LDAP 属性的详细信息，请参阅<block ref="c2741a8ac44d0c827e11ee9004dcd081" category="inline-link-rx"></block></block>
   <block id="f2bbdf9f72c085adc4d0404e370f0f4c" category="cell">属性</block>
   <block id="b12c51b935d86f01d092fb23a1fa4f9f" category="cell">它的作用</block>
   <block id="e266bea072e01571abba7fc5075c2c86" category="cell">uid*</block>
@@ -1101,7 +1100,6 @@
   <block id="5f8bb3c8dda2d3aead02890ea8c54e3e" category="paragraph">本节概述如何在 OpenShift Virtualization 中为虚拟机创建按需备份。</block>
   <block id="c072e8c0e577f288f9b33f2e15d40ea2" category="section-title">创建应用程序备份的步骤</block>
   <block id="55876228853abf632dec9346a4f372ec" category="inline-link-macro">文档</block>
-  <block id="27fce95cab4e8e1be8870bf42a5493e3" category="paragraph">要创建应用程序的按需备份（应用程序元数据和应用程序的持久卷），请单击**备份**选项卡以创建备份自定义资源（CR）。提供了一个示例 yaml 来创建备份 CR。使用此 yaml，将备份指定命名空间中的应用程序及其持久存储。可以设置其他参数，如下所示<block ref="45bf4fcb30cb666d5b02b54fb671e73b" category="inline-link-macro-rx"></block>。</block>
   <block id="61c783a93fa3ff977cadb409ff31ae78" category="paragraph">CSI 将创建指定命名空间中的持久卷和应用程序资源的快照。此快照将存储在 yaml 中指定的备份位置。备份将按照 ttl 的规定在系统中保留 30 天。</block>
   <block id="c04e0f40b83a86fd835680d3df9ce399" category="paragraph">备份完成后，其阶段将显示为已完成。</block>
   <block id="a2eabcbade98a44462292c4666e62044" category="inline-image-macro">备份完成</block>
@@ -1322,7 +1320,6 @@
   <block id="bc6be57de293aecbdd76179b49cf3d18" category="list-text">安装期间，此虚拟机上配置了一个 root 用户。</block>
   <block id="32049ccafae47776aabbbc616d0f03c3" category="example-title">在 VMware vSphere（Hub Cluster）上部署和配置 OpenShift Container Platform 集群</block>
   <block id="8f723b78972cfa193e65ef9f3a2344c8" category="inline-link-macro">协助部署</block>
-  <block id="9f411a513455f8ddf5eec40502ede88d" category="paragraph">请参阅<block ref="65f43ff86dc09e8eca32a46f76b24cfc" category="inline-link-macro-rx"></block>部署 OCP 集群的方法。</block>
   <block id="9e925e9341b490bfd3b4c4ca3b0c1ef2" category="inline-link-macro">这</block>
   <block id="bc4ca673b1da75d1fc9d8fb4c7d5be52" category="admonition">请记住以下内容： - 创建 ssh 公钥和私钥以提供给安装程序。如果需要，这些密钥将用于登录主节点和工作节点。 - 从辅助安装程序下载安装程序。该程序用于启动您在 VMware vSphere 环境中为主节点和工作节点创建的虚拟机。  - 虚拟机应具备最低 CPU、内存和硬盘要求。  （请参阅 vm create 命令<block ref="ad56d2cae35f81c0593c34aac3d8101d" category="inline-link-macro-rx"></block>提供此信息的主节点和工作节点的页面） - 应在所有虚拟机上启用 diskUUID。  - 为 master 创建至少 3 个节点，为 worker 创建至少 3 个节点。  - 一旦安装程序发现它们，请打开 VMware vSphere 集成切换按钮。</block>
   <block id="5ee7e5d095a85988457e6852e94af6e8" category="example-title">在 Hub 集群上安装高级集群管理</block>
@@ -1367,7 +1364,6 @@
   <block id="ddb3824d66d83c1cb42a0f409b88c3f5" category="list-text">如果 kubernetes 中的任何当前存储类被标记为默认，请通过编辑存储类来删除该注释。</block>
   <block id="83a6edfaeb8960933ba30055e77c4031" category="list-text">使用Trident CSI 配置程序为NetApp卷创建至少一个存储类。使用注释将其中一个存储类设为默认存储类。当 PVC 清单中未明确调用时，这将允许 PVC 使用此存储类。下面显示了一个带有注释的示例。</block>
   <block id="bb2978b82e7eef8973a778154ed9d1d8" category="list-title">使用 OpenShift GitOps（Argo CD）部署应用程序</block>
-  <block id="391500fa73fe756b6e5639d4be254f9b" category="list-text">在集群上安装 OpenShift GitOps 操作员。参考说明<block ref="0f28c06b874e8771e180b718b2d11a08" category="inline-link-macro-rx"></block>。</block>
   <block id="2f32c13166e5bf78897d9948ab7ba878" category="list-text">为集群设置一个新的 Argo CD 实例。参考说明<block ref="92e97978dfa95fc31fba8b02ddee3516" category="inline-link-macro-rx"></block>。</block>
   <block id="7d6d4165ad5f6730731dde0ccade66be" category="doc">适用于 Red Hat OpenShift 工作负载的其他NetApp混合多云解决方案</block>
   <block id="8f1d3df73fb3b1a1a98cb44ce73c8c9a" category="section-title">其他解决方案</block>
@@ -1390,7 +1386,6 @@
   <block id="a13d721aed664ec4974349a0a4cd1184" category="list-text">从 OpenShift 控制台将使用Trident CSI 为 FsxN 创建的存储类设为默认。请参阅下面的截图：</block>
   <block id="ed119532e0d1f0ce424b19f98f51fdcc" category="paragraph"><block ref="ed119532e0d1f0ce424b19f98f51fdcc" category="inline-image-macro-rx" type="image"></block></block>
   <block id="28832d59ac5a06d16e97fd07fb21b521" category="list-text">在集群上安装 OpenShift GitOps 操作员。参考说明<block ref="946032aa50bddc23d84d8e7c39ffd30b" category="inline-link-macro-rx"></block>。</block>
-  <block id="356be904a2ad4050250d6fe2a3227030" category="list-text">为集群设置一个新的 Argo CD 实例。参考说明<block ref="119b4b110537aa2ea9e3e33df43cde60" category="inline-link-macro-rx"></block>。</block>
   <block id="c6900348e4c35229bfdef15cd046933d" category="paragraph">Helm 参数：global.storageClass: fsxn-nas</block>
   <block id="a92627d33b05b20f86355f0ec9c1786f" category="doc">具有托管 Red Hat OpenShift 容器平台工作负载的NetApp解决方案</block>
   <block id="bcdc55eb7a6d566683a3cf8d0715610c" category="paragraph">客户可能“诞生于云端”，或者正处于现代化历程的某个阶段，准备将部分选定的工作负载或所有工作负载从数据中心迁移到云端。他们可以选择在云中使用提供商管理的 OpenShift 容器和提供商管理的NetApp存储来运行他们的工作负载。他们应该在云中规划和部署托管的 Red Hat OpenShift 容器集群，以便为他们的容器工作负载提供成功的生产就绪环境。  NetApp为三大领先公共云中的托管 Red Hat 解决方案提供完全托管的存储产品。</block>
@@ -1405,10 +1400,8 @@
   <block id="cd9cb04f3381ccbd3d21c64bf624a027" category="paragraph"><block ref="cd9cb04f3381ccbd3d21c64bf624a027" category="inline-image-macro-rx" type="image"></block></block>
   <block id="41d1c7e4fb0ee270686f45df6c4cc0fb" category="admonition">有几种方法可以在 Azure 中部署 Red Hat OpenShift Container 平台集群。此设置的高级描述提供了所使用的特定方法的文档链接。您可以参考<block ref="0dda26563abbac8fd54607a52d591e91" category="inline-link-macro-rx"></block>。</block>
   <block id="e48a8638636d8a3f7826e829d6166418" category="example-title">从 CLI 在 Azure 上安装 OCP 群集。</block>
-  <block id="9724bc82f58f261a75898cc300f0b993" category="list-text">确保您已满足所有规定的先决条件<block ref="3aae5312888d8e9223e629f14f295a63" category="inline-link-macro-rx"></block>。</block>
   <block id="811d1cf13b4e3820eec83db1c4c05fe6" category="list-text">创建 VPN、子网和网络安全组以及私有 DNS 区域。创建 VPN 网关和站点到站点 VPN 连接。</block>
   <block id="88300001929e9a793a02e0e2955279cd" category="list-text">为了实现本地和 Azure 之间的 VPN 连接，我们创建并配置了一个 pfSense VM。有关说明，请参阅<block ref="be1f25e1c0fba9929238d326827b9fa7" category="inline-link-macro-rx"></block>。</block>
-  <block id="b0f1e5ccb49619c57e880ef68847b35d" category="list-text">获取安装程序和pull secret，按照文档提供的步骤部署集群<block ref="3aae5312888d8e9223e629f14f295a63" category="inline-link-macro-rx"></block>。</block>
   <block id="4f27717b74673bf2705ddb857faf61a6" category="list-text">集群安装完成，会提供一个kubeconfig文件以及登录集群控制台的用户名和密码。</block>
   <block id="c8a9f594886c5614d298ffe7ce45e839" category="paragraph">下面给出了一个示例 install-config.yaml 文件。</block>
   <block id="e4e0602228585217e17627fb546a2623" category="example-title">使用BlueXP在 Azure 中部署Cloud Volumes ONTAP 。</block>
@@ -1455,7 +1448,6 @@
   <block id="2f9a622f50ad91f20ea33eb464dffed5" category="list-text">在 3 个不同的 AZ 中创建 3 个私有子网。</block>
   <block id="3bc0575c716ca54e3e3f3c18896d2073" category="list-text">为 VPC 创建 Route 53 私有托管区域和 DNS 解析器。</block>
   <block id="78e681da9aa719a4fa341bfefe7241dc" category="paragraph">从高级集群管理 (ACM) 向导在 AWS 上创建 OpenShift 集群。参考说明<block ref="a8dc968cbec7f22006c56d08b612b183" category="inline-link-macro-rx"></block>。</block>
-  <block id="308c1e3e719191b8ced2d38fd974ca8e" category="admonition">您还可以从 OpenShift 混合云控制台在 AWS 中创建集群。参考<block ref="2273fb526f12aab77cc8d6457769ac6c" category="inline-link-macro-rx"></block>以获取说明。</block>
   <block id="fdb3ae874409cbcef80a6d9bfeb5f048" category="admonition">使用 ACM 创建集群时，您可以在表单视图中填写详细信息后通过编辑 yaml 文件来自定义安装。集群创建完成后，可以通过ssh登录到集群的节点进行故障排除或额外的手动配置。使用您在安装过程中提供的 ssh 密钥和用户名 core 登录。</block>
   <block id="09896a8f2d501b8991dc697c7cbfa3db" category="example-title">使用BlueXP在 AWS 中部署Cloud Volumes ONTAP 。</block>
   <block id="aac68d095e2a2a598854689d3a9118c3" category="list-text">在本地 VMware 环境中安装连接器。参考说明<block ref="09bba0e8799e65970cd5db9fc029a18c" category="inline-link-macro-rx"></block>。</block>
@@ -1492,31 +1484,19 @@
   <block id="7e9f968a139a25a62b6f7f581469c718" category="doc">其他文档</block>
   <block id="2958dbcd62d37cb8d2dae92d4bd5ddaf" category="paragraph">以下是一些可供参考的附加文档：</block>
   <block id="8887a9a417a1629326acdb917d224337" category="inline-link-macro">VMware vSphere</block>
-  <block id="299437d2dfff10029aa68548910ed14a" category="list-text"><block ref="299437d2dfff10029aa68548910ed14a" category="inline-link-macro-rx"></block></block>
   <block id="8b35ba920859760c3b7ab07c1f52df88" category="inline-link-macro">OpenShift Container 平台产品文档</block>
-  <block id="7113f7690b69458a12c8968b2e7b5c94" category="list-text"><block ref="7113f7690b69458a12c8968b2e7b5c94" category="inline-link-macro-rx"></block></block>
   <block id="010bce66eda52af8597098e33d12e767" category="inline-link-macro">安装 OpenShift 容器平台集群</block>
-  <block id="bb6401d44c28bcee95779ebce2e127f1" category="list-text"><block ref="bb6401d44c28bcee95779ebce2e127f1" category="inline-link-macro-rx"></block></block>
   <block id="9e4f27bab2ba4dcc223eabe15d060c22" category="inline-link-macro">高级集群管理产品文档</block>
   <block id="0de84e35816fe2bf24a2d62358c71ec0" category="list-text"><block ref="0de84e35816fe2bf24a2d62358c71ec0" category="inline-link-macro-rx"></block></block>
   <block id="1a28b2dbd24896f9ae4e7ea905e79d07" category="inline-link-macro">使用 ACM 创建集群</block>
-  <block id="c17964cf4aee883c1f79b2b18d5cf8c5" category="list-text"><block ref="c17964cf4aee883c1f79b2b18d5cf8c5" category="inline-link-macro-rx"></block></block>
   <block id="88c39d9e07dd53d7dfe71bcc634dd892" category="inline-link-macro">在 OpenShift 上部署 Red Hat Quay</block>
-  <block id="c4a315706dd2011b5383e54e9b2917d4" category="list-text"><block ref="c4a315706dd2011b5383e54e9b2917d4" category="inline-link-macro-rx"></block></block>
   <block id="10f0fa4079121b371145e16713fdbb44" category="inline-link-macro">Trident</block>
-  <block id="7ab586adf508841140a17861f83c2f68" category="list-text"><block ref="7ab586adf508841140a17861f83c2f68" category="inline-link-macro-rx"></block></block>
   <block id="203165a49e3a391bdbc44e3a05d54279" category="inline-link-macro">ONTAP 9</block>
-  <block id="2f4df966d6adc25fd002d42aba0522c1" category="list-text"><block ref="2f4df966d6adc25fd002d42aba0522c1" category="inline-link-macro-rx"></block></block>
   <block id="8c9552895e8b32d168c001c8cb0d41ac" category="inline-link-macro">NetApp Verda</block>
-  <block id="c9201dcf5ef4e81010385777c2b0eefd" category="list-text"><block ref="c2f5b2c54b56c4b456371849b6825da6" category="inline-link-macro-rx"></block>- Verda（开源）拥有一系列适用于流行的云原生数据密集型应用程序的参考执行钩子</block>
   <block id="1273c8a63109161e6fd1f18d6998523f" category="inline-link-macro">NetApp BlueXP</block>
   <block id="d2154db2b88b25388e0f4a7a9080bfc9" category="inline-link-macro">AWS 上的 Red Hat OpenShift 服务</block>
-  <block id="ca0553647614febb5dfa86b86874cf2f" category="list-text"><block ref="ca0553647614febb5dfa86b86874cf2f" category="inline-link-macro-rx"></block></block>
-  <block id="f51b423dfa48d00e66fde30840ade1ae" category="list-text"><block ref="f51b423dfa48d00e66fde30840ade1ae" category="inline-link-macro-rx"></block></block>
   <block id="258dff02bafa822fdd86173cf3a704fd" category="inline-link-macro">在 GCP 上安装 OpenShift 集群</block>
-  <block id="b6d7b323dede2a4e24afaa7b9dd5984f" category="list-text"><block ref="b6d7b323dede2a4e24afaa7b9dd5984f" category="inline-link-macro-rx"></block></block>
   <block id="d0b55d3b0b9d8025eb06e76618f6bf8a" category="inline-link-macro">在 Azure 上安装 OpenShift 集群</block>
-  <block id="30bef8c4d342eeb1d1f466a9ea23121d" category="list-text"><block ref="30bef8c4d342eeb1d1f466a9ea23121d" category="inline-link-macro-rx"></block></block>
   <block id="7ffdbddadae2331a4b6fe9848564fe3e" category="doc">支持NetApp Storage 与 Red Hat OpenShift Containers 的集成</block>
   <block id="fe8eee79d056bcfea51f3c41c47daada" category="paragraph">无论 Red Hat OpenShift 容器是在 VMware 上运行还是在超大规模环境中运行， NetApp Trident都可以用作其支持的各种类型的后端NetApp存储的 CSI 配置器。</block>
   <block id="20ff55cda5b4afe35761476a6ae379e0" category="paragraph">下图描述了可使用NetApp Trident与 OpenShift 集群集成的各种后端NetApp存储。</block>
@@ -6260,7 +6240,6 @@
   <block id="282025b5b19344c8e277116127efe10a" category="list-text">如图所示，部署 Trident 的方法有很多<block ref="a513e33196701a0875db01e145416086" category="inline-link-rx"></block>。</block>
   <block id="8b92be9389cce6edfc4c001f1db14964" category="list-text">对于此项目，Trident 是按照说明手动部署 Trident Operator 来安装的<block ref="0984860e46f3ed8718676caeb88662f6" category="inline-link-rx"></block>。</block>
   <block id="38d6382e9e736693ef209aef9d7c37ca" category="list-text">使用 Helm 部署 Trident Operator。请参见说明 <block ref="2ff93a5b15d1fa89110d690cb53d85fd" category="inline-link-macro-rx"></block></block>
-  <block id="79ba8743942daea465ff28416e07cbd7" category="list-text"><block ref="79ba8743942daea465ff28416e07cbd7" category="inline-link-macro-rx"></block></block>
   <block id="f553be2d93d2e2e12265c808c5b01c02" category="list-text"><block ref="f553be2d93d2e2e12265c808c5b01c02" category="inline-link-macro-rx"></block></block>
   <block id="af84bbf7cdb0d0e716f2513d0d3f363f" category="paragraph">SnapCenter 软件可从 NetApp 支持站点获取，并可安装在域或工作组中的 Microsoft Windows 系统上。详细的规划指南和安装说明，请参阅 <block ref="85cbe5bd6e949acc06321919c4679a05" category="inline-link-macro-rx"></block>。</block>
   <block id="660febd0d05e3ca3fc12d156de67c555" category="paragraph">这将确保运行 Cloud Volumes ONTAP 实例的 VPC 网络能够与 GCVE 私有云进行通信。为此，请按照<block ref="12bbd3d08aba9fc22ed45e2726d3faff" category="inline-link-macro-rx"></block>。对于 Cloud Volume Service，通过在租户主机项目之间执行一次性对等，在 VMware Engine 和 Google Cloud NetApp Volumes 之间建立连接。如需了解详细步骤，请按照此<block ref="04a9f04edfdd7b0a53da57f015378c5a" category="inline-link-macro-rx"></block>。</block>
@@ -6304,4 +6283,25 @@
   <block id="d20800ec3a640eb8116268213843541a" category="inline-link">备份 VMware 工作负载</block>
   <block id="55457fd2a146b1a9975a978c0a85420c" category="paragraph">有关更多信息，请参阅<block ref="25682a6e5e8d6eabcc83860d625c84b6" category="inline-link-rx"></block>。</block>
   <block id="7268afda6855d1969a1bca2a7f29d4e8" category="paragraph">有关详细信息，请参阅<block ref="983a2e651837ee711af9347ffcffa05a" category="inline-link-rx"></block>。</block>
+  <block id="853948d45bbdfb5d52e5ddaea5f8ca19" category="paragraph">有关在 Active Directory 中设置 LDAP 属性的详细信息，请参见<block ref="7aa82d812bceb501016373a9e04865ce" category="inline-link-rx"></block></block>
+  <block id="5d17d0403298597f46cca376902dcc25" category="paragraph">要创建应用程序的按需备份（应用程序元数据和应用程序的持久卷），请点击 **备份** 选项卡以创建备份自定义资源（CR）。提供了一个示例 yaml 来创建备份 CR。使用此 yaml，将备份指定命名空间中的应用程序及其持久存储。可以设置其他参数，如 <block ref="25bf7b01740b9a4cb688c218ad60e2ab" category="inline-link-macro-rx"></block> 中所示。</block>
+  <block id="4ca3944d1f10718296e64d82c080294c" category="paragraph">请参阅有关部署 OCP 集群的 <block ref="555dd86eb7e4d7ec70b803bad962866a" category="inline-link-macro-rx"></block> 方法的说明。</block>
+  <block id="4274ed69352fd8d9d7bca9c8a40efdd9" category="list-text">在集群上安装 OpenShift GitOps operator。请参阅说明 <block ref="dd857fbedaa7e391e6b16c730acb8c2e" category="inline-link-macro-rx"></block>。</block>
+  <block id="b8c2c8724f06cc74809b160a18849243" category="list-text">SetUp 集群的新 Argo CD 实例。请参阅说明 <block ref="f3fe5972e08db05ede2c32f1dc33d4a2" category="inline-link-macro-rx"></block>。</block>
+  <block id="2fef5cf61dfb6a16ea892403969cb1a9" category="list-text">确保您已满足 <block ref="072197b16ac4bac15f286e5c622d9439" category="inline-link-macro-rx"></block> 所述的所有先决条件。</block>
+  <block id="b67b5c15053211b1d63473f9df5b1ab8" category="list-text">获取安装程序和 pull secret，并按照文档中提供的步骤部署集群 <block ref="072197b16ac4bac15f286e5c622d9439" category="inline-link-macro-rx"></block>。</block>
+  <block id="bd203bf7c34fef7dccc4c39161c78dc8" category="admonition">您还可以从 OpenShift 混合云控制台在 AWS 中创建集群。请参阅 <block ref="adab8e48d805755a937b8ae49e0ee7b7" category="inline-link-macro-rx"></block> 获取说明。</block>
+  <block id="b272b3fad6d7e2dc24417fce138d59f0" category="list-text"><block ref="b272b3fad6d7e2dc24417fce138d59f0" category="inline-link-macro-rx"></block></block>
+  <block id="2e5e19e6aa211b5fbf5ec029c54234c3" category="list-text"><block ref="2e5e19e6aa211b5fbf5ec029c54234c3" category="inline-link-macro-rx"></block></block>
+  <block id="ae28a5decafe6d5c821bf3f3af745b68" category="list-text"><block ref="ae28a5decafe6d5c821bf3f3af745b68" category="inline-link-macro-rx"></block></block>
+  <block id="b538fa533b3feb4047e609177c09e0c1" category="list-text"><block ref="b538fa533b3feb4047e609177c09e0c1" category="inline-link-macro-rx"></block></block>
+  <block id="8c6518684f03117be0fa781cb78c25fd" category="list-text"><block ref="8c6518684f03117be0fa781cb78c25fd" category="inline-link-macro-rx"></block></block>
+  <block id="122f25fa4135a6f278aee53402db3807" category="list-text"><block ref="122f25fa4135a6f278aee53402db3807" category="inline-link-macro-rx"></block></block>
+  <block id="1bc28ada1e3a8c93363efbd956281f27" category="list-text"><block ref="1bc28ada1e3a8c93363efbd956281f27" category="inline-link-macro-rx"></block></block>
+  <block id="f16dd96ff15aa34fe7db06e2c8c45330" category="list-text"><block ref="ce06c104c0af95b337c108430c00cd74" category="inline-link-macro-rx"></block> - Verda（开源）为流行的云原生数据密集型应用程序提供了一系列参考执行挂钩</block>
+  <block id="0de368763e843138fe700f4b2508ce20" category="list-text"><block ref="0de368763e843138fe700f4b2508ce20" category="inline-link-macro-rx"></block></block>
+  <block id="f113175d4e4221a09932cde3e24f9fa2" category="list-text"><block ref="f113175d4e4221a09932cde3e24f9fa2" category="inline-link-macro-rx"></block></block>
+  <block id="0590cece0084ebc06cfbb1e44bbd49fb" category="list-text"><block ref="0590cece0084ebc06cfbb1e44bbd49fb" category="inline-link-macro-rx"></block></block>
+  <block id="103d083d560520cc80800305ed72e735" category="list-text"><block ref="103d083d560520cc80800305ed72e735" category="inline-link-macro-rx"></block></block>
+  <block id="995ab6d6d5bb69975037b3f28adcc6f3" category="list-text"><block ref="995ab6d6d5bb69975037b3f28adcc6f3" category="inline-link-macro-rx"></block></block>
 </blocks>

@@ -59,7 +59,7 @@ parameters:
 allowVolumeExpansion: true
 ----
 .使用 OpenShift GitOps（Argo CD）部署应用程序
-* 在集群上安装 OpenShift GitOps 操作员。参考说明link:https://docs.openshift.com/gitops/1.13/installing_gitops/installing-openshift-gitops.html["此处"]。
+* 在集群上安装 OpenShift GitOps operator。请参阅说明 link:https://docs.redhat.com/en/documentation/red_hat_openshift_gitops/1.13/html/installing_gitops/index["此处"^]。
 * 为集群设置一个新的 Argo CD 实例。参考说明link:https://docs.openshift.com/gitops/1.13/argocd_instance/setting-up-argocd-instance.html["此处"]。
 
 

@@ -37,7 +37,7 @@ image:rhhc-self-managed-aws.png["该图显示输入/输出对话框或表示书�
 从高级集群管理 (ACM) 向导在 AWS 上创建 OpenShift 集群。参考说明link:https://docs.openshift.com/dedicated/osd_install_access_delete_cluster/creating-an-aws-cluster.html["此处"]。
 
 
-NOTE: 您还可以从 OpenShift 混合云控制台在 AWS 中创建集群。参考link:https://docs.openshift.com/container-platform/4.10/installing/installing_aws/installing-aws-default.html["此处"]以获取说明。
+NOTE: 您还可以从 OpenShift 混合云控制台在 AWS 中创建集群。请参阅 link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.10/html/installing/installing-on-aws["此处"^] 获取说明。
 
 
 TIP: 使用 ACM 创建集群时，您可以在表单视图中填写详细信息后通过编辑 yaml 文件来自定义安装。集群创建完成后，可以通过ssh登录到集群的节点进行故障排除或额外的手动配置。使用您在安装过程中提供的 ssh 密钥和用户名 core 登录。

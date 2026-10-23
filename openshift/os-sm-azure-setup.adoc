@@ -28,10 +28,10 @@ NOTE: 有几种方法可以在 Azure 中部署 Red Hat OpenShift Container 平�
 .从 CLI 在 Azure 上安装 OCP 群集。
 [%collapsible%open]
 ====
-* 确保您已满足所有规定的先决条件link:https://docs.openshift.com/container-platform/4.13/installing/installing_azure/installing-azure-vnet.html["此处"]。
+* 确保您已满足 link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.10/html-single/installing/index#installing-azure-vnet["此处"^] 所述的所有先决条件。
 * 创建 VPN、子网和网络安全组以及私有 DNS 区域。创建 VPN 网关和站点到站点 VPN 连接。
 * 为了实现本地和 Azure 之间的 VPN 连接，我们创建并配置了一个 pfSense VM。有关说明，请参阅link:https://docs.netgate.com/pfsense/en/latest/recipes/ipsec-s2s-psk.html["此处"]。
-* 获取安装程序和pull secret，按照文档提供的步骤部署集群link:https://docs.openshift.com/container-platform/4.13/installing/installing_azure/installing-azure-vnet.html["此处"]。
+* 获取安装程序和 pull secret，并按照文档中提供的步骤部署集群 link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.10/html-single/installing/index#installing-azure-vnet["此处"^]。
 * 集群安装完成，会提供一个kubeconfig文件以及登录集群控制台的用户名和密码。
 
 

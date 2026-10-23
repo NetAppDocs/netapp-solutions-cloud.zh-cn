@@ -21,7 +21,7 @@ summary: Red Hat OpenShift 容器应用程序数据保护与NetApp ONTAP
 [[steps-to-create-a-backup-of-an-app]]
 == 创建应用程序备份的步骤
 
-要创建应用程序的按需备份（应用程序元数据和应用程序的持久卷），请单击**备份**选项卡以创建备份自定义资源（CR）。提供了一个示例 yaml 来创建备份 CR。使用此 yaml，将备份指定命名空间中的应用程序及其持久存储。可以设置其他参数，如下所示link:https://docs.openshift.com/container-platform/4.14/backup_and_restore/application_backup_and_restore/backing_up_and_restoring/oadp-creating-backup-cr.html["文档"]。
+要创建应用程序的按需备份（应用程序元数据和应用程序的持久卷），请点击 **备份** 选项卡以创建备份自定义资源（CR）。提供了一个示例 yaml 来创建备份 CR。使用此 yaml，将备份指定命名空间中的应用程序及其持久存储。可以设置其他参数，如 link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.14/html/backup_and_restore/oadp-application-backup-and-restore#oadp-creating-backup-cr-doc["文档"^] 中所示。
 
 CSI 将创建指定命名空间中的持久卷和应用程序资源的快照。此快照将存储在 yaml 中指定的备份位置。备份将按照 ttl 的规定在系统中保留 30 天。
 

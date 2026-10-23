@@ -70,7 +70,7 @@ Google Cloud NetApp Volumes充当 LDAP 客户端，并使用标准 LDAP 搜索�
 
 要将 Active Directory 用作 UNIX LDAP 服务器，您必须在要用于 UNIX 身份的用户和组上填充必要的 UNIX 属性。 Google Cloud NetApp Volumes使用默认 LDAP 模式模板，该模板根据以下信息查询属性 https://tools.ietf.org/id/draft-howard-rfc2307bis-01.txt["RFC-2307-bis"^]。因此，下表显示了用户和组需要填充的最低限度的 Active Directory 属性以及每个属性的用途。
 
-有关在 Active Directory 中设置 LDAP 属性的详细信息，请参阅 https://cloud.google.com/architecture/partners/netapp-cloud-volumes/managing-dual-protocol-access["管理双协议访问。"^]
+有关在 Active Directory 中设置 LDAP 属性的详细信息，请参见 https://docs.cloud.google.com/netapp/volumes/docs/configure-and-use/active-directory/ad-ldap-access["管理双协议访问。"^]
 
 |===
 | 属性 | 它的作用 

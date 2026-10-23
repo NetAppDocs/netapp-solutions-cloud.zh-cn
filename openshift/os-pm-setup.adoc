@@ -55,7 +55,7 @@ image:rhhc-default-storage-class.png["该图显示输入/输出对话框或表�
 
 .使用 OpenShift GitOps（Argo CD）部署应用程序
 * 在集群上安装 OpenShift GitOps 操作员。参考说明link:https://docs.openshift.com/container-platform/4.10/cicd/gitops/installing-openshift-gitops.html["此处"]。
-* 为集群设置一个新的 Argo CD 实例。参考说明link:https://docs.openshift.com/container-platform/4.10/cicd/gitops/setting-up-argocd-instance.html["此处"]。
+* SetUp 集群的新 Argo CD 实例。请参阅说明 link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.10/html/cicd/gitops#gitops-argo-cd-installation_setting-up-argocd-instance["此处"^]。
 
 
 打开 Argo CD 的控制台并部署应用。例如，您可以使用带有 Helm Chart 的 Argo CD 部署 Jenkins 应用程序。创建应用程序时，提供了以下详细信息：Project：default cluster：+'https://kubernetes.default.svc'+[]（不带引号）Namespace：Jenkins Helm Chart 的 URL：+'https://charts.bitnami.com/bitnami'+[]（不带引号）
