@@ -27,7 +27,7 @@ NOTE: 该解决方案通过在AWS的两个VPC中使用两个ROSA集群进行了�
 
 .安装ROSA集群
 * 创建两个 VPC 并在 VPC 之间建立 VPC 对等连接。
-* 参考link:https://docs.openshift.com/rosa/welcome/index.html["此处"]有关安装 ROSA 集群的说明。
+* 请参阅 link:https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws_classic_architecture/4["此处"^] 获取安装 ROSA 集群的说明。
 
 
 .安装 FSx ONTAP
@@ -54,7 +54,7 @@ image:rhhc-trident-helm.png["该图显示输入/输出对话框或表示书面�
 image:rhhc-default-storage-class.png["该图显示输入/输出对话框或表示书面内容"]
 
 .使用 OpenShift GitOps（Argo CD）部署应用程序
-* 在集群上安装 OpenShift GitOps 操作员。参考说明link:https://docs.openshift.com/container-platform/4.10/cicd/gitops/installing-openshift-gitops.html["此处"]。
+* 在集群上安装 OpenShift GitOps operator。请参阅说明 link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.10/html/cicd/gitops#installing-openshift-gitops["此处"^]。
 * SetUp 集群的新 Argo CD 实例。请参阅说明 link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.10/html/cicd/gitops#gitops-argo-cd-installation_setting-up-argocd-instance["此处"^]。
 
 

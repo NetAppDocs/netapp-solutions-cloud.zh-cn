@@ -26,7 +26,7 @@ NOTE: 在 GCP 中部署 Red Hat OpenShift Container 平台集群有多种方法�
 设置过程可分为以下步骤：
 
 .从 CLI 在 GCP 上安装 OCP 集群
-* 确保您已满足所有规定的先决条件link:https://docs.openshift.com/container-platform/4.13/installing/installing_gcp/installing-gcp-default.html["此处"]。
+* 确保您已满足 link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.13/html/installing_on_google_cloud/index#installing-gcp-default["此处"^] 所述的所有先决条件。
 * 为了实现本地和 GCP 之间的 VPN 连接，我们创建并配置了一个 pfSense VM。有关说明，请参阅 https://docs.netgate.com/pfsense/en/latest/recipes/ipsec-s2s-psk.html["此处"]。
 +
 ** 只有在 Google Cloud Platform 中创建 VPN 网关后，才能配置 pfSense 中的远程网关地址。
@@ -36,7 +36,7 @@ NOTE: 在 GCP 中部署 Red Hat OpenShift Container 平台集群有多种方法�
 
 * 现在在 GCP 上安装 OpenShift 集群。
 +
-** 获取安装程序和pull secret，按照文档提供的步骤部署集群 https://docs.openshift.com/container-platform/4.13/installing/installing_gcp/installing-gcp-default.html["此处"]。
+** 获取安装程序和 pull secret，并按照文档中提供的步骤部署集群 https://docs.redhat.com/en/documentation/openshift_container_platform/4.13/html/installing_on_google_cloud/index#installing-gcp-default["此处"^]。
 ** 安装在 Google Cloud Platform 中创建一个 VPC 网络。它还在 Cloud DNS 中创建一个私有区域并添加 A 记录。
 +
 *** 使用VPC网络的CIDR块地址配置pfSense并建立VPN连接。确保防火墙设置正确。
