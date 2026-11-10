@@ -53,7 +53,7 @@ TIP: 请记住以下内容： - 创建 ssh 公钥和私钥以提供给安装程�
 [%collapsible%open]
 ====
 * 可以使用 Hub 集群上的 ACM 部署附加集群。
-* 参考说明link:https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.7/html/clusters/cluster_mce_overview#vsphere_prerequisites["此处"]。
+* 请参见说明 link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.7/html/clusters/cluster_mce_overview#vsphere_prerequisites["此处"^]。
 
 
 ====

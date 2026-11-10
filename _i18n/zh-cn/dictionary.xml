@@ -1323,7 +1323,6 @@
   <block id="643c48205940ae10b1f2c5f6f8aa5f64" category="paragraph">这是使用 Hub 集群上的高级集群管理操作员安装的。参考说明<block ref="4bb39576c102d9630dc961b3998ecbd9" category="inline-link-macro-rx"></block>。</block>
   <block id="c0090a527266898baf1b6d9a9978eeb3" category="example-title">安装两个额外的 OCP 集群（源和目标）</block>
   <block id="a4fcf9c2586b5e93f63d9c1290438839" category="list-text">可以使用 Hub 集群上的 ACM 部署附加集群。</block>
-  <block id="24ed1bd1ba2dc78d194e4186a2a7b0a1" category="list-text">参考说明<block ref="61a11e403c83c9c41ff797a7a780dbff" category="inline-link-macro-rx"></block>。</block>
   <block id="4cb2dca6265c22cd883513131d603c5f" category="example-title">配置NetApp ONTAP存储</block>
   <block id="31114fdb67ca9ac1afd2af9e1a830e4e" category="list-text">在 VMWare 环境中安装与 OCP VM 连接的ONTAP集群。</block>
   <block id="15a89333d6100097518836f27ebc981d" category="list-text">创建 SVM。</block>
@@ -6304,4 +6303,5 @@
   <block id="aeaece73e35427cd110235fe07465efa" category="inline-link-macro">AWS 上的 Red Hat OpenShift Service 经典架构</block>
   <block id="71dc7e7b294a93352ae90298511cd77a" category="list-text"><block ref="71dc7e7b294a93352ae90298511cd77a" category="inline-link-macro-rx"></block></block>
   <block id="5e8103bb1916579dd98fa386e2c79112" category="list-text">要配置 VMware Cloud on AWS，请参阅 VMware Cloud Tech Zone 文章 <block ref="e8043ec5591ebbd4394405d542308830" category="inline-link-macro-rx"></block> 以部署和配置 VMware Cloud on AWS SDDC，并将 FSx ONTAP 配置为 NFS 数据存储。（以最小配置设置的 pilot-light 环境可用于 DR 目的。在发生事件时，虚拟机将故障转移到此集群，并且可以添加其他节点）。</block>
+  <block id="5b1325f759c14b5e2dece9541c225fe7" category="list-text">请参见说明 <block ref="79bea77f03fef0626d8f9094b6973fe2" category="inline-link-macro-rx"></block>。</block>
 </blocks>
