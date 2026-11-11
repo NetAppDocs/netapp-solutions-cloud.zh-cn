@@ -14,7 +14,7 @@ summary:
 
 
 [role="lead"]
-本节介绍在 AWS（ROSA）上设置托管 Red Hat OpenShift 集群的高级工作流程。它展示了Trident使用托管的Amazon FSx for NetApp ONTAP (FSx ONTAP ) 作为存储后端来提供持久卷。提供了有关使用BlueXP在 AWS 上部署 FSx ONTAP的详细信息。此外，还提供了有关使用BlueXP和 OpenShift GitOps（Argo CD）为 ROSA 集群上的有状态应用程序执行数据保护和迁移活动的详细信息。
+本节介绍在 AWS（ROSA）上设置托管 Red Hat OpenShift 集群的高级工作流。它展示了 Trident 使用托管的 Amazon FSx for NetApp ONTAP（FSx ONTAP）作为存储后端来提供持久卷。其中提供了有关使用 NetApp Console 在 AWS 上部署 FSx ONTAP 的详细信息。此外，还提供了有关使用 NetApp Console 和 OpenShift GitOps（Argo CD）为 ROSA 集群上的有状态应用程序执行数据保护和迁移活动的详细信息。
 
 下图描述了部署在 AWS 上并使用 FSx ONTAP作为后端存储的 ROSA 集群。
 
@@ -31,7 +31,7 @@ NOTE: 该解决方案通过在AWS的两个VPC中使用两个ROSA集群进行了�
 
 
 .安装 FSx ONTAP
-* 从BlueXP在 VPC 上安装 FSx ONTAP 。参考link:https://docs.netapp.com/us-en/cloud-manager-setup-admin/index.html["此处"]用于创建BlueXP帐户并开始使用。参考link:https://docs.netapp.com/us-en/cloud-manager-fsx-ontap/index.html["此处"]用于安装 FSx ONTAP。参考link:https://docs.netapp.com/us-en/cloud-manager-setup-admin/index.html["此处"]用于在 AWS 中创建连接器来管理 FSx ONTAP。
+* 从 NetApp Console 在 VPC 上安装 FSx ONTAP。有关创建 NetApp Console 帐户并开始使用的信息，请参阅 link:https://docs.netapp.com/us-en/console-setup-admin/index.html["此处"]。有关安装 FSx ONTAP 的信息，请参阅 link:https://docs.netapp.com/us-en/cloud-manager-fsx-ontap/index.html["此处"]。有关在 AWS 中创建连接器以管理 FSx ONTAP 的信息，请参阅 link:https://docs.netapp.com/us-en/console-setup-admin/index.html["此处"]。
 * 使用 AWS 部署 FSx ONTAP 。参考link:https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/getting-started-step1.html["此处"]使用 AWS 控制台进行部署。
 
 

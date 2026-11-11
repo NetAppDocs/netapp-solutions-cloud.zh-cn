@@ -4,7 +4,7 @@ permalink: vmware/vmw-hybrid-321-dp-scv.html
 keywords: disaster recovery, vmc, vmware cloud, aws, amazon web services, nfs datastore, fsxn, FSx ONTAP, FSx ONTAP, backup, restore, sql server, oracle 
 summary:  
 ---
-= 借助SnapCenter插件和BlueXP backup and recovery为虚拟机提供 3-2-1 数据保护
+= 针对 VMware 的 3-2-1 数据保护：使用 SnapCenter 插件和 NetApp Backup and Recovery 保护 VMware 工作负载
 :hardbreaks:
 :allow-uri-read: 
 :nofooter: 
@@ -28,7 +28,7 @@ summary:
 . 最后，确保至少有一个备份副本位于异地。异地存储可以作为防止火灾或洪水等局部灾害的故障保护措施，因为这些灾害可能会导致现场副本无法使用。
 
 
-本解决方案文档涵盖 3-2-1 备份解决方案，使用适用SnapCenter Plug-in for VMware vSphere为我们的本地虚拟机创建主备份和辅助备份，并使用虚拟机的BlueXP backup and recovery将我们的数据副本备份到云存储或StorageGRID。
+本解决方案文档涵盖 3-2-1 备份解决方案，使用 SnapCenter Plug-in for VMware vSphere（SCV）为我们的本地虚拟机创建主备份和辅助备份，并使用 NetApp Backup and Recovery for virtual machines 将我们的数据副本备份到云存储或 StorageGRID。
 
 
 
@@ -38,7 +38,7 @@ summary:
 此解决方案适用于以下用例：
 
 * 使用适用于SnapCenter Plug-in for VMware vSphere备份和还原本地虚拟机和数据存储区。
-* 备份和恢复托管在ONTAP集群上的本地虚拟机和数据存储区，并使用BlueXP backup and recovery将其备份到对象存储。
+* 本地虚拟机和数据存储的备份和还原，托管在 ONTAP 集群上，并使用用于虚拟机的 NetApp Backup and Recovery 备份到对象存储。
 
 
 
@@ -65,22 +65,22 @@ SCV 使用 OVA 文件部署为 Linux 虚拟设备。该插件现在使用远程�
 
 
 
-[[bluexp-backup-and-recovery-for-virtual-machines]]
-=== BlueXP backup and recovery
+[[netapp-backup-and-recovery-to-protect-vmware-workloads]]
+=== NetApp Backup and Recovery 用于保护 VMware 工作负载
 
-BlueXP backup and recovery是一种基于云的数据管理工具，它为跨本地和云环境的各种备份和恢复操作提供单一控制平面。 NetApp BlueXP backup and recovery套件的一部分功能是与 VMware vSphere（本地）的SnapCenter插件集成，以将数据副本扩展到云中的对象存储。这将建立来自主存储或辅助存储备份的异地数据的第三份副本。  BlueXP backup and recovery可以轻松设置存储策略，从这两个内部位置中的任意一个传输数据副本。
+NetApp Backup and Recovery 是一种基于云的数据管理工具，可为本地和云环境中的各种备份和恢复操作提供单一控制平面。NetApp Backup and Recovery for VM 套件的一部分是一项与 SnapCenter Plugin for VMware vSphere（本地）集成的功能，可将数据副本扩展到云中的对象存储。这会建立异地数据的第三个副本，该副本来自主存储备份或二级存储备份。NetApp Backup and Recovery for VMs 使您可以轻松设置存储策略，从这两个本地位置中的任何一个传输数据副本。
 
-在BlueXP备份和恢复中选择主备份和辅助备份作为源将导致实现以下两种拓扑之一：
+在 NetApp Backup and Recovery 中选择主备份或二级备份作为源将导致实施以下两种拓扑之一：
 
-*扇出拓扑* — 当SnapCenter Plug-in for VMware vSphere启动备份时，会立即创建本地快照。然后，SCV 启动SnapMirror操作，将最新的快照复制到辅助ONTAP集群。在BlueXP备份和恢复中，策略指定主ONTAP集群作为要传输到您选择的云提供商中的对象存储的数据快照副本的源。
+*扇出拓扑* – 当 SnapCenter Plug-in for VMware vSphere 启动备份时，将立即创建本地快照。然后，SCV 启动 SnapMirror 操作，将最新的快照复制到二级 ONTAP 集群。在 NetApp Backup and Recovery 中，策略将主 ONTAP 集群指定为源，以便将数据的快照副本传输到您选择的云提供商中的对象存储。
 
 image:bxp-scv-hybrid-001.png["扇出拓扑，800，418"]
 
-*级联拓扑*——使用 SCV 创建主数据副本和次数据副本与上面提到的扇出拓扑相同。但是，这次在BlueXP备份和恢复中创建了一个策略，指定对象存储的备份将源自辅助ONTAP集群。
+*级联拓扑* – 使用 SCV 创建主数据副本和辅助数据副本与上述扇出拓扑完全相同。但是，这次在 NetApp Backup and Recovery 中创建了一个策略，指定对象存储的备份将来自辅助 ONTAP 集群。
 
 image:bxp-scv-hybrid-002.png["级联拓扑"]
 
-BlueXP backup and recovery可以将本地ONTAP快照创建到 AWS Glacier、Azure Blob 和 GCP Archive 存储的备份副本。
+NetApp Backup and Recovery 可以将本地 ONTAP 快照的备份副本创建到 AWS Glacier、Azure Blob 和 GCP 存档存储。
 
 image:bxp-scv-hybrid-003.png["级联拓扑"]
 
@@ -89,7 +89,7 @@ image:bxp-scv-hybrid-003.png["级联拓扑"]
 .解决方案部署概述
 [%collapsible%open]
 ====
-此列表提供了配置此解决方案以及从 SCV 和BlueXP backup and recovery执行备份和恢复操作所需的高级步骤：
+此列表提供了配置此解决方案以及从 SCV 和 NetApp Console 执行备份和还原操作所需的高级步骤：
 
 . 配置ONTAP集群之间的SnapMirror关系以用于主数据和辅助数据副本。
 . 为 VMware vSphere 配置SnapCenter插件。
@@ -100,7 +100,7 @@ image:bxp-scv-hybrid-003.png["级联拓扑"]
 .. 运行备份第一个备份作业
 
 
-. 为虚拟机配置BlueXP backup and recovery
+. 为虚拟机配置 NetApp Backup and Recovery
 +
 .. 添加工作环境
 .. 发现 SCV 和 vCenter 设备
@@ -109,7 +109,7 @@ image:bxp-scv-hybrid-003.png["级联拓扑"]
 
 
 . 使用 SCV 从主存储和辅助存储恢复虚拟机。
-. 使用BlueXP备份和恢复从对象存储恢复虚拟机。
+. 使用 NetApp Console 从对象存储还原虚拟机。
 
 
 ====
@@ -120,10 +120,10 @@ image:bxp-scv-hybrid-003.png["级联拓扑"]
 
 . 具有连接到 VMware vSphere 的 NFS 或 VMFS 数据存储的ONTAP存储集群。 NFS 和 VMFS 数据存储均受支持。此解决方案采用了 NFS 数据存储。
 . 为用于 NFS 数据存储库的卷建立了具有SnapMirror关系的辅助ONTAP存储集群。
-. 为用于对象存储备份的云提供商安装的BlueXP连接器。
+. 为用于对象存储备份的云提供商安装的控制台代理。
 . 要支持的虚拟机位于主ONTAP存储集群上的 NFS 数据存储库上。
-. BlueXP连接器和本地ONTAP存储集群管理接口之间的网络连接。
-. BlueXP连接器与本地 SCV 设备 VM 之间以及BlueXP连接器与 vCenter 之间的网络连接。
+. 控制台代理和本地 ONTAP 存储集群管理接口之间的网络连接。
+. 控制台代理和本地 SCV 设备 VM 之间，以及控制台代理和 vCenter 之间的网络连接。
 . 本地ONTAP集群间 LIF 与对象存储服务之间的网络连接。
 . 为主ONTAP存储集群和辅助 ONTAP 存储集群上的管理 SVM 配置的 DNS。更多信息请参阅 https://docs.netapp.com/us-en/ontap/networking/configure_dns_for_host-name_resolution.html#configure-an-svm-and-data-lifs-for-host-name-resolution-using-an-external-dns-server["配置 DNS 以进行主机名解析"]。
 
@@ -143,13 +143,13 @@ image:bxp-scv-hybrid-004.png["解决方案架构图"]
 [[solution-deployment]]
 == 解决方案部署
 
-在此解决方案中，我们提供了有关部署和验证利用适用于SnapCenter Plug-in for VMware vSphere以及BlueXP backup and recovery方案的详细说明，以便在位于本地数据中心的 VMware vSphere 群集内执行 Windows 和 Linux 虚拟机的备份和恢复。此设置中的虚拟机存储在由ONTAP A300 存储集群托管的 NFS 数据存储库上。此外，单独的ONTAP A300 存储集群可作为使用SnapMirror复制的卷的辅助目标。此外，托管在 Amazon Web Services 和 Azure Blob 上的对象存储被用作数据第三份副本的目标。
+在此解决方案中，我们提供了有关部署和验证解决方案的详细说明，该解决方案利用 SnapCenter Plug-in for VMware vSphere 以及备份和恢复，来执行位于本地数据中心的 VMware vSphere 集群中的 Windows 和 Linux 虚拟机的备份和恢复。此设置中的虚拟机存储在由 ONTAP A300 存储集群托管的 NFS 数据存储中。此外，单独的 ONTAP A300 存储集群用作使用 SnapMirror 复制的卷的二级目标。此外，在 Amazon Web Services 和 Azure Blob 上托管的对象存储被用作第三个数据副本的目标。
 
-我们将讨论如何为由 SCV 管理的备份的辅助副本创建SnapMirror关系，以及如何在 SCV 和BlueXP backup and recovery中配置备份作业。
+我们将介绍如何为由 SCV 管理的备份的辅助副本创建 SnapMirror 关系，以及在 SCV 和 NetApp Console 中配置备份作业。
 
 有关适用SnapCenter Plug-in for VMware vSphere的详细信息，请参阅 https://docs.netapp.com/us-en/sc-plugin-vmware-vsphere/["SnapCenter Plug-in for VMware vSphere文档"]。
 
-有关BlueXP backup and recovery的详细信息，请参阅 https://docs.netapp.com/us-en/bluexp-backup-recovery/index.html["BlueXP backup and recovery文档"]。
+有关备份和恢复的详细信息，请参见 https://docs.netapp.com/us-en/data-services-backup-recovery/index.html["备份和恢复文档"]。
 
 
 
@@ -160,18 +160,18 @@ SnapCenter Plug-in for VMware vSphere使用ONTAP SnapMirror技术来管理二级
 
 SCV 备份策略可以选择使用SnapMirror或SnapVault关系。主要区别在于，当使用SnapMirror选项时，策略中为备份配置的保留计划在主位置和辅助位置将是相同的。  SnapVault专为归档而设计，使用此选项时，可以使用SnapMirror关系为二级ONTAP存储集群上的快照副本建立单独的保留计划。
 
-可以在BlueXP中设置SnapMirror关系，其中许多步骤都是自动完成的，也可以使用系统管理器和ONTAP CLI 来完成。下面讨论所有这些方法。
+设置 SnapMirror 关系可以在 NetApp Console 中完成，其中许多步骤是自动化的，也可以使用 System Manager 和 ONTAP CLI 完成。下面将讨论所有这些方法。
 
 
 
-==== 与BlueXP建立SnapMirror关系
+==== 使用 NetApp Console 建立 SnapMirror 关系
 
-必须从BlueXP Web 控制台完成以下步骤：
+必须从 NetApp Console 完成以下步骤：
 
 .主 ONTAP 存储系统和辅助ONTAP存储系统的复制设置
 [%collapsible%open]
 ====
-首先登录BlueXP网络控制台并导航到 Canvas。
+首先登录 NetApp Console 并导航到系统。
 
 . 将源（主） ONTAP存储系统拖放到目标（辅助） ONTAP存储系统上。
 +
@@ -416,7 +416,7 @@ NOTE: 在SnapCenter插件中创建策略时，您将看到SnapMirror和SnapVault
 
 +
 
-NOTE: 快照标签很有用，因为它们可用于为复制到二级ONTAP集群的SnapVault副本制定具有特定保留期的策略。当 SCV 与BlueXP备份和还原一起使用时，快照标签字段必须为空或与BlueXP备份策略中指定的标签 [下划线]#匹配#。
+NOTE: 快照标签非常有用，因为它们可用于为复制到辅助 ONTAP 集群的 SnapVault 副本制定具有特定保留期的策略。当 SCV 与 NetApp Data Services 一起使用时，快照标签字段必须为空或[underline]#匹配#备份策略中指定的标签。
 
 . 对每个所需的策略重复该过程。例如，针对每日、每周和每月备份制定单独的策略。
 
@@ -450,7 +450,7 @@ image:bxp-scv-hybrid-011.png["跨数据存储"]
 
 +
 
-NOTE: BlueXP backup and recovery目前不支持备份跨多个数据存储的 VMDK 的虚拟机。
+NOTE: 用于保护 VMware 工作负载的备份和恢复当前不支持备份具有跨多个数据存储的 VMDK 的虚拟机。
 
 . 在下一页上，选择与资源组关联的策略，然后单击“下一步”。
 +
@@ -458,7 +458,7 @@ image:bxp-scv-hybrid-012.png["资源组策略"]
 
 +
 
-NOTE: 使用BlueXP backup and recovery将 SCV 管理的快照备份到对象存储时，每个资源组只能与单个策略关联。
+NOTE: 使用备份和恢复将 SCV 管理的快照备份到对象存储时，每个资源组只能与单个策略关联。
 
 . 选择一个计划来确定备份的运行时间。单击“下一步”。
 +
@@ -471,7 +471,7 @@ image:bxp-scv-hybrid-013.png["资源组策略"]
 .运行备份作业
 [%collapsible%open]
 ====
-在此最后一步中，运行备份作业并监控其进度。必须先在 SCV 中成功完成至少一个备份作业，然后才能从BlueXP backup and recovery中发现资源。
+在最后一步中，运行备份作业并监控其进度。必须至少在 SCV 中成功完成一个备份作业，然后才能从 NetApp Console 发现资源。
 
 . 在SnapCenter Plug-in for VMware vSphere中，导航到左侧菜单中的“*资源组*”。
 . 要启动备份作业，请选择所需的资源组并单击*立即运行*按钮。
@@ -487,23 +487,23 @@ image:bxp-scv-hybrid-015.png["监控工作进度"]
 ====
 
 
-[[configure-backups-to-object-storage-in-bluexp-backup-and-recovery]]
-=== 在BlueXP backup and recovery中配置对象存储备份
+[[configure-backups-to-object-storage-in-netapp-console]]
+=== 在 NetApp Console 中配置到对象存储的备份
 
-为了使BlueXP有效地管理数据基础设施，需要事先安装连接器。连接器执行涉及发现资源和管理数据操作的操作。
+为了使 NetApp Console 能够有效地管理数据基础架构，需要事先安装 Console 代理。Console 代理执行发现资源和管理数据操作所涉及的操作。
 
-有关BlueXP连接器的更多信息，请参阅 https://docs.netapp.com/us-en/bluexp-setup-admin/concept-connectors.html["了解连接器"]在BlueXP文档中。
+有关 Console 代理的更多信息，请参见 NetApp Console 文档中的 https://docs.netapp.com/us-en/console-setup-admin/concept-agents.html["了解控制台代理"]。
 
-一旦为正在使用的云提供商安装了连接器，就可以从 Canvas 中查看对象存储的图形表示。
+为正在使用的云提供商安装代理后，将可从系统查看对象存储的图形表示。
 
-要配置BlueXP backup and recovery以备份由 SCV 内部管理的数据，请完成以下步骤：
+要配置 Backup and Recovery 以备份由本地 SCV 管理的数据，请完成以下步骤：
 
-.将工作环境添加到画布
+.将 ONTAP 存储系统添加到系统
 [%collapsible%open]
 ====
-第一步是将本地ONTAP存储系统添加到BlueXP
+第一步是将本地 ONTAP 存储系统添加到 NetApp Console。
 
-. 从画布中选择“添加工作环境”开始。
+. 从系统单击 *+ 添加* 开始。
 +
 image:bxp-scv-hybrid-016.png["添加工作环境"]
 
@@ -523,7 +523,7 @@ image:bxp-scv-hybrid-018.png["添加存储系统凭据"]
 ====
 要发现本地数据存储和虚拟机资源，请添加 SCV 数据代理的信息和 vCenter 管理设备的凭据。
 
-. 从BlueXP左侧菜单选择 *保护 > 备份和恢复 > 虚拟机*
+. 从 NetApp Console 左侧菜单选择 *保护 > 备份和恢复 > 工作负载 > VMware*
 +
 image:bxp-scv-hybrid-019.png["选择虚拟机"]
 
@@ -546,14 +546,14 @@ image:bxp-scv-hybrid-023.png["查看可用资源"]
 
 
 ====
-.创建BlueXP备份策略
+.创建备份策略
 [%collapsible%open]
 ====
-在BlueXP backup and recovery中，创建策略来指定保留期、备份源和归档策略。
+在适用于虚拟机的 NetApp Backup and Recovery 中，创建策略以指定保留期限、备份源和归档策略。
 
-有关创建策略的更多信息，请参阅 https://docs.netapp.com/us-en/bluexp-backup-recovery/task-create-policies-vms.html["创建备份数据存储区的策略"]。
+有关创建保护组的详细信息，请参阅 https://docs.netapp.com/us-en/data-services-backup-recovery/br-use-vmware-protection-groups.html#create-a-protection-group["创建保护组"]。
 
-. 从BlueXP backup and recovery主页，访问 *设置* 下拉菜单并选择 *策略*。
+. 从适用于虚拟机的 NetApp Backup and Recovery 主页，访问*设置*下拉菜单并选择*策略*。
 +
 image:bxp-scv-hybrid-024.png["选择虚拟机"]
 
@@ -583,7 +583,7 @@ NOTE: 此处输入的SnapMirror标签用于标识要应用该策略的备份。�
 
 有关更多信息，请参阅 https://docs.netapp.com/us-en/data-services-backup-recovery/br-use-vmware-backup.html["备份 VMware 工作负载"^]。
 
-. 从BlueXP backup and recovery主页，访问要备份的数据存储区的设置下拉菜单并选择*激活备份*。
+. 从 NetApp Backup and Recovery for Virtual Machines 主页，访问要备份的数据存储的设置下拉菜单，然后选择*激活备份*。
 +
 image:bxp-scv-hybrid-026.png["激活备份"]
 
@@ -609,7 +609,7 @@ image:bxp-scv-hybrid-031.png["审核并激活"]
 
 +
 
-NOTE: 此时数据传输可能不会立即开始。  BlueXP backup and recovery每小时扫描一次任何未完成的快照，然后将其传输到对象存储。
+NOTE: 此时，数据传输可能不会立即开始。NetApp Backup and Recovery 每小时扫描一次任何未完成的快照，然后将其传输到对象存储。
 
 
 
@@ -623,7 +623,7 @@ NOTE: 此时数据传输可能不会立即开始。  BlueXP backup and recovery�
 
 NetApp提供高度适应性的 3-2-1 策略，可对主存储、辅助存储和对象存储位置的保留计划进行定制控制。该策略提供了灵活性，可以根据特定需求定制数据保护方法。
 
-本节概述了适用于SnapCenter Plug-in for VMware vSphere和适用于虚拟机的BlueXP backup and recovery的数据还原过程。
+本节概述了从 SnapCenter Plug-in for VMware vSphere 和针对虚拟机的 NetApp Backup and Recovery 恢复数据的过程。
 
 
 
@@ -659,16 +659,16 @@ image:bxp-scv-hybrid-035.png["选择主要或次要"]
 ====
 
 
-==== 从BlueXP backup and recovery中恢复虚拟机
+==== 从 NetApp Backup and Recovery for Virtual Machines 还原虚拟机
 
-BlueXP backup and recovery允许将虚拟机恢复到其原始位置。可通过BlueXP Web 控制台访问恢复功能。
+适用于虚拟机的 NetApp Backup and Recovery 允许将虚拟机还原到其原始位置。可以通过 NetApp Backup and Recovery Web 控制台访问还原功能。
 
 有关详细信息，请参阅 https://docs.netapp.com/us-en/data-services-backup-recovery/br-use-vmware-restore.html["从云端恢复虚拟机数据"^]。
 
-.从BlueXP backup and recovery中恢复虚拟机
+.从 NetApp Backup and Recovery 还原虚拟机
 [%collapsible%open]
 ====
-要从BlueXP backup and recovery还原虚拟机，请完成以下步骤。
+要从 NetApp Backup and Recovery 还原虚拟机，请完成以下步骤。
 
 . 导航到*保护>备份和恢复>虚拟机*，然后单击虚拟机以查看可恢复的虚拟机列表。
 +
@@ -695,9 +695,9 @@ image:bxp-scv-hybrid-039.png["从“作业监控”选项卡检查还原"]
 [[conclusion]]
 == 结束语
 
-3-2-1 备份策略与SnapCenter Plug-in for VMware vSphere以及适用于虚拟机的BlueXP backup and recovery一起实施时，可提供强大、可靠且经济高效的数据保护解决方案。该策略不仅确保了数据冗余和可访问性，而且还提供了从任何位置以及从内部ONTAP存储系统和基于云的对象存储恢复数据的灵活性。
+当与 SnapCenter Plug-in for VMware vSphere 和适用于虚拟机的 NetApp Backup and Recovery 一起实施时，3-2-1 备份策略可为数据保护提供强大、可靠且经济高效的解决方案。这种策略不仅确保了数据冗余和可访问性，而且还提供了从任何位置以及从本地 ONTAP 存储系统和基于云的对象存储恢复数据的灵活性。
 
-本文档中介绍的用例重点关注经过验证的数据保护技术，突出了NetApp、VMware 和领先的云提供商之间的集成。SnapCenter Plug-in for VMware vSphere可与 VMware vSphere 无缝集成，从而实现高效、集中的数据保护操作管理。这种集成简化了虚拟机的备份和恢复过程，从而可以在 VMware 生态系统内轻松进行调度、监控和灵活的恢复操作。 BlueXP backup and recovery通过将虚拟机数据安全、隔离地备份到基于云的对象存储，实现了 3-2-1 中的 1。直观的界面和逻辑的工作流程为关键数据的长期存档提供了一个安全的平台。
+本文档中介绍的使用案例侧重于经过验证的数据保护技术，这些技术突出了 NetApp、VMware 与领先的云提供商之间的集成。SnapCenter Plug-in for VMware vSphere 提供了与 VMware vSphere 的无缝集成，允许对数据保护操作进行高效的集中管理。这种集成简化了虚拟机的备份和恢复流程，在 VMware 生态系统中实现了轻松的计划、监控和灵活的恢复操作。适用于虚拟机的 NetApp Backup and Recovery 通过将虚拟机数据安全、气隙隔离地备份到基于云的对象存储，提供了 3-2-1 策略中的“1”。直观的界面和逻辑工作流程为关键数据的长期归档提供了一个安全的平台。
 
 
 
@@ -707,5 +707,5 @@ image:bxp-scv-hybrid-039.png["从“作业监控”选项卡检查还原"]
 要了解有关此解决方案中提出的技术的更多信息，请参阅以下附加信息。
 
 * https://docs.netapp.com/us-en/sc-plugin-vmware-vsphere/["SnapCenter Plug-in for VMware vSphere文档"]
-* https://docs.netapp.com/us-en/bluexp-family/["BlueXP文档"]
+* https://docs.netapp.com/us-en/console-family/index.html["NetApp Console 文档"]
 

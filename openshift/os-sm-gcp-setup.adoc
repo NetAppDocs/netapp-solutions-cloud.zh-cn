@@ -52,9 +52,9 @@ NOTE: 在 GCP 中部署 Red Hat OpenShift Container 平台集群有多种方法�
 * 可以按照概述将Google Cloud NetApp Volumes添加到您的项目中link:https://cloud.google.com/netapp/volumes/docs/discover/overview["此处"]。
 
 
-.使用BlueXP在 GCP 中部署Cloud Volumes ONTAP
-* 在 Google Cloud 中安装连接器。参考说明 https://docs.netapp.com/us-en/bluexp-setup-admin/task-install-connector-google-bluexp-gcloud.html["此处"]。
-* 使用连接器在 Google Cloud 中部署 CVO 实例。请参阅此处的说明。 https://docs.netapp.com/us-en/bluexp-cloud-volumes-ontap/task-getting-started-gcp.html[]
+.使用 NetApp Console 在 GCP 中部署 Cloud Volumes ONTAP
+* 在 Google Cloud 中安装控制台代理。请参见说明 https://docs.netapp.com/us-en/console-setup-admin/task-install-agent-google-console-gcloud.html["此处"]。
+* 使用代理在 Google Cloud 中部署 CVO 实例。请参阅说明 https://docs.netapp.com/us-en/storage-management-cloud-volumes-ontap/task-getting-started-gcp.html["此处"]。
 
 
 .在 GCP 中的 OCP 集群中安装Trident

@@ -150,7 +150,7 @@ image:azure-cvo-guest-004.png["该图显示输入/输出对话框或表示书面
 +
 image:azure-cvo-guest-005.png["该图显示输入/输出对话框或表示书面内容"]
 
-. 选择Cloud Volumes ONTAP部署的附加服务，包括BlueXP分类、 BlueXP backup and recovery以及Cloud Insights。选择服务，然后单击继续。
+. 选择 Cloud Volumes ONTAP 部署的附加服务，包括 NetApp Data Classification、NetApp Backup and Recovery 以及 Data Infrastructure Insights。选择服务，然后单击“继续”。
 +
 image:azure-cvo-guest-006.png["该图显示输入/输出对话框或表示书面内容"]
 

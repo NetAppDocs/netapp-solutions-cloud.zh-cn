@@ -428,8 +428,8 @@ image:dr-vmc-aws-039.png["该图显示输入/输出对话框或表示书面内�
 ====
 
 
-[[bluexp-backup-and-recovery-tools-and-configuration]]
-=== BlueXP backup and recovery工具及配置
+[[netapp-backup-and-recovery-tools-and-configuration]]
+=== NetApp Backup and Recovery 工具及配置
 
 要将应用程序虚拟机和数据库卷故障转移到在 AWS 中运行的 VMware Cloud Volume 服务，您必须安装并配置SnapCenter Server 和 Veeam Backup and Replication Server 的运行实例。故障转移完成后，您还必须配置这些工具以恢复正常的备份操作，直到计划并执行故障恢复到本地数据中心。
 

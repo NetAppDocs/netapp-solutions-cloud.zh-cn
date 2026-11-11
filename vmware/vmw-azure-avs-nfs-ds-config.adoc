@@ -310,14 +310,14 @@ image:vmware-dr-006.png["该图显示输入/输出对话框或表示书面内容
 
 NOTE: 使用 ANF 数据存储，“恢复到新卷”选项可用于克隆整个数据存储卷，并且恢复的卷可以作为另一个数据存储安装到 AVS SDDC 内的主机。安装数据存储后，可以注册、重新配置和定制其中的虚拟机，就像单独克隆的虚拟机一样。
 
-.BlueXP backup and recovery
+.适用于虚拟机的 NetApp Backup and Recovery
 [%collapsible%open]
 =====
-BlueXP backup and recovery在 vCenter 上提供了 vSphere Web 客户端 GUI，以通过备份策略保护 Azure VMware 解决方案虚拟机和 Azure NetApp文件数据存储。这些策略可以定义计划、保留和其他功能。可以使用运行命令来部署BlueXP backup and recovery功能。
+NetApp Backup and Recovery for Virtual Machines 在 vCenter 上提供 vSphere Web 客户端 GUI，可通过备份策略保护 Azure VMware Solution 虚拟机和 Azure NetApp Files 数据存储。这些策略可定义计划、保留期及其他功能。NetApp Backup and Recovery for Virtual Machines 功能可通过使用 Run 命令进行部署。
 
 可以通过完成以下步骤来安装设置和保护策略：
 
-. 使用运行命令为 Azure VMware 解决方案私有云中的虚拟机安装BlueXP backup and recovery。
+. 使用“运行”命令在 Azure VMware Solution 私有云中安装针对虚拟机的 NetApp Backup and Recovery。
 . 添加云订阅凭据（客户端和密钥值），然后添加包含您想要保护的资源的云订阅帐户（NetApp帐户和相关资源组）。
 . 创建一个或多个备份策略来管理资源组备份的保留、频率和其他设置。
 . 创建一个容器来添加一个或多个需要使用备份策略保护的资源。

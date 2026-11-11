@@ -317,7 +317,7 @@ image:aws-cvo-guest-002.png["该图显示输入/输出对话框或表示书面�
 
 image:aws-cvo-guest-003.png["该图显示输入/输出对话框或表示书面内容"]
 
-. 选择Cloud Volumes ONTAP部署的附加服务，包括BlueXP分类、 BlueXP backup and recovery以及Cloud Insights。单击“Continue”。
+. 选择 Cloud Volumes ONTAP 部署的附加服务，包括 NetApp Data Classification、NetApp Backup and Recovery 以及 Data Infrastructure Insights。单击继续。
 
 
 image:aws-cvo-guest-004.png["该图显示输入/输出对话框或表示书面内容"]

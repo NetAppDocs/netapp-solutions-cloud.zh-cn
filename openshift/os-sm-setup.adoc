@@ -43,7 +43,7 @@ NOTE: 您还可以从 OpenShift 混合云控制台在 AWS 中创建集群。请�
 TIP: 使用 ACM 创建集群时，您可以在表单视图中填写详细信息后通过编辑 yaml 文件来自定义安装。集群创建完成后，可以通过ssh登录到集群的节点进行故障排除或额外的手动配置。使用您在安装过程中提供的 ssh 密钥和用户名 core 登录。
 
 ====
-.使用BlueXP在 AWS 中部署Cloud Volumes ONTAP 。
+.使用 NetApp Console 在 AWS 中部署 Cloud Volumes ONTAP。
 [%collapsible%open]
 ====
 * 在本地 VMware 环境中安装连接器。参考说明link:https://docs.netapp.com/us-en/cloud-manager-setup-admin/task-install-connector-on-prem.html#install-the-connector["此处"]。

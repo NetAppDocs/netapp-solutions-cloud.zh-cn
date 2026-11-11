@@ -204,17 +204,18 @@ entries:
       url: "/google/gcp-gcnv-service-operation.html"
     - title: 追加信息
       url: "/vmware/gcp-gcnv-additional-info.html"
-- title: BlueXP disaster recovery
+- title: NetApp Disaster Recovery
   entries:
-  - title: 使用SnapCenter插件和BlueXP保护 VMware 数据
-    pdf-filename: 借助SnapCenter插件和BlueXP backup and recovery为虚拟机提供 3-2-1 数据保护
+  - title: 使用 SnapCenter 插件和适用于虚拟机的 NetApp Backup and Recovery 保护 VMware 数据
+    pdf-filename: 使用 SnapCenter 插件和适用于虚拟机的 NetApp Backup and Recovery 为 VMware 提供
+      3-2-1 数据保护
     url: "/vmware/vmw-hybrid-321-dp-scv.html"
-  - title: 使用BlueXP DRaaS 进行灾难恢复
-    pdf-filename: 使用BlueXP DRaaS 进行灾难恢复
+  - title: NetApp Disaster Recovery
+    pdf-filename: NetApp Disaster Recovery
     entries:
     - title: 解决方案概述
       url: "/vmware/vmw-hybrid-dr-overview.html"
-    - title: NFS 数据存储区的灾难恢复
+    - title: NFS 数据存储的灾难恢复
       url: "/vmware/vmw-hybrid-dr-nfs.html"
     - title: VMFS 数据存储的灾难恢复
       url: "/vmware/vmw-hybrid-dr-vmfs.html"

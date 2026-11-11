@@ -102,11 +102,11 @@ publish: Internal
 pullSecret:
 ....
 ====
-.使用BlueXP在 Azure 中部署Cloud Volumes ONTAP 。
+.使用 NetApp Console 在 Azure 中部署 Cloud Volumes ONTAP。
 [%collapsible%open]
 ====
-* 在 Azure 中安装连接器。参考说明 https://docs.netapp.com/us-en/bluexp-setup-admin/task-install-connector-azure-bluexp.html["此处"]。
-* 使用连接器在 Azure 中部署 CVO 实例。请参阅说明链接： https://docs.netapp.com/us-en/bluexp-cloud-volumes-ontap/task-getting-started-azure.html [此处。]
+* 在 Azure 中安装 NetApp Console 代理。请参见说明 https://docs.netapp.com/us-en/console-setup-admin/task-install-agent-azure-console.html["此处"]。
+* 使用代理在 Azure 中部署 CVO 实例。请参阅说明link:https://docs.netapp.com/us-en/storage-management-cloud-volumes-ontap/task-getting-started-azure.html["此处"]。
 
 
 ====

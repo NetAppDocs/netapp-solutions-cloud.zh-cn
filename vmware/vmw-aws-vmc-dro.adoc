@@ -56,11 +56,11 @@ Amazon FSx ONTAP是一项完全托管的服务，它基于流行的NetApp ONTAP�
 [[deploy-and-configure-snapmirror-to-fsx-ontap]]
 === 部署并配置SnapMirror到 FSx ONTAP
 
-下一步是使用NetApp BlueXP并发现 AWS 实例上配置的 FSx ONTAP ，并以适当的频率和NetApp Snapshot 副本保留将所需的数据存储卷从本地环境复制到 FSx ONTAP ：
+下一步是使用 NetApp Console 发现 AWS 实例上配置的 FSx ONTAP，并以适当的频率和 NetApp Snapshot 副本保留，将所需的数据存储卷从本地环境复制到 FSx ONTAP：
 
-image:dro-vmc-002.png["该图描绘了BlueXP Canvas 关系图，显示了启用的服务之间的各种交互。"]
+image:dro-vmc-002.png["此图描绘了显示已启用服务之间的各种交互的系统关系图。"]
 
-按照此链接中的步骤配置BlueXP。您还可以使用NetApp ONTAP CLI 通过此链接安排复制。
+请按照此链接中的步骤配置 DRO。您还可以使用 NetApp ONTAP 命令行界面按照此链接安排复制。
 
 
 NOTE: SnapMirror关系是先决条件，必须事先创建。
@@ -273,7 +273,7 @@ image:dro-vmc-018.png["复制计划概述的屏幕截图，下拉菜单包含反
 
 image:dro-vmc-020.png["复制计划概述的屏幕截图，下拉菜单包含故障回复选项。"] image:dro-vmc-021.png["DRO 摘要页面的屏幕截图，其中原始生产站点已启动并运行。"]
 
-从NetApp BlueXP中，我们可以看到相应卷（作为读写卷映射到 VMC 的卷）的复制健康状况已中断。在测试故障转移期间，DRO 不会映射目标卷或副本卷。相反，它会创建所需SnapMirror （或 Snapshot）实例的FlexClone副本并公开该FlexClone实例，这样就不会消耗 FSx ONTAP的额外物理容量。此过程可确保卷不会被修改，并且即使在 DR 测试或分类工作流程期间，复制作业也可以继续。此外，此过程可确保如果发生错误或恢复损坏的数据，则可以清理恢复，而不会有副本被破坏的风险。
+从 NetApp Console 中，我们可以看到相应卷（映射到 VMC 作为读写卷的卷）的复制运行状况已中断。在测试故障转移期间，DRO 不会映射目标卷或副本卷。而是对所需的 SnapMirror（或 Snapshot）实例创建 FlexClone 副本，并公开 FlexClone 实例，该实例不会占用 FSx ONTAP 的额外物理容量。此过程可确保卷不被修改，即使在 DR 测试或分类工作流期间，副本作业也能继续运行。此外，此过程还可确保在发生错误或恢复损坏数据时，可以清理恢复操作，而不会有副本遭到销毁的风险。
 
 image:dro-vmc-022.png["临时占位符图像描述。"]
 

@@ -14,7 +14,7 @@ summary:
 
 
 [role="lead"]
-该解决方案使用 OpenShift 容器平台 (OCP)、OpenShift 高级集群管理器 (ACM)、NetApp ONTAP、NetApp BlueXP 和 NetApp Trident Protect 测试和验证迁移和集中式数据保护。
+该解决方案使用 OpenShift 容器平台（OCP）、OpenShift 高级集群管理器（ACM）、NetApp ONTAP、NetApp Console 和 NetApp Trident Protect 测试和验证迁移和集中式数据保护。
 
 对于此解决方案， NetApp已测试并验证了以下场景。该解决方案根据以下特点分为多个场景：
 
@@ -70,7 +70,7 @@ image:rhhc-self-managed-aws.png["该图显示输入/输出对话框或表示书�
 
 **本地：自管理 OpenShift 集群和自管理存储** **AWS 云：提供商管理的 OpenShift 集群 (ROSA) 和提供商管理的存储 (FSx ONTAP)**
 
-* 使用BlueXP执行持久卷的复制（FSx ONTAP）。
+* 使用 NetApp Console，执行持久卷（FSx ONTAP）的复制。
 * 使用 OpenShift GitOps 重新创建应用程序元数据。
 
 
